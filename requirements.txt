@@ -1,0 +1,5 @@
+pygame==2.1.0
+threading
+customtkinter==4.5.10
+tkinter
+demucs==3.0.4

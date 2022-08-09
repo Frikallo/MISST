@@ -1,4 +1,4 @@
 #Spotify Playlist (mp3's)
-resources-songs/*
+src/resources-songs/*
 #Seperated tracks
-separated/*
+src/separated/*
