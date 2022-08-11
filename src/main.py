@@ -5,6 +5,7 @@ import tkinter
 from tkinter import filedialog
 import os
 import time
+
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 pygame.mixer.init()
@@ -30,7 +31,7 @@ customtkinter.set_default_color_theme("blue")
 app = customtkinter.CTk()
 app.title("SUCK MY NUTS KANYE")
 app.iconbitmap(r"./icon.ico")
-app.geometry("600x290")
+app.geometry("580x360")
 
 check_var1 = tkinter.StringVar(value="on")
 check_var2 = tkinter.StringVar(value="on")
@@ -96,9 +97,10 @@ def button_event3():
     label2.configure(text=" ")
     global folder
     folder = filedialog.askdirectory()
-    left_button1.destroy()
-    left_button2.destroy()
-    frame_info = customtkinter.CTkFrame(master=frame_left, width=150, height=175)
+    optionmenu_1.destroy()
+    label_mode.destroy()
+    left_label_1.destroy()
+    frame_info = customtkinter.CTkFrame(master=frame_left, width=150, height=265, corner_radius=8)
     frame_info.place(relx=0.5, rely=0.05, anchor=tkinter.N)
     n = 0
     songs = []
@@ -109,7 +111,7 @@ def button_event3():
         songs.append(f"{n}. {file}")
         song_names_valid += f"{file}\n"
 
-    info_songs = customtkinter.CTkTextbox(master=frame_info, width=150, height=175)
+    info_songs = customtkinter.CTkTextbox(master=frame_info, width=150, height=260)
     info_songs.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
 
     info_songs.insert(tkinter.END, "\n\n".join(songs))
@@ -196,11 +198,18 @@ def pp_playlist():
         i = f"{songs_path}/{i}"
         if i.endswith(".mp3"):
             os.system(f'python3 -m demucs "{os.path.abspath(i)}"')
+    end = time.time() - start
+    print(f"Time taken: {end/60}")
     status_label.configure(text=f"Done! Separated songs can be found in ./separated")
 
 
 def dl_playlist(url):
+    global start
+    start = time.time()
     playlist_name = url.split("/")[-1]
+    playlist_name = playlist_name.split("?")[0]
+    playlist_name = playlist_name.split(".")[0]
+    playlist_name = playlist_name.replace("=", "")
     os.mkdir(f"./songs_from_{playlist_name}")
     os.chdir(f"./songs_from_{playlist_name}")
     os.system(f"python -m spotdl {url}")
@@ -269,63 +278,92 @@ def slider_event(value):
 
 def checkbox_event():
     if checkbox1.get() == "on":
-        bass.set_volume(1)
+        bass.set_volume(slider1.get())
     else:
-        bass.set_volume(0)
+        slider1.set(0)
+        bass.set_volume(slider1.get())
     if checkbox2.get() == "on":
-        drums.set_volume(1)
+        drums.set_volume(slider2.get())
     else:
-        drums.set_volume(0)
+        slider2.set(0)
+        drums.set_volume(slider2.get())
     if checkbox3.get() == "on":
-        other.set_volume(1)
+        other.set_volume(slider3.get())
     else:
-        other.set_volume(0)
+        slider3.set(0)
+        other.set_volume(slider3.get())
     if checkbox4.get() == "on":
-        vocals.set_volume(1)
+        vocals.set_volume(slider4.get())
     else:
-        vocals.set_volume(0)
+        slider4.set(0)
+        vocals.set_volume(slider4.get())
 
 
-frame = customtkinter.CTkFrame(master=app, width=350, height=250, corner_radius=8)
-frame.place(relx=0.95, rely=0.5, anchor=tkinter.E)
+frame = customtkinter.CTkFrame(master=app, width=350, height=225, corner_radius=8)
+frame.place(relx=0.95, rely=0.35, anchor=tkinter.E)
 
-frame_left = customtkinter.CTkFrame(master=app, width=175, height=250, corner_radius=8)
-frame_left.place(relx=0.05, rely=0.5, anchor=tkinter.W)
+option_frame = customtkinter.CTkFrame(master=app, width=350, height=100, corner_radius=8)
+option_frame.place(relx=0.95, rely=0.82, anchor=tkinter.E)
 
-left_button1 = customtkinter.CTkButton(
-    master=frame_left,
-    text="Import Separated Playlist",
-    corner_radius=8,
-    command=button_event3,
+frame_left = customtkinter.CTkFrame(master=app, width=175, height=370, corner_radius=8)
+frame_left.place(relx=0, rely=0.5, anchor=tkinter.W)
+
+left_label_1 = customtkinter.CTkLabel(
+    master=frame_left, text="StemPlayer", text_font=("Roboto Medium", -16)
 )
-left_button1.place(relx=0.5, rely=0.4, anchor=tkinter.CENTER)
+left_label_1.place(relx=0.5, rely=0.1, anchor=tkinter.CENTER)
 
-left_button2 = customtkinter.CTkButton(
+label_mode = customtkinter.CTkLabel(master=frame_left, text="Appearance Mode:")
+label_mode.place(relx=0.5, rely=0.8, anchor=tkinter.CENTER)
+
+optionmenu_1 = customtkinter.CTkOptionMenu(
     master=frame_left,
-    text="Import New Playlist",
-    corner_radius=8,
-    command=button_event5,
-    width=165,
+    values=["System", "Dark", "Light"],
+    command=customtkinter.set_appearance_mode,
 )
-left_button2.place(relx=0.5, rely=0.6, anchor=tkinter.CENTER)
+optionmenu_1.place(relx=0.5, rely=0.9, anchor=tkinter.CENTER)
+
+button1 = customtkinter.CTkButton(
+    master=option_frame, text="Import Playlist", corner_radius=8, command=button_event3, width=140, height=28
+)
+
+button2 = customtkinter.CTkButton(
+    master=option_frame, text="Import New Playlist", corner_radius=8, command=button_event5, width=140, height=28
+)
+
+button3 = customtkinter.CTkButton(
+    master=option_frame, text="Import New Song", corner_radius=8, command=button_event1, width=140, height=28
+)
+
+button4 = customtkinter.CTkButton(
+    master=option_frame, text="Import Song", corner_radius=8, command=button_event2, width=140, height=28
+)
+
+button_optionlabel = customtkinter.CTkLabel(master=option_frame, text="Options:")
+
+button_optionlabel.place(relx=0.5, rely=0.2, anchor=tkinter.CENTER)
+button1.place(relx=0.29, rely=0.8, anchor=tkinter.CENTER)
+button2.place(relx=0.71, rely=0.8, anchor=tkinter.CENTER)
+button3.place(relx=0.71, rely=0.5, anchor=tkinter.CENTER)
+button4.place(relx=0.29, rely=0.5, anchor=tkinter.CENTER)
 
 global label2
 label2 = customtkinter.CTkLabel(
     master=frame, text=f" ", width=240, height=50, corner_radius=1
 )
-label2.place(relx=0.5, rely=1, anchor=tkinter.S)
+label2.place(relx=0.5, rely=1.02, anchor=tkinter.S)
 
-slider1 = customtkinter.CTkSlider(master=frame, from_=0, to=1, command=slider_event)
-slider1.place(relx=0.6, rely=0.3, anchor=tkinter.CENTER)
+slider1 = customtkinter.CTkSlider(master=frame, from_=0, to=1, command=slider_event, number_of_steps=10)
+slider1.place(relx=0.6, rely=0.35, anchor=tkinter.CENTER)
 
-slider2 = customtkinter.CTkSlider(master=frame, from_=0, to=1, command=slider_event)
-slider2.place(relx=0.6, rely=0.4, anchor=tkinter.CENTER)
+slider2 = customtkinter.CTkSlider(master=frame, from_=0, to=1, command=slider_event, number_of_steps=10)
+slider2.place(relx=0.6, rely=0.5, anchor=tkinter.CENTER)
 
-slider3 = customtkinter.CTkSlider(master=frame, from_=0, to=1, command=slider_event)
-slider3.place(relx=0.6, rely=0.5, anchor=tkinter.CENTER)
+slider3 = customtkinter.CTkSlider(master=frame, from_=0, to=1, command=slider_event, number_of_steps=10)
+slider3.place(relx=0.6, rely=0.65, anchor=tkinter.CENTER)
 
-slider4 = customtkinter.CTkSlider(master=frame, from_=0, to=1, command=slider_event)
-slider4.place(relx=0.6, rely=0.6, anchor=tkinter.CENTER)
+slider4 = customtkinter.CTkSlider(master=frame, from_=0, to=1, command=slider_event, number_of_steps=10)
+slider4.place(relx=0.6, rely=0.8, anchor=tkinter.CENTER)
 
 sources = customtkinter.CTkLabel(master=frame, text=f"sources", width=240, height=50,)
 sources.place(relx=-0.15, rely=0.15, anchor=tkinter.W)
@@ -342,7 +380,7 @@ checkbox1 = customtkinter.CTkCheckBox(
     onvalue="on",
     offvalue="off",
 )
-checkbox1.place(relx=0.1, rely=0.3, anchor=tkinter.W)
+checkbox1.place(relx=0.1, rely=0.35, anchor=tkinter.W)
 
 checkbox2 = customtkinter.CTkCheckBox(
     master=frame,
@@ -352,7 +390,7 @@ checkbox2 = customtkinter.CTkCheckBox(
     onvalue="on",
     offvalue="off",
 )
-checkbox2.place(relx=0.1, rely=0.4, anchor=tkinter.W)
+checkbox2.place(relx=0.1, rely=0.5, anchor=tkinter.W)
 
 checkbox3 = customtkinter.CTkCheckBox(
     master=frame,
@@ -362,7 +400,7 @@ checkbox3 = customtkinter.CTkCheckBox(
     onvalue="on",
     offvalue="off",
 )
-checkbox3.place(relx=0.1, rely=0.5, anchor=tkinter.W)
+checkbox3.place(relx=0.1, rely=0.65, anchor=tkinter.W)
 
 checkbox4 = customtkinter.CTkCheckBox(
     master=frame,
@@ -372,16 +410,6 @@ checkbox4 = customtkinter.CTkCheckBox(
     onvalue="on",
     offvalue="off",
 )
-checkbox4.place(relx=0.1, rely=0.6, anchor=tkinter.W)
-
-button = customtkinter.CTkButton(
-    master=frame, text="Import New Song", command=button_event1, width=50
-)
-button.place(relx=0.7, rely=0.8, anchor=tkinter.CENTER)
-
-button = customtkinter.CTkButton(
-    master=frame, text="Import Seperated Song", command=button_event2, width=50
-)
-button.place(relx=0.3, rely=0.8, anchor=tkinter.CENTER)
+checkbox4.place(relx=0.1, rely=0.8, anchor=tkinter.W)
 
 app.mainloop()
