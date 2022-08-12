@@ -5,12 +5,17 @@ import tkinter
 from tkinter import filedialog
 import os
 import time
+from pypresence import Presence
+import time
 
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 pygame.mixer.init()
 pygame.mixer.set_num_channels(10)
 
+client_id = '1007423253373001810'
+RPC = Presence(client_id)
+RPC.connect()
 
 def play_thread(sound, channel):
     thread = pygame.mixer.Sound(sound)
@@ -60,6 +65,7 @@ def preprocess_song():
     thread2.start()
     thread3.start()
     thread4.start()
+    RPC.update(large_image="kanye", start=start_time, large_text="SUCK MY NUTS KANYE", state="Listening to seperated audio", details=f"{song}")
 
 
 def button_event1():
@@ -91,6 +97,7 @@ def button_event2():
         text=f"{song}", width=240, height=50,
     )
     label.place(relx=0.6, rely=0.05, anchor=tkinter.N)
+    RPC.update(large_image="kanye", start=start_time, large_text="SUCK MY NUTS KANYE", state="Listening to seperated audio", details=f"{song}")
 
 
 def button_event3():
@@ -153,6 +160,7 @@ def button_event4():
         text=f"{song}", width=240, height=50,
     )
     label.place(relx=0.6, rely=0.05, anchor=tkinter.N)
+    RPC.update(large_image="kanye", start=start_time, large_text="SUCK MY NUTS KANYE", state="Listening to seperated audio", details=f"{song}")
 
 
 def button_event5():
@@ -411,5 +419,9 @@ checkbox4 = customtkinter.CTkCheckBox(
     offvalue="off",
 )
 checkbox4.place(relx=0.1, rely=0.8, anchor=tkinter.W)
+
+start_time=time.time()
+RPC.update(large_image="kanye", start=start_time, large_text="SUCK MY NUTS KANYE", state="Exploring The Client")
+#RPC.update(large_image="kanye", start=start_time, large_text="SUCK MY NUTS KANYE", state="exploring the client")
 
 app.mainloop()
