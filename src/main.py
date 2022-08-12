@@ -5,6 +5,7 @@ os.chdir(os.path.dirname(os.path.abspath(__file__)))
 import pygame
 import threading
 import customtkinter
+import sys
 import tkinter
 from tkinter import filedialog
 import os
@@ -15,9 +16,13 @@ import time
 pygame.mixer.init()
 pygame.mixer.set_num_channels(10)
 
-client_id = '1007423253373001810'
+client_id = "1007423253373001810"
 RPC = Presence(client_id)
-RPC.connect()
+try:
+    RPC.connect()
+except:
+    print("RPC connection failed")
+
 
 def play_thread(sound, channel):
     thread = pygame.mixer.Sound(sound)
@@ -67,7 +72,16 @@ def preprocess_song():
     thread2.start()
     thread3.start()
     thread4.start()
-    RPC.update(large_image="kanye", start=start_time, large_text="SUCK MY NUTS KANYE", state="Listening to seperated audio", details=f"{song}")
+    try:
+        RPC.update(
+            large_image="kanye",
+            start=start_time,
+            large_text="SUCK MY NUTS KANYE",
+            state="Listening to seperated audio",
+            details=f"{song}",
+        )
+    except:
+        pass
 
 
 def button_event1():
@@ -77,6 +91,8 @@ def button_event1():
         filetypes=(("Audio Files (*.mp3)", ".mp3"), ("All Files", "*.*"))
     )
     print(abspath_song)
+    if abspath_song == "":
+        return
     label2.configure(text=f"Preprocessing... Can take 10-15 seconds")
     thread = threading.Thread(target=preprocess_song)
     thread.start()
@@ -86,6 +102,8 @@ def button_event2():
     # preseparated_song
     label2.configure(text=" ")
     varpath = filedialog.askdirectory()
+    if varpath == "":
+        return
     thread1 = threading.Thread(target=play_thread, args=(f"{varpath}/bass.wav", 0))  #
     thread2 = threading.Thread(target=play_thread, args=(f"{varpath}/drums.wav", 1))  #
     thread3 = threading.Thread(target=play_thread, args=(f"{varpath}/other.wav", 2))  #
@@ -99,17 +117,39 @@ def button_event2():
         text=f"{song}", width=240, height=50,
     )
     label.place(relx=0.6, rely=0.05, anchor=tkinter.N)
-    RPC.update(large_image="kanye", start=start_time, large_text="SUCK MY NUTS KANYE", state="Listening to seperated audio", details=f"{song}")
+    try:
+        RPC.update(
+            large_image="kanye",
+            start=start_time,
+            large_text="SUCK MY NUTS KANYE",
+            state="Listening to seperated audio",
+            details=f"{song}",
+        )
+    except:
+        pass
 
 
 def button_event3():
+
+    global frame_left_copy
+    global frame_info
+    global info_songs
+    global input_box
+    global play_button
+    global back_button
+
     label2.configure(text=" ")
     global folder
     folder = filedialog.askdirectory()
-    optionmenu_1.destroy()
-    label_mode.destroy()
-    left_label_1.destroy()
-    frame_info = customtkinter.CTkFrame(master=frame_left, width=150, height=265, corner_radius=8)
+    if folder == "":
+        return
+    frame_left_copy = customtkinter.CTkFrame(
+        master=app, width=175, height=370, corner_radius=8
+    )
+    frame_left_copy.place(relx=0, rely=0.5, anchor=tkinter.W)
+    frame_info = customtkinter.CTkFrame(
+        master=frame_left_copy, width=150, height=265, corner_radius=8
+    )
     frame_info.place(relx=0.5, rely=0.05, anchor=tkinter.N)
     n = 0
     songs = []
@@ -127,14 +167,22 @@ def button_event3():
 
     global input_box
     input_box = customtkinter.CTkEntry(
-        master=frame_left, width=150, height=25, placeholder_text="Enter index of song"
+        master=frame_left_copy,
+        width=150,
+        height=25,
+        placeholder_text="Enter index of song",
     )
     input_box.place(relx=0.5, rely=0.85, anchor=tkinter.S)
 
     play_button = customtkinter.CTkButton(
-        master=frame_left, text="Play", width=150, height=25, command=button_event4
+        master=frame_left_copy, text="Play", width=100, height=25, command=button_event4
     )
-    play_button.place(relx=0.5, rely=0.95, anchor=tkinter.S)
+    play_button.place(relx=0.65, rely=0.95, anchor=tkinter.S)
+
+    back_button = customtkinter.CTkButton(
+        master=frame_left_copy, text="<--", width=50, height=25, command=button_event8
+    )
+    back_button.place(relx=0.21, rely=0.95, anchor=tkinter.S)
 
 
 def button_event4():
@@ -162,7 +210,16 @@ def button_event4():
         text=f"{song}", width=240, height=50,
     )
     label.place(relx=0.6, rely=0.05, anchor=tkinter.N)
-    RPC.update(large_image="kanye", start=start_time, large_text="SUCK MY NUTS KANYE", state="Listening to seperated audio", details=f"{song}")
+    try:
+        RPC.update(
+            large_image="kanye",
+            start=start_time,
+            large_text="SUCK MY NUTS KANYE",
+            state="Listening to seperated audio",
+            details=f"{song}",
+        )
+    except:
+        pass
 
 
 def button_event5():
@@ -256,6 +313,8 @@ def pp_folder():
 
 def button_event7():
     folder = filedialog.askdirectory()
+    if folder == "":
+        return
     global songs_path
     songs_path = os.path.abspath(folder)
     print(songs_path)
@@ -269,6 +328,15 @@ def button_event7():
     status_label.place(relx=0.5, rely=0.9, anchor=tkinter.CENTER)
     threadpp = threading.Thread(target=pp_folder)
     threadpp.start()
+
+
+def button_event8():
+    frame_left_copy.destroy()
+    frame_info.destroy()
+    info_songs.destroy()
+    input_box.destroy()
+    play_button.destroy()
+    back_button.destroy()
 
 
 def slider_event(value):
@@ -312,7 +380,9 @@ def checkbox_event():
 frame = customtkinter.CTkFrame(master=app, width=350, height=225, corner_radius=8)
 frame.place(relx=0.95, rely=0.35, anchor=tkinter.E)
 
-option_frame = customtkinter.CTkFrame(master=app, width=350, height=100, corner_radius=8)
+option_frame = customtkinter.CTkFrame(
+    master=app, width=350, height=100, corner_radius=8
+)
 option_frame.place(relx=0.95, rely=0.82, anchor=tkinter.E)
 
 frame_left = customtkinter.CTkFrame(master=app, width=175, height=370, corner_radius=8)
@@ -334,19 +404,39 @@ optionmenu_1 = customtkinter.CTkOptionMenu(
 optionmenu_1.place(relx=0.5, rely=0.9, anchor=tkinter.CENTER)
 
 button1 = customtkinter.CTkButton(
-    master=option_frame, text="Import Playlist", corner_radius=8, command=button_event3, width=140, height=28
+    master=option_frame,
+    text="Import Playlist",
+    corner_radius=8,
+    command=button_event3,
+    width=140,
+    height=28,
 )
 
 button2 = customtkinter.CTkButton(
-    master=option_frame, text="Import New Playlist", corner_radius=8, command=button_event5, width=140, height=28
+    master=option_frame,
+    text="Import New Playlist",
+    corner_radius=8,
+    command=button_event5,
+    width=140,
+    height=28,
 )
 
 button3 = customtkinter.CTkButton(
-    master=option_frame, text="Import New Song", corner_radius=8, command=button_event1, width=140, height=28
+    master=option_frame,
+    text="Import New Song",
+    corner_radius=8,
+    command=button_event1,
+    width=140,
+    height=28,
 )
 
 button4 = customtkinter.CTkButton(
-    master=option_frame, text="Import Song", corner_radius=8, command=button_event2, width=140, height=28
+    master=option_frame,
+    text="Import Song",
+    corner_radius=8,
+    command=button_event2,
+    width=140,
+    height=28,
 )
 
 button_optionlabel = customtkinter.CTkLabel(master=option_frame, text="Options:")
@@ -363,16 +453,24 @@ label2 = customtkinter.CTkLabel(
 )
 label2.place(relx=0.5, rely=1.02, anchor=tkinter.S)
 
-slider1 = customtkinter.CTkSlider(master=frame, from_=0, to=1, command=slider_event, number_of_steps=10)
+slider1 = customtkinter.CTkSlider(
+    master=frame, from_=0, to=1, command=slider_event, number_of_steps=10
+)
 slider1.place(relx=0.6, rely=0.35, anchor=tkinter.CENTER)
 
-slider2 = customtkinter.CTkSlider(master=frame, from_=0, to=1, command=slider_event, number_of_steps=10)
+slider2 = customtkinter.CTkSlider(
+    master=frame, from_=0, to=1, command=slider_event, number_of_steps=10
+)
 slider2.place(relx=0.6, rely=0.5, anchor=tkinter.CENTER)
 
-slider3 = customtkinter.CTkSlider(master=frame, from_=0, to=1, command=slider_event, number_of_steps=10)
+slider3 = customtkinter.CTkSlider(
+    master=frame, from_=0, to=1, command=slider_event, number_of_steps=10
+)
 slider3.place(relx=0.6, rely=0.65, anchor=tkinter.CENTER)
 
-slider4 = customtkinter.CTkSlider(master=frame, from_=0, to=1, command=slider_event, number_of_steps=10)
+slider4 = customtkinter.CTkSlider(
+    master=frame, from_=0, to=1, command=slider_event, number_of_steps=10
+)
 slider4.place(relx=0.6, rely=0.8, anchor=tkinter.CENTER)
 
 sources = customtkinter.CTkLabel(master=frame, text=f"sources", width=240, height=50,)
@@ -422,8 +520,30 @@ checkbox4 = customtkinter.CTkCheckBox(
 )
 checkbox4.place(relx=0.1, rely=0.8, anchor=tkinter.W)
 
-start_time=time.time()
-RPC.update(large_image="kanye", start=start_time, large_text="SUCK MY NUTS KANYE", state="Exploring The Client")
-#RPC.update(large_image="kanye", start=start_time, large_text="SUCK MY NUTS KANYE", state="exploring the client")
+start_time = time.time()
+try:
+    RPC.update(
+        large_image="kanye",
+        start=start_time,
+        large_text="SUCK MY NUTS KANYE",
+        state="Exploring The Client",
+    )
+except:
+    pass
+
+
+def check():
+    while True:
+        time.sleep(1)
+        try:
+            state = app.state()
+        except:
+            print("error")
+            # sys.exit(1)
+            os._exit(1)
+
+
+check_thread = threading.Thread(target=check)
+check_thread.start()
 
 app.mainloop()

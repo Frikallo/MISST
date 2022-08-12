@@ -4,3 +4,4 @@ src/resources-songs/*
 src/separated/*
 #install libs
 install-files
+win32Install.zip
