@@ -1,3 +1,7 @@
+import os
+
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
+
 import pygame
 import threading
 import customtkinter
@@ -7,8 +11,6 @@ import os
 import time
 from pypresence import Presence
 import time
-
-os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 pygame.mixer.init()
 pygame.mixer.set_num_channels(10)

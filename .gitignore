@@ -2,3 +2,5 @@
 src/resources-songs/*
 #Seperated tracks
 src/separated/*
+#install libs
+install-files
