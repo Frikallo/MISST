@@ -1,17 +1,23 @@
 import os
+from sre_parse import State
 
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 import pygame
 import threading
 import customtkinter
-import sys
 import tkinter
 from tkinter import filedialog
 import os
 import time
 from pypresence import Presence
 import time
+import nest_asyncio
+
+nest_asyncio.apply()
+import gc
+
+gc.enable()
 
 pygame.mixer.init()
 pygame.mixer.set_num_channels(10)
@@ -20,6 +26,7 @@ client_id = "1007423253373001810"
 RPC = Presence(client_id)
 try:
     RPC.connect()
+    print("Connected to Discord")
 except:
     print("RPC connection failed")
 
@@ -28,8 +35,23 @@ def play_thread(sound, channel):
     thread = pygame.mixer.Sound(sound)
     while True:
         pygame.mixer.Channel(channel).play(thread)
+        del thread
+        gc.collect()
         while pygame.mixer.get_busy():
             pygame.time.delay(100)
+            if pygame.mixer.Channel(channel).get_busy() == False:
+                print("done")
+                label.configure(text="(song name)")
+                try:
+                    RPC.update(
+                        large_image="kanye",
+                        start=start_time,
+                        large_text="SUCK MY NUTS KANYE",
+                        state="Exploring The Client",
+                    )
+                except:
+                    return
+                return
 
 
 bass = pygame.mixer.Channel(0)
@@ -82,9 +104,127 @@ def preprocess_song():
         )
     except:
         pass
+    if window:
+        window.destroy()
+    del song
+    del thread1
+    del thread2
+    del thread3
+    del thread4
+    gc.collect
 
 
 def button_event1():
+    global window
+    window = customtkinter.CTkToplevel(app)
+    window.geometry("400x200")
+    window.title("SUCK MY NUTS KANYE")
+    window.iconbitmap(r"./icon.ico")
+
+    global playlist_frame
+    playlist_frame = customtkinter.CTkFrame(window, width=350, height=150)
+    playlist_frame.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
+
+    playlist_button1 = customtkinter.CTkButton(
+        master=playlist_frame,
+        text="Import from Spotify",
+        width=150,
+        height=25,
+        command=isong_1,
+    )
+    playlist_button1.place(relx=0.23, rely=0.45, anchor=tkinter.CENTER)
+
+    global playlist_input1
+    playlist_input1 = customtkinter.CTkEntry(
+        master=playlist_frame, width=150, height=25, placeholder_text="Enter song url",
+    )
+    playlist_input1.place(relx=0.23, rely=0.65, anchor=tkinter.CENTER)
+
+    playlist_button2 = customtkinter.CTkButton(
+        master=playlist_frame,
+        text="Import from .mp3",
+        width=150,
+        height=25,
+        command=isong_2,
+    )
+    playlist_button2.place(relx=0.72, rely=0.5, anchor=tkinter.CENTER)
+
+    global status_label
+    status_label = customtkinter.CTkLabel(
+        master=playlist_frame, text=" ", width=150, height=25
+    )
+    status_label.place(relx=0.5, rely=0.9, anchor=tkinter.CENTER)
+
+
+def download_pp_song(url):
+    os.mkdir("./dl-songs")
+    try:
+        os.system(f"python -m spotdl {url} -o ./dl-songs")
+    except:
+        print("Download failed")
+        status_label.configure(text=f"Link is invalid")
+        return
+    status_label.configure(text=f"Preprocessing... Can take 10-15 seconds")
+    for i in os.listdir("./dl-songs"):
+        if i.endswith(".mp3"):
+            abspath_song = os.path.join("./dl-songs", i)
+            break
+    os.system(f'python3 -m demucs "{abspath_song}"')
+    for i in os.listdir("./dl-songs"):
+        os.remove(os.path.join("./dl-songs", i))
+    os.rmdir("./dl-songs")
+    label2.configure(text="Playing...")
+    song = os.path.basename(abspath_song).replace(".mp3", "")
+    label.configure(text=f"{song}", width=240, height=50)
+    thread1 = threading.Thread(
+        target=play_thread, args=(f"./separated/mdx_extra_q/{song}/bass.wav", 0)
+    )  #
+    thread2 = threading.Thread(
+        target=play_thread, args=(f"./separated/mdx_extra_q/{song}/drums.wav", 1)
+    )  #
+    thread3 = threading.Thread(
+        target=play_thread, args=(f"./separated/mdx_extra_q/{song}/other.wav", 2)
+    )  #
+    thread4 = threading.Thread(
+        target=play_thread, args=(f"./separated/mdx_extra_q/{song}/vocals.wav", 3)
+    )  #
+    thread1.start()
+    thread2.start()
+    thread3.start()
+    thread4.start()
+    try:
+        RPC.update(
+            large_image="kanye",
+            start=start_time,
+            large_text="SUCK MY NUTS KANYE",
+            state="Listening to seperated audio",
+            details=f"{song}",
+        )
+    except:
+        pass
+    window.destroy()
+    del thread1
+    del thread2
+    del thread3
+    del thread4
+    del song
+    del i
+    gc.collect
+
+
+def isong_1():
+    url = playlist_input1.get()
+    if url == "":
+        return
+    if not url.startswith("https://open.spotify.com/track/"):
+        status_label.configure(text=f"Invalid url")
+        return
+    status_label.configure(text=f"Downloading... Can take 5-10 seconds")
+    thread = threading.Thread(target=download_pp_song, args=(url,))
+    thread.start()
+
+
+def isong_2():
     # unseperated_song
     global abspath_song
     abspath_song = filedialog.askopenfilename(
@@ -148,10 +288,11 @@ def button_event3():
     )
     frame_left_copy.place(relx=0, rely=0.5, anchor=tkinter.W)
     frame_info = customtkinter.CTkFrame(
-        master=frame_left_copy, width=150, height=265, corner_radius=8
+        master=frame_left_copy, width=150, height=245, corner_radius=8
     )
-    frame_info.place(relx=0.5, rely=0.05, anchor=tkinter.N)
+    frame_info.place(relx=0.5, rely=0.13, anchor=tkinter.N)
     n = 0
+    global songs
     songs = []
     global song_names_valid
     song_names_valid = ""
@@ -160,7 +301,8 @@ def button_event3():
         songs.append(f"{n}. {file}")
         song_names_valid += f"{file}\n"
 
-    info_songs = customtkinter.CTkTextbox(master=frame_info, width=150, height=260)
+    global info_songs
+    info_songs = customtkinter.CTkTextbox(master=frame_info, width=150, height=240)
     info_songs.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
 
     info_songs.insert(tkinter.END, "\n\n".join(songs))
@@ -172,7 +314,16 @@ def button_event3():
         height=25,
         placeholder_text="Enter index of song",
     )
-    input_box.place(relx=0.5, rely=0.85, anchor=tkinter.S)
+    input_box.place(relx=0.5, rely=0.87, anchor=tkinter.S)
+
+    global search_entry
+    search_entry = customtkinter.CTkEntry(
+        master=frame_left_copy,
+        width=150,
+        height=25,
+        placeholder_text="Search for song",
+    )
+    search_entry.place(relx=0.5, rely=0.05, anchor=tkinter.N)
 
     play_button = customtkinter.CTkButton(
         master=frame_left_copy, text="Play", width=100, height=25, command=button_event4
@@ -268,6 +419,9 @@ def pp_playlist():
     end = time.time() - start
     print(f"Time taken: {end/60}")
     status_label.configure(text=f"Done! Separated songs can be found in ./separated")
+    del end  # delete end to prevent memory leak
+    del i  # delete i to prevent memory leak
+    gc.collect()  # garbage collection
 
 
 def dl_playlist(url):
@@ -289,6 +443,11 @@ def dl_playlist(url):
     songs_path = os.path.abspath(f"./songs_from_{playlist_name}")
     threadpp = threading.Thread(target=pp_playlist)
     threadpp.start()
+    del threadpp  # delete threadpp to prevent memory leak
+    del songs_path
+    del playlist_name
+    del start
+    gc.collect()  # garbage collection
 
 
 def button_event6():
@@ -309,6 +468,8 @@ def pp_folder():
         if i.endswith(".mp3"):
             os.system(f'python3 -m demucs "{os.path.abspath(i)}"')
     status_label.configure(text=f"Done! Separated songs can be found in ./separated")
+    del i  # delete i to prevent memory leak
+    gc.collect()  # garbage collection
 
 
 def button_event7():
@@ -520,6 +681,7 @@ checkbox4 = customtkinter.CTkCheckBox(
 )
 checkbox4.place(relx=0.1, rely=0.8, anchor=tkinter.W)
 
+
 start_time = time.time()
 try:
     RPC.update(
@@ -532,9 +694,38 @@ except:
     pass
 
 
-def check():
+def to_int(string):
+    l = []
+    m = []
+    for i in string:
+        l.append(ord(i))
+    for i in l:
+        m.append(int(bin(i)[2:]))
+    result = 0
+    for i in m:
+        result += i
+    return result
+
+
+def checks():
+    entry_val = 0
     while True:
         time.sleep(1)
+        try:
+            found_songs = []
+            for i in songs:
+                if search_entry.get().lower() in i.lower():
+                    found_songs.append(i)
+            if entry_val != to_int(search_entry.get()):
+                entry_val -= entry_val
+                info_songs = customtkinter.CTkTextbox(
+                    master=frame_info, width=150, height=240
+                )
+                info_songs.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
+                info_songs.insert(tkinter.END, "\n\n".join(found_songs))
+                entry_val += to_int(search_entry.get())
+        except:
+            pass
         try:
             state = app.state()
         except:
@@ -543,7 +734,7 @@ def check():
             os._exit(1)
 
 
-check_thread = threading.Thread(target=check)
+check_thread = threading.Thread(target=checks)
 check_thread.start()
 
 app.mainloop()
