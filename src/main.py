@@ -1,9 +1,9 @@
 import os
-from sre_parse import State
-
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 import pygame
+import datetime
+from scipy.io import wavfile
 import threading
 import customtkinter
 import tkinter
@@ -32,26 +32,60 @@ except:
 
 
 def play_thread(sound, channel):
+    timestamp = 0
     thread = pygame.mixer.Sound(sound)
+    sample_rate, audio_data = wavfile.read(sound)
+    duration = audio_data.shape[0] / sample_rate
+    progressbar = customtkinter.CTkProgressBar(
+        master=timestamp_frame, width=225, height=10
+    )
+    progressbar.place(relx=0.5, rely=0.7, anchor=tkinter.CENTER)
+    progressbar.set(0)
+    progress_label_left = customtkinter.CTkLabel(
+        master=timestamp_frame, text="0:00", text_font=("Roboto Medium", -12), width=50
+    )
+    progress_label_left.place(relx=0.1, rely=0.7, anchor=tkinter.CENTER)
+    progress_label_right = customtkinter.CTkLabel(
+        master=timestamp_frame, text="0:00", text_font=("Roboto Medium", -12), width=50
+    )
+    progress_label_right.place(relx=0.9, rely=0.7, anchor=tkinter.CENTER)
     while True:
-        pygame.mixer.Channel(channel).play(thread)
-        del thread
-        gc.collect()
+        try:
+            pygame.mixer.Channel(channel).play(thread)
+            del thread
+            gc.collect()
+        except:
+            print("done")
+            label.configure(text="(song name)")
+            progressbar.set(0)
+            progress_label_left.configure(text="0:00")
+            progress_label_right.configure(text="0:00")
+            try:
+                RPC.update(
+                    large_image="kanye",
+                    start=start_time,
+                    large_text="SUCK MY NUTS KANYE",
+                    state="Exploring The Client",
+                )
+            except:
+                return
+            return
         while pygame.mixer.get_busy():
             pygame.time.delay(100)
-            if pygame.mixer.Channel(channel).get_busy() == False:
-                print("done")
-                label.configure(text="(song name)")
+            if pygame.mixer.Channel(channel).get_busy() == True:
                 try:
-                    RPC.update(
-                        large_image="kanye",
-                        start=start_time,
-                        large_text="SUCK MY NUTS KANYE",
-                        state="Exploring The Client",
-                    )
+                    time.sleep(1)
+                    timestamp += 1
+                    timestamp_percent = timestamp / duration
+                    progressbar.set(timestamp_percent)
+                    left = str(datetime.timedelta(seconds=int(timestamp)))
+                    left = left[2:]
+                    right = str(datetime.timedelta(seconds=int(duration - timestamp)))
+                    right = right[2:]
+                    progress_label_left.configure(text=left)
+                    progress_label_right.configure(text=right)
                 except:
                     return
-                return
 
 
 bass = pygame.mixer.Channel(0)
@@ -65,7 +99,8 @@ customtkinter.set_default_color_theme("blue")
 app = customtkinter.CTk()
 app.title("SUCK MY NUTS KANYE")
 app.iconbitmap(r"./icon.ico")
-app.geometry("580x360")
+geometry = "580x435"
+app.geometry(geometry)
 
 check_var1 = tkinter.StringVar(value="on")
 check_var2 = tkinter.StringVar(value="on")
@@ -253,10 +288,7 @@ def button_event2():
     thread3.start()
     thread4.start()
     song = os.path.basename(varpath)
-    label.configure(
-        text=f"{song}", width=240, height=50,
-    )
-    label.place(relx=0.6, rely=0.05, anchor=tkinter.N)
+    label.configure(text=f"{song}")
     try:
         RPC.update(
             large_image="kanye",
@@ -284,13 +316,13 @@ def button_event3():
     if folder == "":
         return
     frame_left_copy = customtkinter.CTkFrame(
-        master=app, width=175, height=370, corner_radius=8
+        master=app, width=175, height=445, corner_radius=8
     )
     frame_left_copy.place(relx=0, rely=0.5, anchor=tkinter.W)
     frame_info = customtkinter.CTkFrame(
-        master=frame_left_copy, width=150, height=245, corner_radius=8
+        master=frame_left_copy, width=150, height=320, corner_radius=8
     )
-    frame_info.place(relx=0.5, rely=0.13, anchor=tkinter.N)
+    frame_info.place(relx=0.5, rely=0.1, anchor=tkinter.N)
     n = 0
     global songs
     songs = []
@@ -302,7 +334,7 @@ def button_event3():
         song_names_valid += f"{file}\n"
 
     global info_songs
-    info_songs = customtkinter.CTkTextbox(master=frame_info, width=150, height=240)
+    info_songs = customtkinter.CTkTextbox(master=frame_info, width=150, height=310)
     info_songs.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
 
     info_songs.insert(tkinter.END, "\n\n".join(songs))
@@ -314,7 +346,7 @@ def button_event3():
         height=25,
         placeholder_text="Enter index of song",
     )
-    input_box.place(relx=0.5, rely=0.87, anchor=tkinter.S)
+    input_box.place(relx=0.5, rely=0.885, anchor=tkinter.S)
 
     global search_entry
     search_entry = customtkinter.CTkEntry(
@@ -323,7 +355,7 @@ def button_event3():
         height=25,
         placeholder_text="Search for song",
     )
-    search_entry.place(relx=0.5, rely=0.05, anchor=tkinter.N)
+    search_entry.place(relx=0.5, rely=0.035, anchor=tkinter.N)
 
     play_button = customtkinter.CTkButton(
         master=frame_left_copy, text="Play", width=100, height=25, command=button_event4
@@ -357,10 +389,7 @@ def button_event4():
     thread2.start()
     thread3.start()
     thread4.start()
-    label.configure(
-        text=f"{song}", width=240, height=50,
-    )
-    label.place(relx=0.6, rely=0.05, anchor=tkinter.N)
+    label.configure(text=f"{song}")
     try:
         RPC.update(
             large_image="kanye",
@@ -538,15 +567,20 @@ def checkbox_event():
         vocals.set_volume(slider4.get())
 
 
-frame = customtkinter.CTkFrame(master=app, width=350, height=225, corner_radius=8)
-frame.place(relx=0.95, rely=0.35, anchor=tkinter.E)
+frame = customtkinter.CTkFrame(master=app, width=350, height=200, corner_radius=8)
+frame.place(relx=0.95, rely=0.5, anchor=tkinter.E)
 
 option_frame = customtkinter.CTkFrame(
     master=app, width=350, height=100, corner_radius=8
 )
-option_frame.place(relx=0.95, rely=0.82, anchor=tkinter.E)
+option_frame.place(relx=0.95, rely=0.87, anchor=tkinter.E)
 
-frame_left = customtkinter.CTkFrame(master=app, width=175, height=370, corner_radius=8)
+timestamp_frame = customtkinter.CTkFrame(
+    master=app, width=350, height=100, corner_radius=8
+)
+timestamp_frame.place(relx=0.95, rely=0.13, anchor=tkinter.E)
+
+frame_left = customtkinter.CTkFrame(master=app, width=175, height=445, corner_radius=8)
 frame_left.place(relx=0, rely=0.5, anchor=tkinter.W)
 
 left_label_1 = customtkinter.CTkLabel(
@@ -617,29 +651,32 @@ label2.place(relx=0.5, rely=1.02, anchor=tkinter.S)
 slider1 = customtkinter.CTkSlider(
     master=frame, from_=0, to=1, command=slider_event, number_of_steps=10
 )
-slider1.place(relx=0.6, rely=0.35, anchor=tkinter.CENTER)
+slider1.place(relx=0.6, rely=0.3, anchor=tkinter.CENTER)
 
 slider2 = customtkinter.CTkSlider(
     master=frame, from_=0, to=1, command=slider_event, number_of_steps=10
 )
-slider2.place(relx=0.6, rely=0.5, anchor=tkinter.CENTER)
+slider2.place(relx=0.6, rely=0.45, anchor=tkinter.CENTER)
 
 slider3 = customtkinter.CTkSlider(
     master=frame, from_=0, to=1, command=slider_event, number_of_steps=10
 )
-slider3.place(relx=0.6, rely=0.65, anchor=tkinter.CENTER)
+slider3.place(relx=0.6, rely=0.6, anchor=tkinter.CENTER)
 
 slider4 = customtkinter.CTkSlider(
     master=frame, from_=0, to=1, command=slider_event, number_of_steps=10
 )
-slider4.place(relx=0.6, rely=0.8, anchor=tkinter.CENTER)
-
-sources = customtkinter.CTkLabel(master=frame, text=f"sources", width=240, height=50,)
-sources.place(relx=-0.15, rely=0.15, anchor=tkinter.W)
+slider4.place(relx=0.6, rely=0.75, anchor=tkinter.CENTER)
 
 global label
-label = customtkinter.CTkLabel(master=frame, text=f"(song name)", width=240, height=50,)
-label.place(relx=0.6, rely=0.05, anchor=tkinter.N)
+label = customtkinter.CTkLabel(
+    master=timestamp_frame,
+    text=f"(song name)",
+    width=240,
+    height=50,
+    text_font=("Roboto Medium", -14),
+)
+label.place(relx=0.5, rely=0.3, anchor=tkinter.CENTER)
 
 checkbox1 = customtkinter.CTkCheckBox(
     master=frame,
@@ -649,7 +686,7 @@ checkbox1 = customtkinter.CTkCheckBox(
     onvalue="on",
     offvalue="off",
 )
-checkbox1.place(relx=0.1, rely=0.35, anchor=tkinter.W)
+checkbox1.place(relx=0.1, rely=0.3, anchor=tkinter.W)
 
 checkbox2 = customtkinter.CTkCheckBox(
     master=frame,
@@ -659,7 +696,7 @@ checkbox2 = customtkinter.CTkCheckBox(
     onvalue="on",
     offvalue="off",
 )
-checkbox2.place(relx=0.1, rely=0.5, anchor=tkinter.W)
+checkbox2.place(relx=0.1, rely=0.45, anchor=tkinter.W)
 
 checkbox3 = customtkinter.CTkCheckBox(
     master=frame,
@@ -669,7 +706,7 @@ checkbox3 = customtkinter.CTkCheckBox(
     onvalue="on",
     offvalue="off",
 )
-checkbox3.place(relx=0.1, rely=0.65, anchor=tkinter.W)
+checkbox3.place(relx=0.1, rely=0.6, anchor=tkinter.W)
 
 checkbox4 = customtkinter.CTkCheckBox(
     master=frame,
@@ -679,7 +716,21 @@ checkbox4 = customtkinter.CTkCheckBox(
     onvalue="on",
     offvalue="off",
 )
-checkbox4.place(relx=0.1, rely=0.8, anchor=tkinter.W)
+checkbox4.place(relx=0.1, rely=0.75, anchor=tkinter.W)
+
+progressbar = customtkinter.CTkProgressBar(master=timestamp_frame, width=225, height=10)
+progressbar.place(relx=0.5, rely=0.7, anchor=tkinter.CENTER)
+progressbar.set(0)
+
+progress_label_left = customtkinter.CTkLabel(
+    master=timestamp_frame, text="0:00", text_font=("Roboto Medium", -12), width=50
+)
+progress_label_left.place(relx=0.1, rely=0.7, anchor=tkinter.CENTER)
+
+progress_label_right = customtkinter.CTkLabel(
+    master=timestamp_frame, text="0:00", text_font=("Roboto Medium", -12), width=50
+)
+progress_label_right.place(relx=0.9, rely=0.7, anchor=tkinter.CENTER)
 
 
 start_time = time.time()
@@ -719,7 +770,7 @@ def checks():
             if entry_val != to_int(search_entry.get()):
                 entry_val -= entry_val
                 info_songs = customtkinter.CTkTextbox(
-                    master=frame_info, width=150, height=240
+                    master=frame_info, width=150, height=310
                 )
                 info_songs.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
                 info_songs.insert(tkinter.END, "\n\n".join(found_songs))
