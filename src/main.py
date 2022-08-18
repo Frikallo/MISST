@@ -139,14 +139,14 @@ def preprocess_song():
     thread4 = threading.Thread(
         target=play_thread, args=(f"./separated/mdx_extra_q/{song}/vocals.wav", 3)
     )  #
-    thread1.start()
     thread1.daemon = True
-    thread2.start()
+    thread1.start()
     thread2.daemon = True
-    thread3.start()
+    thread2.start()
     thread3.daemon = True
-    thread4.start()
+    thread3.start()
     thread4.daemon = True
+    thread4.start()
     try:
         RPC.update(
             large_image="kanye",
@@ -241,14 +241,14 @@ def download_pp_song(url):
     thread4 = threading.Thread(
         target=play_thread, args=(f"./separated/mdx_extra_q/{song}/vocals.wav", 3)
     )  #
-    thread1.start()
     thread1.daemon = True
-    thread2.start()
+    thread1.start()
     thread2.daemon = True
-    thread3.start()
+    thread2.start()
     thread3.daemon = True
-    thread4.start()
+    thread3.start()
     thread4.daemon = True
+    thread4.start()
     try:
         RPC.update(
             large_image="kanye",
@@ -307,14 +307,14 @@ def button_event2():
     thread2 = threading.Thread(target=play_thread, args=(f"{varpath}/drums.wav", 1))  #
     thread3 = threading.Thread(target=play_thread, args=(f"{varpath}/other.wav", 2))  #
     thread4 = threading.Thread(target=play_thread, args=(f"{varpath}/vocals.wav", 3))  #
-    thread1.start()
     thread1.daemon = True
-    thread2.start()
+    thread1.start()
     thread2.daemon = True
-    thread3.start()
+    thread2.start()
     thread3.daemon = True
-    thread4.start()
+    thread3.start()
     thread4.daemon = True
+    thread4.start()
     song = os.path.basename(varpath)
     label.configure(text=f"{song}")
     try:
@@ -415,14 +415,14 @@ def button_event4():
     thread4 = threading.Thread(
         target=play_thread, args=(f"{folder}/{song}/vocals.wav", 3)
     )  #
-    thread1.start()
     thread1.daemon = True
-    thread2.start()
+    thread1.start()
     thread2.daemon = True
-    thread3.start()
+    thread2.start()
     thread3.daemon = True
-    thread4.start()
+    thread3.start()
     thread4.daemon = True
+    thread4.start()
     label.configure(text=f"{song}")
     try:
         RPC.update(
