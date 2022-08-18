@@ -1,4 +1,5 @@
 import os
+
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 import pygame
@@ -32,7 +33,7 @@ try:
     genius_object = lg.Genius(genius_access_token)
 except:
     GENIUS = False
-    print('connection failed')
+    print("connection failed")
 
 RPC = Presence(discord_rpc)
 try:
@@ -139,9 +140,13 @@ def preprocess_song():
         target=play_thread, args=(f"./separated/mdx_extra_q/{song}/vocals.wav", 3)
     )  #
     thread1.start()
+    thread1.daemon = True
     thread2.start()
+    thread2.daemon = True
     thread3.start()
+    thread3.daemon = True
     thread4.start()
+    thread4.daemon = True
     try:
         RPC.update(
             large_image="kanye",
@@ -237,9 +242,13 @@ def download_pp_song(url):
         target=play_thread, args=(f"./separated/mdx_extra_q/{song}/vocals.wav", 3)
     )  #
     thread1.start()
+    thread1.daemon = True
     thread2.start()
+    thread2.daemon = True
     thread3.start()
+    thread3.daemon = True
     thread4.start()
+    thread4.daemon = True
     try:
         RPC.update(
             large_image="kanye",
@@ -269,6 +278,7 @@ def isong_1():
         return
     status_label.configure(text=f"Downloading... Can take 5-10 seconds")
     thread = threading.Thread(target=download_pp_song, args=(url,))
+    thread.daemon = True
     thread.start()
 
 
@@ -283,6 +293,7 @@ def isong_2():
         return
     label2.configure(text=f"Preprocessing... Can take 10-15 seconds")
     thread = threading.Thread(target=preprocess_song)
+    thread.daemon = True
     thread.start()
 
 
@@ -297,9 +308,13 @@ def button_event2():
     thread3 = threading.Thread(target=play_thread, args=(f"{varpath}/other.wav", 2))  #
     thread4 = threading.Thread(target=play_thread, args=(f"{varpath}/vocals.wav", 3))  #
     thread1.start()
+    thread1.daemon = True
     thread2.start()
+    thread2.daemon = True
     thread3.start()
+    thread3.daemon = True
     thread4.start()
+    thread4.daemon = True
     song = os.path.basename(varpath)
     label.configure(text=f"{song}")
     try:
@@ -347,7 +362,9 @@ def button_event3():
         song_names_valid += f"{file}\n"
 
     global info_songs
-    info_songs = customtkinter.CTkTextbox(master=frame_info, width=150, height=310, text_font=("Roboto Medium", -12))
+    info_songs = customtkinter.CTkTextbox(
+        master=frame_info, width=150, height=310, text_font=("Roboto Medium", -12)
+    )
     info_songs.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
 
     info_songs.insert(tkinter.END, "\n\n".join(songs))
@@ -399,9 +416,13 @@ def button_event4():
         target=play_thread, args=(f"{folder}/{song}/vocals.wav", 3)
     )  #
     thread1.start()
+    thread1.daemon = True
     thread2.start()
+    thread2.daemon = True
     thread3.start()
+    thread3.daemon = True
     thread4.start()
+    thread4.daemon = True
     label.configure(text=f"{song}")
     try:
         RPC.update(
@@ -484,6 +505,7 @@ def dl_playlist(url):
     global songs_path
     songs_path = os.path.abspath(f"./songs_from_{playlist_name}")
     threadpp = threading.Thread(target=pp_playlist)
+    threadpp.daemon = True
     threadpp.start()
     del threadpp  # delete threadpp to prevent memory leak
     del songs_path
@@ -501,6 +523,7 @@ def button_event6():
     )
     status_label.place(relx=0.5, rely=0.9, anchor=tkinter.CENTER)
     threaddl = threading.Thread(target=dl_playlist, args=(spotify_url,))
+    threaddl.daemon = True
     threaddl.start()
 
 
@@ -530,6 +553,7 @@ def button_event7():
     )
     status_label.place(relx=0.5, rely=0.9, anchor=tkinter.CENTER)
     threadpp = threading.Thread(target=pp_folder)
+    threadpp.daemon = True
     threadpp.start()
 
 
@@ -541,7 +565,10 @@ def button_event8():
     play_button.destroy()
     back_button.destroy()
 
+
 window = None
+
+
 def button_event9():
     global window
     try:
@@ -553,10 +580,10 @@ def button_event9():
             songartist = label.text.split(" - ")
             song = songartist[0]
             artist = songartist[1]
-            song = genius_object.search_song(title =song, artist =artist)
+            song = genius_object.search_song(title=song, artist=artist)
             lyrics = song.lyrics
         else:
-            lyrics = 'Internet connection is not available'
+            lyrics = "Internet connection is not available"
         window = customtkinter.CTkToplevel(app)
         window.geometry("580x435")
         window.title("SUCK MY NUTS KANYE")
@@ -566,14 +593,14 @@ def button_event9():
             master=window,
             width=580,
             height=435,
-            corner_radius=0, 
-            text_font=("Roboto Medium", -14)
+            corner_radius=0,
+            text_font=("Roboto Medium", -14),
         )
         lyric_box.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
         lyric_box.insert(tkinter.END, lyrics)
 
     except:
-        lyrics = 'Lyrics are not available'
+        lyrics = "Lyrics are not available"
         window = customtkinter.CTkToplevel(app)
         window.geometry("580x435")
         window.title("SUCK MY NUTS KANYE")
@@ -583,8 +610,8 @@ def button_event9():
             master=window,
             width=580,
             height=435,
-            corner_radius=0, 
-            text_font=("Roboto Medium", -14)
+            corner_radius=0,
+            text_font=("Roboto Medium", -14),
         )
         lyric_box.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
         lyric_box.insert(tkinter.END, lyrics)
@@ -821,7 +848,10 @@ def to_int(string):
         result += i
     return result
 
+
 info_songs = None
+
+
 def checks():
     global info_songs
     entry_val = 0
@@ -835,7 +865,10 @@ def checks():
             if entry_val != to_int(search_entry.get()):
                 entry_val -= entry_val
                 info_songs = customtkinter.CTkTextbox(
-                    master=frame_info, width=150, height=310, text_font=("Roboto Medium", -12)
+                    master=frame_info,
+                    width=150,
+                    height=310,
+                    text_font=("Roboto Medium", -12),
                 )
                 info_songs.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
                 info_songs.insert(tkinter.END, "\n\n".join(found_songs))
@@ -853,6 +886,7 @@ def checks():
 
 
 check_thread = threading.Thread(target=checks)
+check_thread.daemon = True
 check_thread.start()
 
 app.mainloop()
