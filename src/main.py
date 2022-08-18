@@ -10,6 +10,8 @@ import tkinter
 from tkinter import filedialog
 import os
 import time
+from clientsecrets import client_id, client_secret
+import lyricsgenius as lg
 from pypresence import Presence
 import time
 import nest_asyncio
@@ -22,8 +24,10 @@ gc.enable()
 pygame.mixer.init()
 pygame.mixer.set_num_channels(10)
 
-client_id = "1007423253373001810"
-RPC = Presence(client_id)
+discord_rpc = client_id
+genius_access_token = client_secret
+
+RPC = Presence(discord_rpc)
 try:
     RPC.connect()
     print("Connected to Discord")
