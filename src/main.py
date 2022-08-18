@@ -121,6 +121,18 @@ check_var2 = tkinter.StringVar(value="on")
 check_var3 = tkinter.StringVar(value="on")
 check_var4 = tkinter.StringVar(value="on")
 
+global theme_color
+global frame_color
+theme = customtkinter.get_appearance_mode()
+if theme == "Dark":
+    theme_color = "#2A2D2E"
+    frame_color = "#212325"
+    frame_fg = "white"
+if theme == "Light":
+    theme_color = "#D1D5D8"
+    frame_color = "#EBEBEC"
+    frame_fg = "black"
+
 
 def preprocess_song():
     os.system(f'python3 -m demucs "{abspath_song}"')
@@ -368,6 +380,7 @@ def button_event3():
     info_songs.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
 
     info_songs.insert(tkinter.END, "\n\n".join(songs))
+    info_songs.configure(state=tkinter.DISABLED)
 
     global input_box
     input_box = customtkinter.CTkEntry(
@@ -567,14 +580,25 @@ def button_event8():
 
 
 window = None
+lyric_box = None
 
 
 def button_event9():
     global window
+    global lyric_box
     try:
         window.destroy()
     except:
         pass
+
+    theme = customtkinter.get_appearance_mode()
+    if theme == "Dark":
+        frame_color = "#212325"
+        frame_fg = "white"
+    if theme == "Light":
+        frame_color = "#EBEBEC"
+        frame_fg = "black"
+
     try:
         if GENIUS == True:
             songartist = label.text.split(" - ")
@@ -589,15 +613,20 @@ def button_event9():
         window.title("SUCK MY NUTS KANYE")
         window.iconbitmap(r"./icon.ico")
 
-        lyric_box = customtkinter.CTkTextbox(
+        lyric_box = tkinter.Text(
+            bd=0,
+            bg=frame_color,
+            fg=frame_fg,
+            highlightthickness=0,
+            borderwidth=0,
             master=window,
-            width=580,
-            height=435,
-            corner_radius=0,
-            text_font=("Roboto Medium", -14),
+            width=60,
+            height=23,
+            font=("Roboto Medium", -14),
         )
         lyric_box.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
         lyric_box.insert(tkinter.END, lyrics)
+        lyric_box.configure(state=tkinter.DISABLED)
 
     except:
         lyrics = "Lyrics are not available"
@@ -606,15 +635,20 @@ def button_event9():
         window.title("SUCK MY NUTS KANYE")
         window.iconbitmap(r"./icon.ico")
 
-        lyric_box = customtkinter.CTkTextbox(
+        lyric_box = tkinter.Text(
+            bd=0,
+            bg=frame_color,
+            fg=frame_fg,
+            highlightthickness=0,
+            borderwidth=0,
             master=window,
-            width=580,
-            height=435,
-            corner_radius=0,
-            text_font=("Roboto Medium", -14),
+            width=60,
+            height=23,
+            font=("Roboto Medium", -14),
         )
         lyric_box.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
         lyric_box.insert(tkinter.END, lyrics)
+        lyric_box.configure(state=tkinter.DISABLED)
         return
 
 
@@ -656,6 +690,24 @@ def checkbox_event():
         vocals.set_volume(slider4.get())
 
 
+def button_event10(theme):
+    customtkinter.set_appearance_mode(theme)
+    theme = customtkinter.get_appearance_mode()
+    if theme == "Dark":
+        theme_color = "#2A2D2E"
+        frame_color = "#EBEBEC"
+    if theme == "Light":
+        theme_color = "#D1D5D8"
+        frame_color = "#EBEBEC"
+    try:
+        label.configure(
+            fg_color=theme_color, hover_color=theme_color,
+        )
+        lyric_box.configure(bg=frame_color)
+    except:
+        return
+
+
 frame = customtkinter.CTkFrame(master=app, width=350, height=200, corner_radius=8)
 frame.place(relx=0.95, rely=0.5, anchor=tkinter.E)
 
@@ -681,9 +733,7 @@ label_mode = customtkinter.CTkLabel(master=frame_left, text="Appearance Mode:")
 label_mode.place(relx=0.5, rely=0.8, anchor=tkinter.CENTER)
 
 optionmenu_1 = customtkinter.CTkOptionMenu(
-    master=frame_left,
-    values=["System", "Dark", "Light"],
-    command=customtkinter.set_appearance_mode,
+    master=frame_left, values=["System", "Dark", "Light"], command=button_event10,
 )
 optionmenu_1.place(relx=0.5, rely=0.9, anchor=tkinter.CENTER)
 
@@ -765,8 +815,8 @@ label = customtkinter.CTkButton(
     height=50,
     text_font=("Roboto Medium", -14),
     command=button_event9,
-    fg_color="#2A2D2E",
-    hover_color="#2A2D2E",
+    fg_color=theme_color,
+    hover_color=theme_color,
 )
 label.place(relx=0.5, rely=0.3, anchor=tkinter.CENTER)
 
@@ -872,6 +922,7 @@ def checks():
                 )
                 info_songs.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
                 info_songs.insert(tkinter.END, "\n\n".join(found_songs))
+                info_songs.configure(state=tkinter.DISABLED)
                 entry_val += to_int(search_entry.get())
         except:
             pass
