@@ -10,7 +10,7 @@ import tkinter
 from tkinter import filedialog
 import os
 import time
-from clientsecrets import client_id, client_secret
+from clientsecrets import client_id, genius_access_token
 import lyricsgenius as lg
 from pypresence import Presence
 import time
@@ -25,13 +25,22 @@ pygame.mixer.init()
 pygame.mixer.set_num_channels(10)
 
 discord_rpc = client_id
-genius_access_token = client_secret
+genius_access_token = genius_access_token
+
+GENIUS = True
+try:
+    genius_object = lg.Genius(genius_access_token)
+except:
+    GENIUS = False
+    print('connection failed')
 
 RPC = Presence(discord_rpc)
 try:
     RPC.connect()
     print("Connected to Discord")
+    RPC_CONNECTED = True
 except:
+    RPC_CONNECTED = False
     print("RPC connection failed")
 
 
@@ -338,7 +347,7 @@ def button_event3():
         song_names_valid += f"{file}\n"
 
     global info_songs
-    info_songs = customtkinter.CTkTextbox(master=frame_info, width=150, height=310)
+    info_songs = customtkinter.CTkTextbox(master=frame_info, width=150, height=310, text_font=("Roboto Medium", -12))
     info_songs.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
 
     info_songs.insert(tkinter.END, "\n\n".join(songs))
@@ -532,6 +541,55 @@ def button_event8():
     play_button.destroy()
     back_button.destroy()
 
+window = None
+def button_event9():
+    global window
+    try:
+        window.destroy()
+    except:
+        pass
+    try:
+        if GENIUS == True:
+            songartist = label.text.split(" - ")
+            song = songartist[0]
+            artist = songartist[1]
+            song = genius_object.search_song(title =song, artist =artist)
+            lyrics = song.lyrics
+        else:
+            lyrics = 'Internet connection is not available'
+        window = customtkinter.CTkToplevel(app)
+        window.geometry("580x435")
+        window.title("SUCK MY NUTS KANYE")
+        window.iconbitmap(r"./icon.ico")
+
+        lyric_box = customtkinter.CTkTextbox(
+            master=window,
+            width=580,
+            height=435,
+            corner_radius=0, 
+            text_font=("Roboto Medium", -14)
+        )
+        lyric_box.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
+        lyric_box.insert(tkinter.END, lyrics)
+
+    except:
+        lyrics = 'Lyrics are not available'
+        window = customtkinter.CTkToplevel(app)
+        window.geometry("580x435")
+        window.title("SUCK MY NUTS KANYE")
+        window.iconbitmap(r"./icon.ico")
+
+        lyric_box = customtkinter.CTkTextbox(
+            master=window,
+            width=580,
+            height=435,
+            corner_radius=0, 
+            text_font=("Roboto Medium", -14)
+        )
+        lyric_box.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
+        lyric_box.insert(tkinter.END, lyrics)
+        return
+
 
 def slider_event(value):
     if slider1.get() != 0:
@@ -673,12 +731,15 @@ slider4 = customtkinter.CTkSlider(
 slider4.place(relx=0.6, rely=0.75, anchor=tkinter.CENTER)
 
 global label
-label = customtkinter.CTkLabel(
+label = customtkinter.CTkButton(
     master=timestamp_frame,
     text=f"(song name)",
     width=240,
     height=50,
     text_font=("Roboto Medium", -14),
+    command=button_event9,
+    fg_color="#2A2D2E",
+    hover_color="#2A2D2E",
 )
 label.place(relx=0.5, rely=0.3, anchor=tkinter.CENTER)
 
@@ -736,7 +797,6 @@ progress_label_right = customtkinter.CTkLabel(
 )
 progress_label_right.place(relx=0.9, rely=0.7, anchor=tkinter.CENTER)
 
-
 start_time = time.time()
 try:
     RPC.update(
@@ -761,8 +821,9 @@ def to_int(string):
         result += i
     return result
 
-
+info_songs = None
 def checks():
+    global info_songs
     entry_val = 0
     while True:
         time.sleep(1)
@@ -774,7 +835,7 @@ def checks():
             if entry_val != to_int(search_entry.get()):
                 entry_val -= entry_val
                 info_songs = customtkinter.CTkTextbox(
-                    master=frame_info, width=150, height=310
+                    master=frame_info, width=150, height=310, text_font=("Roboto Medium", -12)
                 )
                 info_songs.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
                 info_songs.insert(tkinter.END, "\n\n".join(found_songs))
@@ -784,7 +845,9 @@ def checks():
         try:
             state = app.state()
         except:
-            print("error")
+            print("no state")
+            if RPC_CONNECTED == True:
+                RPC.close()
             # sys.exit(1)
             os._exit(1)
 

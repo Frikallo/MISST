@@ -5,3 +5,5 @@ src/separated/*
 #install libs
 install-files
 win32Install.zip
+#tokens
+src/clientsecrets.py
