@@ -31,7 +31,6 @@ import time
 from clientsecrets import client_id, genius_access_token
 import lyricsgenius as lg
 from pypresence import Presence
-import time
 import nest_asyncio
 
 nest_asyncio.apply()
