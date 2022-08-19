@@ -7,3 +7,6 @@ install-files
 win32Install.zip
 #tokens
 src/clientsecrets.py
+#other
+src/__pycache__/*
+src/last_playlist.log
