@@ -704,13 +704,13 @@ def checkbox_event():
 def button_event10(theme):
     customtkinter.set_appearance_mode(theme)
 
-    if theme =="System":
+    if theme == "System":
         if darkdetect.isDark():
             theme = "Dark"
         else:
-            theme="Light"
+            theme = "Light"
     else:
-        theme = customtkinter.get_appearance_mode()
+        theme = theme
 
     if theme == "Dark":
         theme_color = "#2A2D2E"
@@ -718,21 +718,71 @@ def button_event10(theme):
     if theme == "Light":
         theme_color = "#D1D5D8"
         hover_color = "#EBEBEC"
-    label.configure(
-        fg_color=theme_color, hover_color=theme_color,
+
+    label.destroy()
+    back_button.destroy()
+    forward_button.destroy()
+    github_button.destroy()
+    profile_button.destroy()
+
+    label_refreshed = customtkinter.CTkButton(
+        master=timestamp_frame,
+        text=f"(song name)",
+        width=240,
+        height=50,
+        text_font=("Roboto Medium", -14),
+        command=button_event9,
+        fg_color=theme_color,
+        hover_color=theme_color,
     )
-    back_button.configure(
-            fg_color=theme_color, hover_color=hover_color,
+    label_refreshed.place(relx=0.5, rely=0.3, anchor=tkinter.CENTER)
+
+    back_button_refreshed = customtkinter.CTkButton(
+        master=frame_left,
+        text=f"<--",
+        command=button_event11,
+        corner_radius=0,
+        width=75,
+        fg_color=theme_color,
+        hover_color=hover_color,
     )
-    forward_button.configure(
-            fg_color=theme_color, hover_color=hover_color,
-    ) 
-    github_button.configure(
-        fg_color=theme_color, hover_color=theme_color,
+    back_button_refreshed.place(relx=0.3, rely=0.9, anchor=tkinter.CENTER)
+
+    forward_button_refreshed = customtkinter.CTkButton(
+        master=frame_left,
+        text=f"-->",
+        command=button_event12,
+        corner_radius=0,
+        width=75,
+        fg_color=theme_color,
+        hover_color=hover_color,
     )
-    profile_button.configure(
-        fg_color=theme_color, hover_color=theme_color,
+    forward_button_refreshed.place(relx=0.7, rely=0.9, anchor=tkinter.CENTER)
+
+    github_button_refreshed = customtkinter.CTkButton(
+        master=frame_left,
+        image=PhotoImage(file="./Assets/github.png"),
+        command=button_event13,
+        text="",
+        width=25,
+        height=25,
+        fg_color=theme_color,
+        hover_color=theme_color,
     )
+    profile_button_refreshed = customtkinter.CTkButton(
+        master=frame_left,
+        image=PhotoImage(file="./Assets/profile.png"),
+        command=button_event14,
+        text="",
+        width=25,
+        height=25,
+        fg_color=theme_color,
+        hover_color=theme_color,
+    )
+
+    profile_button_refreshed.place(relx=0.6, rely=0.17, anchor=tkinter.CENTER)
+    github_button_refreshed.place(relx=0.4, rely=0.17, anchor=tkinter.CENTER)
+    return
 
 
 def button_event11():
@@ -751,12 +801,12 @@ def button_event12():
 
 
 def button_event13():
-    webbrowser.open('https://github.com/Frikallo/SUCK-MY-NUTS-KANYE', new=2)
+    webbrowser.open("https://github.com/Frikallo/SUCK-MY-NUTS-KANYE", new=2)
     return
 
 
 def button_event14():
-    webbrowser.open('https://github.com/Frikallo', new=2)
+    webbrowser.open("https://github.com/Frikallo", new=2)
     return
 
 
@@ -859,6 +909,58 @@ slider4 = customtkinter.CTkSlider(
 )
 slider4.place(relx=0.6, rely=0.75, anchor=tkinter.CENTER)
 
+global back_button
+global forward_button
+global github_button
+global profile_button
+
+back_button = customtkinter.CTkButton(
+    master=frame_left,
+    text=f"<--",
+    command=button_event11,
+    corner_radius=0,
+    width=75,
+    fg_color=theme_color,
+    hover_color=hover_color,
+)
+back_button.place(relx=0.3, rely=0.9, anchor=tkinter.CENTER)
+
+forward_button = customtkinter.CTkButton(
+    master=frame_left,
+    text=f"-->",
+    command=button_event12,
+    corner_radius=0,
+    width=75,
+    fg_color=theme_color,
+    hover_color=hover_color,
+)
+forward_button.place(relx=0.7, rely=0.9, anchor=tkinter.CENTER)
+
+
+github_button = customtkinter.CTkButton(
+    master=frame_left,
+    image=PhotoImage(file="./Assets/github.png"),
+    command=button_event13,
+    text="",
+    width=25,
+    height=25,
+    fg_color=theme_color,
+    hover_color=theme_color,
+)
+profile_button = customtkinter.CTkButton(
+    master=frame_left,
+    image=PhotoImage(file="./Assets/profile.png"),
+    command=button_event14,
+    text="",
+    width=25,
+    height=25,
+    fg_color=theme_color,
+    hover_color=theme_color,
+)
+
+profile_button.place(relx=0.6, rely=0.17, anchor=tkinter.CENTER)
+github_button.place(relx=0.4, rely=0.17, anchor=tkinter.CENTER)
+
 global label
 label = customtkinter.CTkButton(
     master=timestamp_frame,
@@ -925,53 +1027,6 @@ progress_label_right = customtkinter.CTkLabel(
     master=timestamp_frame, text="0:00", text_font=("Roboto Medium", -12), width=50
 )
 progress_label_right.place(relx=0.9, rely=0.7, anchor=tkinter.CENTER)
-
-back_button = customtkinter.CTkButton(
-    master=frame_left,
-    text=f"<--",
-    command=button_event11,
-    corner_radius=0,
-    width=75,
-    fg_color=theme_color,
-    hover_color=hover_color,
-)
-back_button.place(relx=0.3, rely=0.9, anchor=tkinter.CENTER)
-
-forward_button = customtkinter.CTkButton(
-    master=frame_left,
-    text=f"-->",
-    command=button_event12,
-    corner_radius=0,
-    width=75,
-    fg_color=theme_color,
-    hover_color=hover_color,
-)
-forward_button.place(relx=0.7, rely=0.9, anchor=tkinter.CENTER)
-
-
-github_button = customtkinter.CTkButton(
-    master=frame_left,
-    image=PhotoImage(file="./Assets/github.png"),
-    command=button_event13,
-    text="",
-    width=25,
-    height=25,
-    fg_color=theme_color,
-    hover_color=theme_color,
-)
-profile_button = customtkinter.CTkButton(
-    master=frame_left,
-    image=PhotoImage(file="./Assets/profile.png"),
-    command=button_event14,
-    text="",
-    width=25,
-    height=25,
-    fg_color=theme_color,
-    hover_color=theme_color,
-)
-
-profile_button.place(relx=0.6, rely=0.17, anchor=tkinter.CENTER)
-github_button.place(relx=0.4, rely=0.17, anchor=tkinter.CENTER)
 
 start_time = time.time()
 try:
