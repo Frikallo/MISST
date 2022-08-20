@@ -7,7 +7,7 @@
   },
   {
    "optionDest": "filenames",
-   "value": "C:/Users/noahs/Desktop/Repos/SUCK-MY-NUTS-KANYE/src/main.py"
+   "value": "C:/Users/noahs/Desktop/Repos/MISST/src/main.py"
   },
   {
    "optionDest": "onefile",
@@ -19,7 +19,7 @@
   },
   {
    "optionDest": "icon_file",
-   "value": "C:/Users/noahs/Desktop/Repos/SUCK-MY-NUTS-KANYE/src/icon.ico"
+   "value": "C:/Users/noahs/Desktop/Repos/MISST/src/icon.ico"
   },
   {
    "optionDest": "ascii",
@@ -75,15 +75,15 @@
   },
   {
     "optionDest": "datas",
-    "value": "C:/Users/noahs/Desktop/Repos/SUCK-MY-NUTS-KANYE/src/Assets;Assets/"
+    "value": "C:/Users/noahs/Desktop/Repos/MISST/src/Assets;Assets/"
   },
   {
    "optionDest": "datas",
-   "value": "C:/Users/noahs/Desktop/Repos/SUCK-MY-NUTS-KANYE/src/icon.ico;."
+   "value": "C:/Users/noahs/Desktop/Repos/MISST/src/icon.ico;."
   },
   {
     "optionDest": "datas",
-    "value": "C:/Users/noahs/Desktop/Repos/SUCK-MY-NUTS-KANYE/requirements.txt;."
+    "value": "C:/Users/noahs/Desktop/Repos/MISST/requirements.txt;."
   }
  ],
  "nonPyinstallerOptions": {
