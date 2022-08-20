@@ -32,7 +32,6 @@ from clientsecrets import client_id, genius_access_token
 import lyricsgenius as lg
 from pypresence import Presence
 import nest_asyncio
-import subprocess
 import sys
 
 nest_asyncio.apply()
@@ -1111,6 +1110,7 @@ def checks():
                 RPC.close()
             # sys.exit(1)
             os._exit(1)
+
 
 if new == True:
     try:
