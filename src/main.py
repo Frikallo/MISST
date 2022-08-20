@@ -32,6 +32,7 @@ from clientsecrets import client_id, genius_access_token
 import lyricsgenius as lg
 from pypresence import Presence
 import nest_asyncio
+import sys
 
 nest_asyncio.apply()
 import gc
@@ -1102,6 +1103,34 @@ def checks():
                 RPC.close()
             # sys.exit(1)
             os._exit(1)
+
+try:
+    print(sys.version)
+except:
+    print("Python not installed")
+    warning_frame = customtkinter.CTkFrame(master=app, width=580, height=435)
+    warning_frame.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
+    warning_label = customtkinter.CTkLabel(
+        master=warning_frame,
+        text="Python not installed. Please install Python 3.9 or higher.\nRestart the program after installing Python.",
+        text_font=("Roboto Medium", -18),
+    )
+    warning_label.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
+
+try:
+    import spotdl
+    import demucs
+except:
+    warning_frame = customtkinter.CTkFrame(master=app, width=580, height=435)
+    warning_frame.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
+    warning_label = customtkinter.CTkLabel(
+        master=warning_frame,
+        text="Dependancies not installed. Installing...\nRestart the program after panel closes.",
+        text_font=("Roboto Medium", -18),
+    )
+    warning_label.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
+    os.system("pip install spotdl==3.9.6")
+    os.system("pip install demucs==3.0.4")
 
 
 check_thread = threading.Thread(target=checks)
