@@ -644,11 +644,8 @@ def pp_folder():
                 progress_bar.set(progress_percent)
                 progress_status_left.configure(text=f"{progress}")
                 progress_status_right.configure(text=f"{n}")
-            except Exception as e:
+            except:
                 status_label.configure(text="Error in preprocessing")
-                with open("./error.txt", "w") as f:
-                    f.write(f"{e}")
-                exit()
                 return
     status_label.configure(text=f"Done! Separated songs can be found in ./separated")
     del i  # delete i to prevent memory leak
