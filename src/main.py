@@ -741,23 +741,12 @@ def button_event10(theme):
         theme_color = "#D1D5D8"
         hover_color = "#EBEBEC"
 
-    label.destroy()
     back_button.destroy()
     forward_button.destroy()
     github_button.destroy()
     profile_button.destroy()
 
-    label_refreshed = customtkinter.CTkButton(
-        master=timestamp_frame,
-        text=f"(song name)",
-        width=240,
-        height=50,
-        text_font=("Roboto Medium", -14),
-        command=button_event9,
-        fg_color=theme_color,
-        hover_color=theme_color,
-    )
-    label_refreshed.place(relx=0.5, rely=0.3, anchor=tkinter.CENTER)
+    label.configure(fg_color=theme_color,hover_color=theme_color)
 
     back_button_refreshed = customtkinter.CTkButton(
         master=frame_left,
