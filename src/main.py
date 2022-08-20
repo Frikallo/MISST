@@ -22,7 +22,6 @@ import datetime
 from scipy.io import wavfile
 import threading
 import customtkinter
-import subprocess
 import tkinter
 from tkinter import PhotoImage, filedialog
 import darkdetect
@@ -164,7 +163,7 @@ if theme == "Light":
 
 def preprocess_song():
     try:
-        subprocess.run(["python3", "-m", "demucs", f"{abspath_song}"])
+        os.system(f'python3 -m demucs "{abspath_song}"')
     except:
         label2.configure("Preprocessing failed")
         return
@@ -256,7 +255,7 @@ def button_event1():
 def download_pp_song(url):
     os.mkdir("./dl-songs")
     try:
-        subprocess.run(["python3", "-m", "spotdl", f"{url}", "-o", "./dl-songs"])
+        os.system(f"python -m spotdl {url} -o ./dl-songs")
     except:
         print("Download failed")
         status_label.configure(text=f"Link is invalid")
@@ -267,7 +266,7 @@ def download_pp_song(url):
             abspath_song = os.path.join("./dl-songs", i)
             break
     try:
-        subprocess.run(["python3", "-m", "demucs", f"{abspath_song}"])
+        os.system(f'python3 -m demucs "{abspath_song}"')
     except:
         status_label.configure(text=f"Preprocessing failed")
         return
@@ -531,23 +530,34 @@ def button_event5():
 
 def pp_playlist():
     progress_window = customtkinter.CTkToplevel(app)
-    progress_window.geometry("200x75")
+    progress_window.geometry("300x50")
     progress_window.title("SUCK MY NUTS KANYE")
     progress_window.iconbitmap(r"./icon.ico")
-    progress_bar = customtkinter.CTkProgressbar(
-        master=progress_window, width=150, height=25, length=350
+    progress_bar = customtkinter.CTkProgressBar(
+        master=progress_window, width=175, height=10
     )
     progress_bar.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
+    progress_bar.set(0)
+    progress_status_left = customtkinter.CTkLabel(
+        master=progress_window, text="0", text_font=("Roboto Medium", -12), width=50
+    )
+    progress_status_right = customtkinter.CTkLabel(
+        master=progress_window, text="?", text_font=("Roboto Medium", -12), width=50
+    )
+    progress_status_left.place(relx=0.1, rely=0.5, anchor=tkinter.CENTER)
+    progress_status_right.place(relx=0.9, rely=0.5, anchor=tkinter.CENTER)
     progress = 0
     for i in os.listdir(songs_path):
         n = len(os.listdir(songs_path))
         i = f"{songs_path}/{i}"
         if i.endswith(".mp3"):
             try:
-                subprocess.run(["python3", "-m", "demucs", f"{os.path.abspath(i)}"])
+                os.system(f'python3 -m demucs "{os.path.abspath(i)}"')
                 progress += 1
                 progress_percent = progress / n
                 progress_bar.set(progress_percent)
+                progress_status_left.configure(text=f"{progress}")
+                progress_status_right.configure(text=f"{n}")
             except:
                 status_label.configure(text="Error")
                 return
@@ -569,7 +579,7 @@ def dl_playlist(url):
     os.mkdir(f"./songs_from_{playlist_name}")
     os.chdir(f"./songs_from_{playlist_name}")
     try:
-        subprocess.run(["python3", "-m", "spotdl", f"{url}"])
+        os.system(f"python -m spotdl {url}")
     except:
         status_label.configure(text="Error")
         return
@@ -605,25 +615,40 @@ def button_event6():
 
 def pp_folder():
     progress_window = customtkinter.CTkToplevel(app)
-    progress_window.geometry("200x75")
+    progress_window.geometry("300x50")
     progress_window.title("SUCK MY NUTS KANYE")
     progress_window.iconbitmap(r"./icon.ico")
-    progress_bar = customtkinter.CTkProgressbar(
-        master=progress_window, width=150, height=25, length=350
+    progress_bar = customtkinter.CTkProgressBar(
+        master=progress_window, width=175, height=10
     )
     progress_bar.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
+    progress_bar.set(0)
+    progress_status_left = customtkinter.CTkLabel(
+        master=progress_window, text="0", text_font=("Roboto Medium", -12), width=50
+    )
+    progress_status_right = customtkinter.CTkLabel(
+        master=progress_window, text="?", text_font=("Roboto Medium", -12), width=50
+    )
+    progress_status_left.place(relx=0.1, rely=0.5, anchor=tkinter.CENTER)
+    progress_status_right.place(relx=0.9, rely=0.5, anchor=tkinter.CENTER)
     progress = 0
     for i in os.listdir(songs_path):
         n = len(os.listdir(songs_path))
         i = f"{songs_path}/{i}"
         if i.endswith(".mp3"):
             try:
-                subprocess.run(["python3", "-m", "demucs", f"{os.path.abspath(i)}"])
+                os.system(f'python3 -m demucs "{os.path.abspath(i)}"')
+                time.sleep(120912)
                 progress += 1
                 progress_percent = progress / n
                 progress_bar.set(progress_percent)
-            except:
+                progress_status_left.configure(text=f"{progress}")
+                progress_status_right.configure(text=f"{n}")
+            except Exception as e:
                 status_label.configure(text="Error in preprocessing")
+                with open("./error.txt", "w") as f:
+                    f.write(f"{e}")
+                exit()
                 return
     status_label.configure(text=f"Done! Separated songs can be found in ./separated")
     del i  # delete i to prevent memory leak
