@@ -11,3 +11,4 @@ src/clientsecrets.py
 src/__pycache__/*
 src/last_playlist.log
 venv/*
+src/newuser

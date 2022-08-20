@@ -32,7 +32,7 @@ from clientsecrets import client_id, genius_access_token
 import lyricsgenius as lg
 from pypresence import Presence
 import nest_asyncio
-import pkg_resources
+import subprocess
 import sys
 
 nest_asyncio.apply()
@@ -127,6 +127,13 @@ vocals = pygame.mixer.Channel(3)
 
 customtkinter.set_appearance_mode("System")
 customtkinter.set_default_color_theme("blue")
+
+new = True
+if os.path.exists('./newuser'):
+    new = False
+else:
+    with open('./newuser', 'w') as f:
+        f.write('1')
 
 app = customtkinter.CTk()
 app.title("SUCK MY NUTS KANYE")
@@ -1105,39 +1112,36 @@ def checks():
             # sys.exit(1)
             os._exit(1)
 
-try:
-    print(sys.version)
-except:
-    print("Python not installed")
-    warning_frame = customtkinter.CTkFrame(master=app, width=580, height=435)
-    warning_frame.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
-    warning_label = customtkinter.CTkLabel(
-        master=warning_frame,
-        text="Python not installed. Please install Python 3.9 or higher.\nRestart the program after installing Python.",
-        text_font=("Roboto Medium", -18),
-    )
-    warning_label.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
-
-required = ['demucs==3.0.4', 'spotdl==3.9.6']
-missing = []
-for package in required:
+if new == True:
     try:
-        dist = pkg_resources.get_distribution(package)
-        print('{} ({}) is installed'.format(dist.key, dist.version))
-    except pkg_resources.DistributionNotFound:
-        print('{} is NOT installed'.format(package))
-        missing.append(package)
-if len(missing) > 0:
-    warning_frame = customtkinter.CTkFrame(master=app, width=580, height=435)
-    warning_frame.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
-    warning_label = customtkinter.CTkLabel(
-        master=warning_frame,
-        text="Dependancies not installed. Installing...\nRestart the program after panel closes.",
-        text_font=("Roboto Medium", -18),
-    )
-    warning_label.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
-    for package in missing:
-        os.system(f'python3 -m pip install {package}')
+        print(sys.version)
+    except:
+        print("Python not installed")
+        warning_frame = customtkinter.CTkFrame(master=app, width=580, height=435)
+        warning_frame.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
+        warning_label = customtkinter.CTkLabel(
+            master=warning_frame,
+            text="Python not installed. Please install Python 3.9 or higher.\nRestart the program after installing Python.",
+            text_font=("Roboto Medium", -18),
+        )
+        warning_label.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
+
+    required = ["spotdl==3.9.6", "demucs==3.0.4"]
+    python = sys.executable
+    try:
+        subprocess.check_call(python, '-m', 'demucs', '-h')
+        subprocess.check_call(python, '-m', 'spotdl', '-h')
+    except:
+        warning_frame = customtkinter.CTkFrame(master=app, width=580, height=435)
+        warning_frame.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
+        warning_label = customtkinter.CTkLabel(
+            master=warning_frame,
+            text="Dependencies were not installed. Please restart the program.",
+            text_font=("Roboto Medium", -18),
+        )
+        warning_label.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
+        for _ in required:
+            subprocess.check_call([python, '-m', 'pip', 'install', _], stdout=subprocess.DEVNULL)
 
 
 check_thread = threading.Thread(target=checks)
