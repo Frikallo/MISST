@@ -32,6 +32,7 @@ from clientsecrets import client_id, genius_access_token
 import lyricsgenius as lg
 from pypresence import Presence
 import nest_asyncio
+import pkg_resources
 import sys
 
 nest_asyncio.apply()
@@ -1117,10 +1118,16 @@ except:
     )
     warning_label.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
 
-try:
-    import spotdl
-    import demucs
-except:
+required = ['demucs==3.0.4', 'spotdl==3.9.6']
+missing = []
+for package in required:
+    try:
+        dist = pkg_resources.get_distribution(package)
+        print('{} ({}) is installed'.format(dist.key, dist.version))
+    except pkg_resources.DistributionNotFound:
+        print('{} is NOT installed'.format(package))
+        missing.append(package)
+if len(missing) > 0:
     warning_frame = customtkinter.CTkFrame(master=app, width=580, height=435)
     warning_frame.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
     warning_label = customtkinter.CTkLabel(
@@ -1129,8 +1136,8 @@ except:
         text_font=("Roboto Medium", -18),
     )
     warning_label.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
-    os.system("pip install spotdl==3.9.6")
-    os.system("pip install demucs==3.0.4")
+    for package in missing:
+        os.system(f'python3 -m pip install {package}')
 
 
 check_thread = threading.Thread(target=checks)
