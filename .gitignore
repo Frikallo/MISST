@@ -10,3 +10,4 @@ src/clientsecrets.py
 #other
 src/__pycache__/*
 src/last_playlist.log
+venv/*
