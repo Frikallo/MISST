@@ -1,4 +1,4 @@
-# SUCK-MY-NUTS-KANYE 1.0.5
+# MISST 1.0.7
 # Copyright (C) 2022 Frikallo.
 
 # This program is free software: you can redistribute it and/or modify
@@ -41,6 +41,8 @@ gc.enable()
 
 pygame.mixer.init()
 pygame.mixer.set_num_channels(10)
+
+version = "V1.0.7"
 
 discord_rpc = client_id
 genius_access_token = genius_access_token
@@ -93,9 +95,9 @@ def play_thread(sound, channel):
             progress_label_right.configure(text="0:00")
             try:
                 RPC.update(
-                    large_image="kanye",
+                    large_image="misst",
                     start=start_time,
-                    large_text="SUCK MY NUTS KANYE",
+                    large_text="MISST",
                     state="Exploring The Client",
                 )
             except:
@@ -135,7 +137,7 @@ else:
         f.write("1")
 
 app = customtkinter.CTk()
-app.title("SUCK MY NUTS KANYE")
+app.title("MISST")
 app.iconbitmap(r"./icon.ico")
 geometry = "580x435"
 app.geometry(geometry)
@@ -192,9 +194,9 @@ def preprocess_song():
     thread4.start()
     try:
         RPC.update(
-            large_image="kanye",
+            large_image="misst",
             start=start_time,
-            large_text="SUCK MY NUTS KANYE",
+            large_text="MISST",
             state="Listening to seperated audio",
             details=f"{song}",
         )
@@ -214,7 +216,7 @@ def button_event1():
     global window
     window = customtkinter.CTkToplevel(app)
     window.geometry("400x200")
-    window.title("SUCK MY NUTS KANYE")
+    window.title("MISST")
     window.iconbitmap(r"./icon.ico")
 
     global playlist_frame
@@ -298,9 +300,9 @@ def download_pp_song(url):
     thread4.start()
     try:
         RPC.update(
-            large_image="kanye",
+            large_image="misst",
             start=start_time,
-            large_text="SUCK MY NUTS KANYE",
+            large_text="MISST",
             state="Listening to seperated audio",
             details=f"{song}",
         )
@@ -366,9 +368,9 @@ def button_event2():
     label.configure(text=f"{song}")
     try:
         RPC.update(
-            large_image="kanye",
+            large_image="misst",
             start=start_time,
-            large_text="SUCK MY NUTS KANYE",
+            large_text="MISST",
             state="Listening to seperated audio",
             details=f"{song}",
         )
@@ -480,9 +482,9 @@ def button_event4():
     label.configure(text=f"{song}")
     try:
         RPC.update(
-            large_image="kanye",
+            large_image="misst",
             start=start_time,
-            large_text="SUCK MY NUTS KANYE",
+            large_text="MISST",
             state="Listening to seperated audio",
             details=f"{song}",
         )
@@ -493,7 +495,7 @@ def button_event4():
 def button_event5():
     window = customtkinter.CTkToplevel(app)
     window.geometry("400x200")
-    window.title("SUCK MY NUTS KANYE")
+    window.title("MISST")
     window.iconbitmap(r"./icon.ico")
 
     global playlist_frame
@@ -531,7 +533,7 @@ def button_event5():
 def pp_playlist():
     progress_window = customtkinter.CTkToplevel(app)
     progress_window.geometry("300x50")
-    progress_window.title("SUCK MY NUTS KANYE")
+    progress_window.title("MISST")
     progress_window.iconbitmap(r"./icon.ico")
     progress_bar = customtkinter.CTkProgressBar(
         master=progress_window, width=175, height=10
@@ -616,7 +618,7 @@ def button_event6():
 def pp_folder():
     progress_window = customtkinter.CTkToplevel(app)
     progress_window.geometry("300x50")
-    progress_window.title("SUCK MY NUTS KANYE")
+    progress_window.title("MISST")
     progress_window.iconbitmap(r"./icon.ico")
     progress_bar = customtkinter.CTkProgressBar(
         master=progress_window, width=175, height=10
@@ -704,15 +706,15 @@ def button_event9():
     try:
         if GENIUS == True:
             songartist = label.text.split(" - ")
-            song = songartist[0]
-            artist = songartist[1]
+            song = songartist[1]
+            artist = songartist[0]
             song = genius_object.search_song(title=song, artist=artist)
             lyrics = song.lyrics
         else:
             lyrics = "Internet connection is not available"
         window = customtkinter.CTkToplevel(app)
         window.geometry("580x435")
-        window.title("SUCK MY NUTS KANYE")
+        window.title("MISST")
         window.iconbitmap(r"./icon.ico")
 
         lyric_box = tkinter.Text(
@@ -734,7 +736,7 @@ def button_event9():
         lyrics = "Lyrics are not available"
         window = customtkinter.CTkToplevel(app)
         window.geometry("580x435")
-        window.title("SUCK MY NUTS KANYE")
+        window.title("MISST")
         window.iconbitmap(r"./icon.ico")
 
         lyric_box = tkinter.Text(
@@ -881,7 +883,7 @@ def button_event12():
 
 
 def button_event13():
-    webbrowser.open("https://github.com/Frikallo/SUCK-MY-NUTS-KANYE", new=2)
+    webbrowser.open("https://github.com/Frikallo/MISST", new=2)
     return
 
 
@@ -907,7 +909,7 @@ frame_left = customtkinter.CTkFrame(master=app, width=175, height=445, corner_ra
 frame_left.place(relx=0, rely=0.5, anchor=tkinter.W)
 
 left_label_1 = customtkinter.CTkLabel(
-    master=frame_left, text="StemPlayer", text_font=("Roboto Medium", -16)
+    master=frame_left, text=f"MISST {version}", text_font=("Roboto Medium", -16)
 )
 left_label_1.place(relx=0.5, rely=0.1, anchor=tkinter.CENTER)
 
@@ -1111,9 +1113,9 @@ progress_label_right.place(relx=0.9, rely=0.7, anchor=tkinter.CENTER)
 start_time = time.time()
 try:
     RPC.update(
-        large_image="kanye",
+        large_image="misst",
         start=start_time,
-        large_text="SUCK MY NUTS KANYE",
+        large_text="MISST",
         state="Exploring The Client",
     )
 except:

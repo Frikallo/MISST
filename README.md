@@ -1,7 +1,6 @@
 
 # MISST v1.0.7
 
-**Until next release MISST will remain lovingly named SUCKMYNUTSKANYE**
 Original Repository of MISST : **M**usic/**I**nstrumental **S**tem **S**eparation **T**ool.
 
 This application uses state-of-the-art source separation models to extract the 4 core stems from audio files (Bass, Drums, Other Instrumentals and Vocals). But it is not limited to this. MISST acts as a developped music player aswell, fit to enjoy and medal with your audio files as you see fit. MISST even comes prepared to import songs and playlists directly from your music library.
