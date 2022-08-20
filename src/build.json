@@ -80,6 +80,10 @@
   {
    "optionDest": "datas",
    "value": "C:/Users/noahs/Desktop/Repos/SUCK-MY-NUTS-KANYE/src/icon.ico;."
+  },
+  {
+    "optionDest": "datas",
+    "value": "C:/Users/noahs/Desktop/Repos/SUCK-MY-NUTS-KANYE/requirements.txt;."
   }
  ],
  "nonPyinstallerOptions": {

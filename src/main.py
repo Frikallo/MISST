@@ -129,10 +129,10 @@ customtkinter.set_appearance_mode("System")
 customtkinter.set_default_color_theme("blue")
 
 new = True
-if os.path.exists('./newuser'):
+if os.path.exists('newuser'):
     new = False
 else:
-    with open('./newuser', 'w') as f:
+    with open('newuser', 'w') as f:
         f.write('1')
 
 app = customtkinter.CTk()
@@ -1125,23 +1125,17 @@ if new == True:
             text_font=("Roboto Medium", -18),
         )
         warning_label.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
-
-    required = ["spotdl==3.9.6", "demucs==3.0.4"]
-    python = sys.executable
-    try:
-        subprocess.check_call(python, '-m', 'demucs', '-h')
-        subprocess.check_call(python, '-m', 'spotdl', '-h')
-    except:
-        warning_frame = customtkinter.CTkFrame(master=app, width=580, height=435)
-        warning_frame.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
-        warning_label = customtkinter.CTkLabel(
-            master=warning_frame,
-            text="Dependencies were not installed. Please restart the program.",
-            text_font=("Roboto Medium", -18),
-        )
-        warning_label.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
-        for _ in required:
-            subprocess.check_call([python, '-m', 'pip', 'install', _], stdout=subprocess.DEVNULL)
+    warning_frame = customtkinter.CTkFrame(master=app, width=580, height=435)
+    warning_frame.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
+    warning_label = customtkinter.CTkLabel(
+        master=warning_frame,
+        text="Dependencies not installed. Installing...\nRestart the program when the console closes.",
+        text_font=("Roboto Medium", -18),
+    )
+    warning_label.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
+    install_thread = threading.Thread(target=os.system, args=("pip install -r ./requirements.txt",))
+    install_thread.daemon = True
+    install_thread.start()
 
 
 check_thread = threading.Thread(target=checks)
