@@ -22,6 +22,7 @@ import datetime
 from scipy.io import wavfile
 import threading
 import customtkinter
+import subprocess
 import tkinter
 from tkinter import PhotoImage, filedialog
 import darkdetect
@@ -128,11 +129,11 @@ customtkinter.set_appearance_mode("System")
 customtkinter.set_default_color_theme("blue")
 
 new = True
-if os.path.exists('newuser'):
+if os.path.exists("newuser"):
     new = False
 else:
-    with open('newuser', 'w') as f:
-        f.write('1')
+    with open("newuser", "w") as f:
+        f.write("1")
 
 app = customtkinter.CTk()
 app.title("SUCK MY NUTS KANYE")
@@ -162,7 +163,11 @@ if theme == "Light":
 
 
 def preprocess_song():
-    os.system(f'python3 -m demucs "{abspath_song}"')
+    try:
+        subprocess.run(["python3", "-m", "demucs", f"{abspath_song}"])
+    except:
+        label2.configure("Preprocessing failed")
+        return
     label2.configure(text="Playing...")
     song = os.path.basename(abspath_song).replace(".mp3", "")
     label.configure(text=f"{song}", width=240, height=50)
@@ -251,7 +256,7 @@ def button_event1():
 def download_pp_song(url):
     os.mkdir("./dl-songs")
     try:
-        os.system(f"python -m spotdl {url} -o ./dl-songs")
+        subprocess.run(["python3", "-m", "spotdl", f"{url}", "-o", "./dl-songs"])
     except:
         print("Download failed")
         status_label.configure(text=f"Link is invalid")
@@ -261,7 +266,11 @@ def download_pp_song(url):
         if i.endswith(".mp3"):
             abspath_song = os.path.join("./dl-songs", i)
             break
-    os.system(f'python3 -m demucs "{abspath_song}"')
+    try:
+        subprocess.run(["python3", "-m", "demucs", f"{abspath_song}"])
+    except:
+        status_label.configure(text=f"Preprocessing failed")
+        return
     for i in os.listdir("./dl-songs"):
         os.remove(os.path.join("./dl-songs", i))
     os.rmdir("./dl-songs")
@@ -521,10 +530,27 @@ def button_event5():
 
 
 def pp_playlist():
+    progress_window = customtkinter.CTkToplevel(app)
+    progress_window.geometry("200x75")
+    progress_window.title("SUCK MY NUTS KANYE")
+    progress_window.iconbitmap(r"./icon.ico")
+    progress_bar = customtkinter.CTkProgressbar(
+        master=progress_window, width=150, height=25, length=350
+    )
+    progress_bar.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
+    progress = 0
     for i in os.listdir(songs_path):
+        n = len(os.listdir(songs_path))
         i = f"{songs_path}/{i}"
         if i.endswith(".mp3"):
-            os.system(f'python3 -m demucs "{os.path.abspath(i)}"')
+            try:
+                subprocess.run(["python3", "-m", "demucs", f"{os.path.abspath(i)}"])
+                progress += 1
+                progress_percent = progress / n
+                progress_bar.set(progress_percent)
+            except:
+                status_label.configure(text="Error")
+                return
     end = time.time() - start
     print(f"Time taken: {end/60}")
     status_label.configure(text=f"Done! Separated songs can be found in ./separated")
@@ -542,7 +568,11 @@ def dl_playlist(url):
     playlist_name = playlist_name.replace("=", "")
     os.mkdir(f"./songs_from_{playlist_name}")
     os.chdir(f"./songs_from_{playlist_name}")
-    os.system(f"python -m spotdl {url}")
+    try:
+        subprocess.run(["python3", "-m", "spotdl", f"{url}"])
+    except:
+        status_label.configure(text="Error")
+        return
     os.chdir("..")
     status_label.configure(text="Downloaded!")
     time.sleep(1)
@@ -574,10 +604,27 @@ def button_event6():
 
 
 def pp_folder():
+    progress_window = customtkinter.CTkToplevel(app)
+    progress_window.geometry("200x75")
+    progress_window.title("SUCK MY NUTS KANYE")
+    progress_window.iconbitmap(r"./icon.ico")
+    progress_bar = customtkinter.CTkProgressbar(
+        master=progress_window, width=150, height=25, length=350
+    )
+    progress_bar.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
+    progress = 0
     for i in os.listdir(songs_path):
+        n = len(os.listdir(songs_path))
         i = f"{songs_path}/{i}"
         if i.endswith(".mp3"):
-            os.system(f'python3 -m demucs "{os.path.abspath(i)}"')
+            try:
+                subprocess.run(["python3", "-m", "demucs", f"{os.path.abspath(i)}"])
+                progress += 1
+                progress_percent = progress / n
+                progress_bar.set(progress_percent)
+            except:
+                status_label.configure(text="Error in preprocessing")
+                return
     status_label.configure(text=f"Done! Separated songs can be found in ./separated")
     del i  # delete i to prevent memory leak
     gc.collect()  # garbage collection
@@ -746,7 +793,7 @@ def button_event10(theme):
     github_button.destroy()
     profile_button.destroy()
 
-    label.configure(fg_color=theme_color,hover_color=theme_color)
+    label.configure(fg_color=theme_color, hover_color=theme_color)
 
     back_button_refreshed = customtkinter.CTkButton(
         master=frame_left,
@@ -1122,7 +1169,9 @@ if new == True:
         text_font=("Roboto Medium", -18),
     )
     warning_label.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
-    install_thread = threading.Thread(target=os.system, args=("pip install -r ./requirements.txt",))
+    install_thread = threading.Thread(
+        target=os.system, args=("pip install -r ./requirements.txt",)
+    )
     install_thread.daemon = True
     install_thread.start()
 
