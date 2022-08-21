@@ -28,11 +28,11 @@ import darkdetect
 import webbrowser
 import os
 import time
-from clientsecrets import client_id, genius_access_token
+from Assets.clientsecrets import client_id, genius_access_token
 import lyricsgenius as lg
 from pypresence import Presence
 import nest_asyncio
-import sys
+import subprocess
 
 nest_asyncio.apply()
 import gc
@@ -46,6 +46,8 @@ version = "V1.0.7"
 
 discord_rpc = client_id
 genius_access_token = genius_access_token
+
+CREATE_NO_WINDOW = 0x08000000
 
 GENIUS = True
 try:
@@ -129,13 +131,6 @@ vocals = pygame.mixer.Channel(3)
 customtkinter.set_appearance_mode("System")
 customtkinter.set_default_color_theme("blue")
 
-new = True
-if os.path.exists("newuser"):
-    new = False
-else:
-    with open("newuser", "w") as f:
-        f.write("1")
-
 app = customtkinter.CTk()
 app.title("MISST")
 app.iconbitmap(r"./icon.ico")
@@ -162,10 +157,16 @@ if theme == "Light":
     frame_fg = "black"
     hover_color = "#EBEBEC"
 
+demucs_path = os.path.abspath("./demucs/demucs.exe")
+model_path = os.path.abspath("./demucs/model")
+
 
 def preprocess_song():
     try:
-        os.system(f'python3 -m demucs "{abspath_song}"')
+        subprocess.call(
+            f'{demucs_path} --repo {model_path} "{abspath_song}"',
+            creationflags=CREATE_NO_WINDOW,
+        )
     except:
         label2.configure("Preprocessing failed")
         return
@@ -234,7 +235,10 @@ def button_event1():
 
     global playlist_input1
     playlist_input1 = customtkinter.CTkEntry(
-        master=playlist_frame, width=150, height=25, placeholder_text="Enter song url",
+        master=playlist_frame,
+        width=150,
+        height=25,
+        placeholder_text="Enter song url",
     )
     playlist_input1.place(relx=0.23, rely=0.65, anchor=tkinter.CENTER)
 
@@ -255,9 +259,16 @@ def button_event1():
 
 
 def download_pp_song(url):
-    os.mkdir("./dl-songs")
+    if os.path.exists("./dl-songs"):
+        pass
+    else:
+        os.mkdir("./dl-songs")
     try:
-        os.system(f"python -m spotdl {url} -o ./dl-songs")
+        spotdl = os.path.abspath("./spotdl.exe")
+        subprocess.call(
+            f"{spotdl} download {url} --output ./dl-songs",
+            creationflags=CREATE_NO_WINDOW,
+        )
     except:
         print("Download failed")
         status_label.configure(text=f"Link is invalid")
@@ -268,7 +279,10 @@ def download_pp_song(url):
             abspath_song = os.path.join("./dl-songs", i)
             break
     try:
-        os.system(f'python3 -m demucs "{abspath_song}"')
+        subprocess.call(
+            f'{demucs_path} --repo {model_path} "{abspath_song}"',
+            creationflags=CREATE_NO_WINDOW,
+        )
     except:
         status_label.configure(text=f"Preprocessing failed")
         return
@@ -450,7 +464,7 @@ def button_event3():
     )
     back_button.place(relx=0.21, rely=0.95, anchor=tkinter.S)
 
-    with open("./last_playlist.log", "w") as f:
+    with open("./Assets/last_playlist.log", "w") as f:
         f.write(folder)
 
 
@@ -554,7 +568,10 @@ def pp_playlist():
         i = f"{songs_path}/{i}"
         if i.endswith(".mp3"):
             try:
-                os.system(f'python3 -m demucs "{os.path.abspath(i)}"')
+                subprocess.call(
+                    f'{demucs_path} --repo {model_path} "{os.path.abspath(i)}"',
+                    creationflags=CREATE_NO_WINDOW,
+                )
                 progress += 1
                 progress_percent = progress / n
                 progress_bar.set(progress_percent)
@@ -566,22 +583,27 @@ def pp_playlist():
     end = time.time() - start
     print(f"Time taken: {end/60}")
     status_label.configure(text=f"Done! Separated songs can be found in ./separated")
+    for i in os.listdir("./dl-songs"):
+        os.remove(os.path.join("./dl-songs", i))
+    os.rmdir("./dl-songs")
     del end  # delete end to prevent memory leak
     del i  # delete i to prevent memory leak
     gc.collect()  # garbage collection
 
 
 def dl_playlist(url):
+    if os.path.exists("./dl-songs"):
+        pass
+    else:
+        os.mkdir("./dl-songs")
     global start
     start = time.time()
-    playlist_name = url.split("/")[-1]
-    playlist_name = playlist_name.split("?")[0]
-    playlist_name = playlist_name.split(".")[0]
-    playlist_name = playlist_name.replace("=", "")
-    os.mkdir(f"./songs_from_{playlist_name}")
-    os.chdir(f"./songs_from_{playlist_name}")
     try:
-        os.system(f"python -m spotdl {url}")
+        spotdl = os.path.abspath("./spotdl.exe")
+        subprocess.call(
+            f"{spotdl} download {url} --output ./dl-songs",
+            creationflags=CREATE_NO_WINDOW,
+        )
     except:
         status_label.configure(text="Error")
         return
@@ -591,7 +613,7 @@ def dl_playlist(url):
     status_label.configure(text="Preprocessing... (can take 5-10mins)")
     time.sleep(1)
     global songs_path
-    songs_path = os.path.abspath(f"./songs_from_{playlist_name}")
+    songs_path = os.path.abspath(f"./dl-songs")
     threadpp = threading.Thread(target=pp_playlist)
     threadpp.daemon = True
     threadpp.start()
@@ -639,7 +661,10 @@ def pp_folder():
         i = f"{songs_path}/{i}"
         if i.endswith(".mp3"):
             try:
-                os.system(f'python3 -m demucs "{os.path.abspath(i)}"')
+                subprocess.call(
+                    f'{demucs_path} --repo {model_path} "{os.path.abspath(i)}"',
+                    creationflags=CREATE_NO_WINDOW,
+                )
                 time.sleep(120912)
                 progress += 1
                 progress_percent = progress / n
@@ -872,12 +897,12 @@ def button_event11():
 
 
 def button_event12():
-    if os.path.exists("./last_playlist.log"):
-        path = open("./last_playlist.log", "r").readlines()[0].strip()
+    if os.path.exists("./Assets/last_playlist.log"):
+        path = open("./Assets/last_playlist.log", "r").readlines()[0].strip()
         if os.path.exists(path):
             global previous_dir
             previous_dir = path
-            os.remove("./last_playlist.log")
+            os.remove("./Assets/last_playlist.log")
             button_event3()
             return
 
@@ -917,7 +942,9 @@ label_mode = customtkinter.CTkLabel(master=frame_left, text="Appearance Mode:")
 label_mode.place(relx=0.5, rely=0.7, anchor=tkinter.CENTER)
 
 optionmenu_1 = customtkinter.CTkOptionMenu(
-    master=frame_left, values=["System", "Dark", "Light"], command=button_event10,
+    master=frame_left,
+    values=["System", "Dark", "Light"],
+    command=button_event10,
 )
 optionmenu_1.place(relx=0.5, rely=0.8, anchor=tkinter.CENTER)
 
@@ -967,7 +994,7 @@ button4.place(relx=0.29, rely=0.5, anchor=tkinter.CENTER)
 
 global label2
 label2 = customtkinter.CTkLabel(
-    master=frame, text=f" ", width=240, height=50, corner_radius=1
+    master=frame, text=f" ", width=240, height=50, corner_radius=1, text_font=("Roboto", -12)
 )
 label2.place(relx=0.5, rely=1.02, anchor=tkinter.S)
 
@@ -1172,36 +1199,22 @@ def checks():
             os._exit(1)
 
 
-if new == True:
-    try:
-        print(sys.version)
-    except:
-        print("Python not installed")
-        warning_frame = customtkinter.CTkFrame(master=app, width=580, height=435)
-        warning_frame.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
-        warning_label = customtkinter.CTkLabel(
-            master=warning_frame,
-            text="Python not installed. Please install Python 3.9 or higher.\nRestart the program after installing Python.",
-            text_font=("Roboto Medium", -18),
-        )
-        warning_label.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
-    warning_frame = customtkinter.CTkFrame(master=app, width=580, height=435)
-    warning_frame.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
-    warning_label = customtkinter.CTkLabel(
-        master=warning_frame,
-        text="Dependencies not installed. Installing...\nRestart the program when the console closes.",
-        text_font=("Roboto Medium", -18),
-    )
-    warning_label.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
-    install_thread = threading.Thread(
-        target=os.system, args=("pip install -r ./requirements.txt",)
-    )
-    install_thread.daemon = True
-    install_thread.start()
-
-
 check_thread = threading.Thread(target=checks)
 check_thread.daemon = True
 check_thread.start()
+
+ffmpeg = subprocess.call("ffmpeg -version", creationflags=CREATE_NO_WINDOW)
+if ffmpeg == 0:
+    print("ffmpeg found")
+else:
+    print("ffmpeg not found")
+    warning_frame = customtkinter.CTkFrame(master=app, width=600, height=500)
+    warning_frame.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
+    warning_label = customtkinter.CTkLabel(
+        master=warning_frame,
+        text="WARNING: ffmpeg not found\nMake sure to install ffmpeg - (https://ffmpeg.org/download.html)\nIf installed, restart the program\n\n---------------------------------\nIf issues persist,\n make sure it is added to your system environment variables",
+        text_font=("Roboto Medium", -18),
+    )
+    warning_label.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
 
 app.mainloop()

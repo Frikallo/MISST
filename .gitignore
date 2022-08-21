@@ -6,9 +6,11 @@ src/separated/*
 install-files
 win32Install.zip
 #tokens
-src/clientsecrets.py
+src/Assets/clientsecrets.py
 #other
-src/__pycache__/*
-src/last_playlist.log
+src/Assets/__pycache__/*
+src/Assets/last_playlist.log
 venv/*
 src/newuser
+src/dl-songs/*
+src/demucs/*
