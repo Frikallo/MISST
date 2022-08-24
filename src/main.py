@@ -1,4 +1,4 @@
-# MISST 1.0.7
+# MISST 1.0.8
 # Copyright (C) 2022 Frikallo.
 
 # This program is free software: you can redistribute it and/or modify
@@ -33,6 +33,9 @@ import lyricsgenius as lg
 from pypresence import Presence
 import nest_asyncio
 import subprocess
+import requests
+import shutil
+import urllib.request
 
 nest_asyncio.apply()
 import gc
@@ -42,7 +45,7 @@ gc.enable()
 pygame.mixer.init()
 pygame.mixer.set_num_channels(10)
 
-version = "V1.0.7"
+version = "V1.0.8"
 
 discord_rpc = client_id
 genius_access_token = genius_access_token
@@ -123,6 +126,15 @@ def play_thread(sound, channel):
                     return
 
 
+def checkInternetUrllib(url="http://google.com", timeout=3):
+    try:
+        urllib.request.urlopen(url, timeout=timeout)
+        return True
+    except Exception as e:
+        print(e)
+        return False
+
+
 bass = pygame.mixer.Channel(0)
 drums = pygame.mixer.Channel(1)
 other = pygame.mixer.Channel(2)
@@ -157,16 +169,25 @@ if theme == "Light":
     frame_fg = "black"
     hover_color = "#EBEBEC"
 
-demucs_path = os.path.abspath("./demucs/demucs.exe")
-model_path = os.path.abspath("./demucs/model")
+demucs_post = "http://127.0.0.1:5000/demucs-upload"
+demucs_get = "http://127.0.0.1:5000/download"
+internet_connection = checkInternetUrllib()
 
 
 def preprocess_song():
+    songname = os.path.basename(abspath_song)
     try:
-        subprocess.call(
-            f'{demucs_path} --repo {model_path} "{abspath_song}"',
+        requests.post(demucs_post, files={"file": open(abspath_song, "rb")})
+        print("preprocessed")
+        subprocess.run(
+            f"curl {demucs_get}/{songname}.zip -O {songname}.zip",
             creationflags=CREATE_NO_WINDOW,
+            check=True,
         )
+        print("downloaded")
+        shutil.unpack_archive(f"{songname}.zip", f"./separated/{songname}")
+        print("unpacked")
+        os.remove(f"{songname}.zip")
     except:
         label2.configure("Preprocessing failed")
         return
@@ -174,16 +195,16 @@ def preprocess_song():
     song = os.path.basename(abspath_song).replace(".mp3", "")
     label.configure(text=f"{song}", width=240, height=50)
     thread1 = threading.Thread(
-        target=play_thread, args=(f"./separated/mdx_extra_q/{song}/bass.wav", 0)
+        target=play_thread, args=(f"./separated/{song}/bass.wav", 0)
     )  #
     thread2 = threading.Thread(
-        target=play_thread, args=(f"./separated/mdx_extra_q/{song}/drums.wav", 1)
+        target=play_thread, args=(f"./separated/{song}/drums.wav", 1)
     )  #
     thread3 = threading.Thread(
-        target=play_thread, args=(f"./separated/mdx_extra_q/{song}/other.wav", 2)
+        target=play_thread, args=(f"./separated/{song}/other.wav", 2)
     )  #
     thread4 = threading.Thread(
-        target=play_thread, args=(f"./separated/mdx_extra_q/{song}/vocals.wav", 3)
+        target=play_thread, args=(f"./separated/{song}/vocals.wav", 3)
     )  #
     thread1.daemon = True
     thread1.start()
@@ -278,11 +299,19 @@ def download_pp_song(url):
         if i.endswith(".mp3"):
             abspath_song = os.path.join("./dl-songs", i)
             break
+    songname = os.path.basename(abspath_song)
     try:
-        subprocess.call(
-            f'{demucs_path} --repo {model_path} "{abspath_song}"',
+        requests.post(demucs_post, files={"file": open(abspath_song, "rb")})
+        print("preprocessed")
+        subprocess.run(
+            f"curl {demucs_get}/{songname}.zip -O {songname}.zip",
             creationflags=CREATE_NO_WINDOW,
+            check=True,
         )
+        print("downloaded")
+        shutil.unpack_archive(f"{songname}.zip", f"./separated/{songname}")
+        print("unpacked")
+        os.remove(f"{songname}.zip")
     except:
         status_label.configure(text=f"Preprocessing failed")
         return
@@ -293,16 +322,16 @@ def download_pp_song(url):
     song = os.path.basename(abspath_song).replace(".mp3", "")
     label.configure(text=f"{song}", width=240, height=50)
     thread1 = threading.Thread(
-        target=play_thread, args=(f"./separated/mdx_extra_q/{song}/bass.wav", 0)
+        target=play_thread, args=(f"./separated/{song}/bass.wav", 0)
     )  #
     thread2 = threading.Thread(
-        target=play_thread, args=(f"./separated/mdx_extra_q/{song}/drums.wav", 1)
+        target=play_thread, args=(f"./separated/{song}/drums.wav", 1)
     )  #
     thread3 = threading.Thread(
-        target=play_thread, args=(f"./separated/mdx_extra_q/{song}/other.wav", 2)
+        target=play_thread, args=(f"./separated/{song}/other.wav", 2)
     )  #
     thread4 = threading.Thread(
-        target=play_thread, args=(f"./separated/mdx_extra_q/{song}/vocals.wav", 3)
+        target=play_thread, args=(f"./separated/{song}/vocals.wav", 3)
     )  #
     thread1.daemon = True
     thread1.start()
@@ -568,10 +597,20 @@ def pp_playlist():
         i = f"{songs_path}/{i}"
         if i.endswith(".mp3"):
             try:
-                subprocess.call(
-                    f'{demucs_path} --repo {model_path} "{os.path.abspath(i)}"',
-                    creationflags=CREATE_NO_WINDOW,
+                songname = os.path.basename(os.path.abspath(i))
+                requests.post(
+                    demucs_post, files={"file": open(os.path.abspath(i), "rb")}
                 )
+                print("preprocessed")
+                subprocess.run(
+                    f"curl {demucs_get}/{songname}.zip -O {songname}.zip",
+                    creationflags=CREATE_NO_WINDOW,
+                    check=True,
+                )
+                print("downloaded")
+                shutil.unpack_archive(f"{songname}.zip", f"./separated/{songname}")
+                print("unpacked")
+                os.remove(f"{songname}.zip")
                 progress += 1
                 progress_percent = progress / n
                 progress_bar.set(progress_percent)
@@ -661,11 +700,20 @@ def pp_folder():
         i = f"{songs_path}/{i}"
         if i.endswith(".mp3"):
             try:
-                subprocess.call(
-                    f'{demucs_path} --repo {model_path} "{os.path.abspath(i)}"',
-                    creationflags=CREATE_NO_WINDOW,
+                songname = os.path.basename(os.path.abspath(i))
+                requests.post(
+                    demucs_post, files={"file": open(os.path.abspath(i), "rb")}
                 )
-                time.sleep(120912)
+                print("preprocessed")
+                subprocess.run(
+                    f"curl {demucs_get}/{songname}.zip -O {songname}.zip",
+                    creationflags=CREATE_NO_WINDOW,
+                    check=True,
+                )
+                print("downloaded")
+                shutil.unpack_archive(f"{songname}.zip", f"./separated/{songname}")
+                print("unpacked")
+                os.remove(f"{songname}.zip")
                 progress += 1
                 progress_percent = progress / n
                 progress_bar.set(progress_percent)
@@ -757,8 +805,9 @@ def button_event9():
         lyric_box.insert(tkinter.END, lyrics)
         lyric_box.configure(state=tkinter.DISABLED)
 
-    except:
-        lyrics = "Lyrics are not available"
+    except Exception as e:
+        print(e)
+        lyrics = f"Lyrics are not available\n\n({e})"
         window = customtkinter.CTkToplevel(app)
         window.geometry("580x435")
         window.title("MISST")
@@ -994,7 +1043,12 @@ button4.place(relx=0.29, rely=0.5, anchor=tkinter.CENTER)
 
 global label2
 label2 = customtkinter.CTkLabel(
-    master=frame, text=f" ", width=240, height=50, corner_radius=1, text_font=("Roboto", -12)
+    master=frame,
+    text=f" ",
+    width=240,
+    height=50,
+    corner_radius=1,
+    text_font=("Roboto", -12),
 )
 label2.place(relx=0.5, rely=1.02, anchor=tkinter.S)
 
@@ -1213,6 +1267,19 @@ else:
     warning_label = customtkinter.CTkLabel(
         master=warning_frame,
         text="WARNING: ffmpeg not found\nMake sure to install ffmpeg - (https://ffmpeg.org/download.html)\nIf installed, restart the program\n\n---------------------------------\nIf issues persist,\n make sure it is added to your system environment variables",
+        text_font=("Roboto Medium", -18),
+    )
+    warning_label.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
+
+if internet_connection == True:
+    print("internet connection found")
+else:
+    print("internet connection not found")
+    warning_frame = customtkinter.CTkFrame(master=app, width=600, height=500)
+    warning_frame.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
+    warning_label = customtkinter.CTkLabel(
+        master=warning_frame,
+        text="WARNING: internet connection not found\nMake sure you are connected to the internet\nIf connected, restart the program\n\n---------------------------------\n",
         text_font=("Roboto Medium", -18),
     )
     warning_label.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)

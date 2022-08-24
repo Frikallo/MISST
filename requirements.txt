@@ -7,3 +7,4 @@ lyricsgenius==3.0.1
 pypresence==4.2.0
 nest-asyncio==1.5.1
 spotdl==3.9.6
+PySoundFile

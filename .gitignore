@@ -13,4 +13,6 @@ src/Assets/last_playlist.log
 venv/*
 src/newuser
 src/dl-songs/*
-src/demucs/*
+separated/*
+server/separated/*
+output/*
