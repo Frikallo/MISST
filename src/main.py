@@ -175,20 +175,23 @@ internet_connection = checkInternetUrllib()
 
 
 def preprocess_song():
-    songname = os.path.basename(abspath_song)
+    songname = os.path.basename(abspath_song).replace(" ", "%20")
     try:
         requests.post(demucs_post, files={"file": open(abspath_song, "rb")})
         print("preprocessed")
         subprocess.run(
-            f"curl {demucs_get}/{songname}.zip -O {songname}.zip",
+            f'curl "{demucs_get}/{songname}.zip" -o "{songname.replace("%20", " ")}.zip"',
             creationflags=CREATE_NO_WINDOW,
             check=True,
         )
         print("downloaded")
-        shutil.unpack_archive(f"{songname}.zip", f"./separated/{songname}")
+        songname = songname.replace("%20", " ")
+        savename = songname.replace(".mp3", "")
+        shutil.unpack_archive(f"{songname}.zip", f"./separated/{savename}")
         print("unpacked")
         os.remove(f"{songname}.zip")
-    except:
+    except Exception as e:
+        print(e)
         label2.configure("Preprocessing failed")
         return
     label2.configure(text="Playing...")
@@ -294,22 +297,24 @@ def download_pp_song(url):
         print("Download failed")
         status_label.configure(text=f"Link is invalid")
         return
-    status_label.configure(text=f"Preprocessing... Can take 10-15 seconds")
+    status_label.configure(text=f"Preprocessing... Can take 15-30 seconds")
     for i in os.listdir("./dl-songs"):
         if i.endswith(".mp3"):
             abspath_song = os.path.join("./dl-songs", i)
             break
-    songname = os.path.basename(abspath_song)
+    songname = os.path.basename(abspath_song).replace(" ", "%20")
     try:
         requests.post(demucs_post, files={"file": open(abspath_song, "rb")})
         print("preprocessed")
         subprocess.run(
-            f"curl {demucs_get}/{songname}.zip -O {songname}.zip",
+            f'curl "{demucs_get}/{songname}.zip" -o "{songname.replace("%20", " ")}.zip"',
             creationflags=CREATE_NO_WINDOW,
             check=True,
         )
         print("downloaded")
-        shutil.unpack_archive(f"{songname}.zip", f"./separated/{songname}")
+        songname = songname.replace("%20", " ")
+        savename = songname.replace(".mp3", "")
+        shutil.unpack_archive(f"{songname}.zip", f"./separated/{savename}")
         print("unpacked")
         os.remove(f"{songname}.zip")
     except:
@@ -383,7 +388,7 @@ def isong_2():
     print(abspath_song)
     if abspath_song == "":
         return
-    label2.configure(text=f"Preprocessing... Can take 10-15 seconds")
+    label2.configure(text=f"Preprocessing... Can take 15-30 seconds")
     thread = threading.Thread(target=preprocess_song)
     thread.daemon = True
     thread.start()
@@ -597,18 +602,20 @@ def pp_playlist():
         i = f"{songs_path}/{i}"
         if i.endswith(".mp3"):
             try:
-                songname = os.path.basename(os.path.abspath(i))
+                songname = os.path.basename(os.path.abspath(i)).replace(" ", "%20")
                 requests.post(
                     demucs_post, files={"file": open(os.path.abspath(i), "rb")}
                 )
                 print("preprocessed")
                 subprocess.run(
-                    f"curl {demucs_get}/{songname}.zip -O {songname}.zip",
+                    f'curl "{demucs_get}/{songname}.zip" -o "{songname.replace("%20", " ")}.zip"',
                     creationflags=CREATE_NO_WINDOW,
                     check=True,
                 )
                 print("downloaded")
-                shutil.unpack_archive(f"{songname}.zip", f"./separated/{songname}")
+                songname = songname.replace("%20", " ")
+                savename = songname.replace(".mp3", "")
+                shutil.unpack_archive(f"{songname}.zip", f"./separated/{savename}")
                 print("unpacked")
                 os.remove(f"{songname}.zip")
                 progress += 1
@@ -649,7 +656,7 @@ def dl_playlist(url):
     os.chdir("..")
     status_label.configure(text="Downloaded!")
     time.sleep(1)
-    status_label.configure(text="Preprocessing... (can take 5-10mins)")
+    status_label.configure(text="Preprocessing... (can take a while)")
     time.sleep(1)
     global songs_path
     songs_path = os.path.abspath(f"./dl-songs")
@@ -700,18 +707,20 @@ def pp_folder():
         i = f"{songs_path}/{i}"
         if i.endswith(".mp3"):
             try:
-                songname = os.path.basename(os.path.abspath(i))
+                songname = os.path.basename(os.path.abspath(i)).replace(" ", "%20")
                 requests.post(
                     demucs_post, files={"file": open(os.path.abspath(i), "rb")}
                 )
                 print("preprocessed")
                 subprocess.run(
-                    f"curl {demucs_get}/{songname}.zip -O {songname}.zip",
+                    f'curl "{demucs_get}/{songname}.zip" -o "{songname.replace("%20", " ")}.zip"',
                     creationflags=CREATE_NO_WINDOW,
                     check=True,
                 )
                 print("downloaded")
-                shutil.unpack_archive(f"{songname}.zip", f"./separated/{songname}")
+                songname = songname.replace("%20", " ")
+                savename = songname.replace(".mp3", "")
+                shutil.unpack_archive(f"{songname}.zip", f"./separated/{savename}")
                 print("unpacked")
                 os.remove(f"{songname}.zip")
                 progress += 1
@@ -737,7 +746,7 @@ def button_event7():
     global status_label
     status_label = customtkinter.CTkLabel(
         master=playlist_frame,
-        text="Preprocessing... (can take 5-10mins)",
+        text="Preprocessing... (can take a while)",
         width=150,
         height=25,
     )
