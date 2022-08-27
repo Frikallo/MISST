@@ -1,4 +1,4 @@
-# MISST 1.0.8
+# MISST 1.1.0
 # Copyright (C) 2022 Frikallo.
 
 # This program is free software: you can redistribute it and/or modify
@@ -45,7 +45,7 @@ gc.enable()
 pygame.mixer.init()
 pygame.mixer.set_num_channels(10)
 
-version = "V1.0.8"
+version = "V1.1.0"
 
 discord_rpc = client_id
 genius_access_token = genius_access_token
@@ -126,15 +126,6 @@ def play_thread(sound, channel):
                     return
 
 
-def checkInternetUrllib(url="http://google.com", timeout=3):
-    try:
-        urllib.request.urlopen(url, timeout=timeout)
-        return True
-    except Exception as e:
-        print(e)
-        return False
-
-
 bass = pygame.mixer.Channel(0)
 drums = pygame.mixer.Channel(1)
 other = pygame.mixer.Channel(2)
@@ -171,6 +162,17 @@ if theme == "Light":
 
 demucs_post = "http://127.0.0.1:5000/demucs-upload"
 demucs_get = "http://127.0.0.1:5000/download"
+
+
+def checkInternetUrllib(url="http://google.com", timeout=3):
+    try:
+        urllib.request.urlopen(url, timeout=timeout)
+        return True
+    except Exception as e:
+        print(e)
+        return False
+
+
 internet_connection = checkInternetUrllib()
 
 
@@ -194,7 +196,7 @@ def preprocess_song():
         print(e)
         label2.configure("Preprocessing failed")
         return
-    label2.configure(text="Playing...")
+    label2.configure(text="")
     song = os.path.basename(abspath_song).replace(".mp3", "")
     label.configure(text=f"{song}", width=240, height=50)
     thread1 = threading.Thread(
@@ -235,6 +237,33 @@ def preprocess_song():
     del thread3
     del thread4
     gc.collect
+
+
+def count(label):
+    t = 0
+    while True:
+        if label.text == "":
+            break
+        time.sleep(0.5)
+        if label.text == "":
+            break
+        t += 0.5
+        label.configure(text=f"Preprocessing")
+        time.sleep(0.5)
+        if label.text == "":
+            break
+        t += 0.5
+        label.configure(text=f"Preprocessing.")
+        time.sleep(0.5)
+        if label.text == "":
+            break
+        t += 0.5
+        label.configure(text=f"Preprocessing..")
+        time.sleep(0.5)
+        if label.text == "":
+            break
+        t += 0.5
+        label.configure(text=f"Preprocessing...")
 
 
 def button_event1():
@@ -297,7 +326,10 @@ def download_pp_song(url):
         print("Download failed")
         status_label.configure(text=f"Link is invalid")
         return
-    status_label.configure(text=f"Preprocessing... Can take 15-30 seconds")
+    status_label.configure(text=f"Preprocessing")
+    count_thread = threading.Thread(target=count, args=(status_label,))
+    count_thread.daemon = True
+    count_thread.start()
     for i in os.listdir("./dl-songs"):
         if i.endswith(".mp3"):
             abspath_song = os.path.join("./dl-songs", i)
@@ -323,7 +355,7 @@ def download_pp_song(url):
     for i in os.listdir("./dl-songs"):
         os.remove(os.path.join("./dl-songs", i))
     os.rmdir("./dl-songs")
-    label2.configure(text="Playing...")
+    label2.configure(text="")
     song = os.path.basename(abspath_song).replace(".mp3", "")
     label.configure(text=f"{song}", width=240, height=50)
     thread1 = threading.Thread(
@@ -388,10 +420,13 @@ def isong_2():
     print(abspath_song)
     if abspath_song == "":
         return
-    label2.configure(text=f"Preprocessing... Can take 15-30 seconds")
+    label2.configure(text=f"Preprocessing")
     thread = threading.Thread(target=preprocess_song)
     thread.daemon = True
     thread.start()
+    count_thread = threading.Thread(target=count, args=(label2,))
+    count_thread.daemon = True
+    count_thread.start()
 
 
 def button_event2():
@@ -769,7 +804,7 @@ window = None
 lyric_box = None
 
 
-def button_event9():
+def get_lyric():
     global window
     global lyric_box
     try:
@@ -837,6 +872,13 @@ def button_event9():
         lyric_box.insert(tkinter.END, lyrics)
         lyric_box.configure(state=tkinter.DISABLED)
         return
+
+
+def button_event9():
+    lyric_thread = threading.Thread(target=get_lyric)
+    lyric_thread.daemon = True
+    lyric_thread.start()
+    return
 
 
 def slider_event(value):

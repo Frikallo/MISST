@@ -6,6 +6,7 @@ os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 # Create the application.
 APP = flask.Flask(__name__)
+config = {"port": 5000, "host": "127.0.0.1", "debug": False, "production": "False", "allowedorigins": "./separated/*"}
 
 # Create a URL route in our application for "/"
 @APP.route('/')
@@ -22,8 +23,12 @@ def upload():
         os.mkdir('./tmp')
     f.save(f'./tmp/{f.filename}.{f_extension}')
     file_path = os.path.abspath(f'./tmp/{f.filename}.{f_extension}')
-    cmd = subprocess.run(f'python -m demucs -d cuda "{file_path}"', check=True)
-    print(f'done: {cmd.returncode}')
+    cmd = os.system(f'python -m demucs -d cuda "{file_path}"')
+    print(f'done: {cmd}')
+    if cmd == 0:
+        pass
+    else:
+        return flask.jsonify({"error": "Something went wrong"})
     print("File Processed")
     for i in os.listdir('./tmp'):
         os.remove(f'./tmp/{i}')
@@ -44,7 +49,4 @@ def download(filename):
     return flask.send_from_directory(directory=dir, path=filename)
 
 if __name__ == '__main__':
-    port = 5000
-    host = "127.0.0.1"
-    APP.run(host=host, port=port)
-    #APP.run(debug=True)
+    APP.run(port=config["port"], host=config["host"], debug=config['debug'])
