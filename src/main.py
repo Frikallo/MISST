@@ -160,8 +160,8 @@ if theme == "Light":
     frame_fg = "black"
     hover_color = "#EBEBEC"
 
-demucs_post = "http://127.0.0.1:5000/demucs-upload"
-demucs_get = "http://127.0.0.1:5000/download"
+demucs_post = "http://localhost:5000/demucs-upload"
+demucs_get = "http://localhost:5000/download"
 
 
 def checkInternetUrllib(url="http://google.com", timeout=3):
