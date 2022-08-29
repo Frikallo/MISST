@@ -53,7 +53,7 @@ consoleHandler.setLevel(logging.DEBUG)
 consoleHandler.setFormatter(logFormatter)
 
 logger.addHandler(consoleHandler)
-logger.info('Logger initialized')
+logger.info(f'Logger initialized ({str(datetime.datetime.now()).split(".")[0]})')
 
 #logger.debug('debug message')
 #logger.info('info message')
@@ -81,7 +81,7 @@ try:
     genius_object = lg.Genius(genius_access_token)
 except:
     GENIUS = False
-    logger.info("connection failed")
+    logger.error("connection failed")
 
 RPC = Presence(discord_rpc)
 try:
@@ -90,7 +90,7 @@ try:
     RPC_CONNECTED = True
 except:
     RPC_CONNECTED = False
-    logger.info("RPC connection failed")
+    logger.error("RPC connection failed")
 
 
 def play_thread(sound, channel):
@@ -193,7 +193,7 @@ def checkInternetUrllib(url="http://google.com", timeout=3):
         urllib.request.urlopen(url, timeout=timeout)
         return True
     except Exception as e:
-        logger.info(e)
+        logger.error(e)
         return False
 
 
@@ -217,7 +217,7 @@ def preprocess_song():
         logger.info("unpacked")
         os.remove(f"{songname}.zip")
     except Exception as e:
-        logger.info(e)
+        logger.error(e)
         label2.configure("Preprocessing failed")
         return
     label2.configure(text="")
@@ -338,7 +338,7 @@ def download_pp_song(url):
             creationflags=CREATE_NO_WINDOW,
         )
     except:
-        logger.info("Download failed")
+        logger.error("Download failed")
         status_label.configure(text=f"Link is invalid")
         return
     status_label.configure(text=f"Preprocessing")
@@ -865,7 +865,7 @@ def get_lyric():
         lyric_box.configure(state=tkinter.DISABLED)
 
     except Exception as e:
-        logger.info(e)
+        logger.error(e)
         lyrics = f"Lyrics are not available\n\n({e})"
         window = customtkinter.CTkToplevel(app)
         window.geometry("580x435")
@@ -1312,7 +1312,7 @@ def checks():
         try:
             state = app.state()
         except:
-            logger.info("no state")
+            logger.error("no state")
             if RPC_CONNECTED == True:
                 RPC.close()
             # sys.exit(1)
@@ -1327,7 +1327,7 @@ ffmpeg = subprocess.call("ffmpeg -version", creationflags=CREATE_NO_WINDOW)
 if ffmpeg == 0:
     logger.info("ffmpeg found")
 else:
-    logger.info("ffmpeg not found")
+    logger.error("ffmpeg not found")
     warning_frame = customtkinter.CTkFrame(master=app, width=600, height=500)
     warning_frame.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
     warning_label = customtkinter.CTkLabel(
@@ -1340,7 +1340,7 @@ else:
 if internet_connection == True:
     logger.info("internet connection found")
 else:
-    logger.info("internet connection not found")
+    logger.error("internet connection not found")
     warning_frame = customtkinter.CTkFrame(master=app, width=600, height=500)
     warning_frame.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
     warning_label = customtkinter.CTkLabel(
