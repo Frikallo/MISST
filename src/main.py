@@ -26,6 +26,7 @@ import tkinter
 from tkinter import PhotoImage, filedialog
 import darkdetect
 import webbrowser
+import logging
 import os
 import time
 from Assets.clientsecrets import client_id, genius_access_token
@@ -36,6 +37,29 @@ import subprocess
 import requests
 import shutil
 import urllib.request
+
+loggerName = 'MISST'
+logFormatter = logging.Formatter(fmt=' %(name)s :: %(levelname)-8s :: %(message)s')
+logger = logging.getLogger(loggerName)
+logger.setLevel(logging.DEBUG)
+
+logging.basicConfig(filename='MISST.log',
+                    filemode='a',
+                    format=' %(name)s :: %(levelname)-8s :: %(message)s',
+                    level=logging.DEBUG)
+
+consoleHandler = logging.StreamHandler()
+consoleHandler.setLevel(logging.DEBUG)
+consoleHandler.setFormatter(logFormatter)
+
+logger.addHandler(consoleHandler)
+logger.info('Logger initialized')
+
+#logger.debug('debug message')
+#logger.info('info message')
+#logger.warning('warn message')
+#logger.error('error message')
+#logger.critical('critical message')#
 
 nest_asyncio.apply()
 import gc
@@ -57,16 +81,16 @@ try:
     genius_object = lg.Genius(genius_access_token)
 except:
     GENIUS = False
-    print("connection failed")
+    logger.info("connection failed")
 
 RPC = Presence(discord_rpc)
 try:
     RPC.connect()
-    print("Connected to Discord")
+    logger.info("Connected to Discord")
     RPC_CONNECTED = True
 except:
     RPC_CONNECTED = False
-    print("RPC connection failed")
+    logger.info("RPC connection failed")
 
 
 def play_thread(sound, channel):
@@ -93,7 +117,7 @@ def play_thread(sound, channel):
             del thread
             gc.collect()
         except:
-            print("done")
+            logger.info("done")
             label.configure(text="(song name)")
             progressbar.set(0)
             progress_label_left.configure(text="0:00")
@@ -169,7 +193,7 @@ def checkInternetUrllib(url="http://google.com", timeout=3):
         urllib.request.urlopen(url, timeout=timeout)
         return True
     except Exception as e:
-        print(e)
+        logger.info(e)
         return False
 
 
@@ -180,20 +204,20 @@ def preprocess_song():
     songname = os.path.basename(abspath_song).replace(" ", "%20")
     try:
         requests.post(demucs_post, files={"file": open(abspath_song, "rb")})
-        print("preprocessed")
+        logger.info("preprocessed")
         subprocess.run(
             f'curl "{demucs_get}/{songname}.zip" -o "{songname.replace("%20", " ")}.zip"',
             creationflags=CREATE_NO_WINDOW,
             check=True,
         )
-        print("downloaded")
+        logger.info("downloaded")
         songname = songname.replace("%20", " ")
         savename = songname.replace(".mp3", "")
         shutil.unpack_archive(f"{songname}.zip", f"./separated/{savename}")
-        print("unpacked")
+        logger.info("unpacked")
         os.remove(f"{songname}.zip")
     except Exception as e:
-        print(e)
+        logger.info(e)
         label2.configure("Preprocessing failed")
         return
     label2.configure(text="")
@@ -240,30 +264,21 @@ def preprocess_song():
 
 
 def count(label):
+    start_time = time.time()
     t = 0
     while True:
-        if label.text == "":
-            break
         time.sleep(0.5)
         if label.text == "":
+            end = int(time.time() - start_time)
+            label.configure(text="done! finished in " + str(end) + " seconds")
+            time.sleep(3)
+            label.configure(text="")
             break
-        t += 0.5
-        label.configure(text=f"Preprocessing")
-        time.sleep(0.5)
-        if label.text == "":
-            break
-        t += 0.5
-        label.configure(text=f"Preprocessing.")
-        time.sleep(0.5)
-        if label.text == "":
-            break
-        t += 0.5
-        label.configure(text=f"Preprocessing..")
-        time.sleep(0.5)
-        if label.text == "":
-            break
-        t += 0.5
-        label.configure(text=f"Preprocessing...")
+        if t > 3:
+            t -= t
+        periods = ["", ".", "..", "..."]
+        label.configure(text=f"Preprocessing{periods[t]}")
+        t += 1
 
 
 def button_event1():
@@ -323,7 +338,7 @@ def download_pp_song(url):
             creationflags=CREATE_NO_WINDOW,
         )
     except:
-        print("Download failed")
+        logger.info("Download failed")
         status_label.configure(text=f"Link is invalid")
         return
     status_label.configure(text=f"Preprocessing")
@@ -337,17 +352,17 @@ def download_pp_song(url):
     songname = os.path.basename(abspath_song).replace(" ", "%20")
     try:
         requests.post(demucs_post, files={"file": open(abspath_song, "rb")})
-        print("preprocessed")
+        logger.info("preprocessed")
         subprocess.run(
             f'curl "{demucs_get}/{songname}.zip" -o "{songname.replace("%20", " ")}.zip"',
             creationflags=CREATE_NO_WINDOW,
             check=True,
         )
-        print("downloaded")
+        logger.info("downloaded")
         songname = songname.replace("%20", " ")
         savename = songname.replace(".mp3", "")
         shutil.unpack_archive(f"{songname}.zip", f"./separated/{savename}")
-        print("unpacked")
+        logger.info("unpacked")
         os.remove(f"{songname}.zip")
     except:
         status_label.configure(text=f"Preprocessing failed")
@@ -417,7 +432,7 @@ def isong_2():
     abspath_song = filedialog.askopenfilename(
         filetypes=(("Audio Files (*.mp3)", ".mp3"), ("All Files", "*.*"))
     )
-    print(abspath_song)
+    logger.info(abspath_song)
     if abspath_song == "":
         return
     label2.configure(text=f"Preprocessing")
@@ -641,17 +656,17 @@ def pp_playlist():
                 requests.post(
                     demucs_post, files={"file": open(os.path.abspath(i), "rb")}
                 )
-                print("preprocessed")
+                logger.info("preprocessed")
                 subprocess.run(
                     f'curl "{demucs_get}/{songname}.zip" -o "{songname.replace("%20", " ")}.zip"',
                     creationflags=CREATE_NO_WINDOW,
                     check=True,
                 )
-                print("downloaded")
+                logger.info("downloaded")
                 songname = songname.replace("%20", " ")
                 savename = songname.replace(".mp3", "")
                 shutil.unpack_archive(f"{songname}.zip", f"./separated/{savename}")
-                print("unpacked")
+                logger.info("unpacked")
                 os.remove(f"{songname}.zip")
                 progress += 1
                 progress_percent = progress / n
@@ -662,7 +677,7 @@ def pp_playlist():
                 status_label.configure(text="Error")
                 return
     end = time.time() - start
-    print(f"Time taken: {end/60}")
+    logger.info(f"Time taken: {end/60}")
     status_label.configure(text=f"Done! Separated songs can be found in ./separated")
     for i in os.listdir("./dl-songs"):
         os.remove(os.path.join("./dl-songs", i))
@@ -707,7 +722,7 @@ def dl_playlist(url):
 
 def button_event6():
     spotify_url = playlist_input1.get()
-    print(spotify_url)
+    logger.info(spotify_url)
     global status_label
     status_label = customtkinter.CTkLabel(
         master=playlist_frame, text="Downloading playlist...", width=150, height=25
@@ -746,17 +761,17 @@ def pp_folder():
                 requests.post(
                     demucs_post, files={"file": open(os.path.abspath(i), "rb")}
                 )
-                print("preprocessed")
+                logger.info("preprocessed")
                 subprocess.run(
                     f'curl "{demucs_get}/{songname}.zip" -o "{songname.replace("%20", " ")}.zip"',
                     creationflags=CREATE_NO_WINDOW,
                     check=True,
                 )
-                print("downloaded")
+                logger.info("downloaded")
                 songname = songname.replace("%20", " ")
                 savename = songname.replace(".mp3", "")
                 shutil.unpack_archive(f"{songname}.zip", f"./separated/{savename}")
-                print("unpacked")
+                logger.info("unpacked")
                 os.remove(f"{songname}.zip")
                 progress += 1
                 progress_percent = progress / n
@@ -777,7 +792,7 @@ def button_event7():
         return
     global songs_path
     songs_path = os.path.abspath(folder)
-    print(songs_path)
+    logger.info(songs_path)
     global status_label
     status_label = customtkinter.CTkLabel(
         master=playlist_frame,
@@ -850,7 +865,7 @@ def get_lyric():
         lyric_box.configure(state=tkinter.DISABLED)
 
     except Exception as e:
-        print(e)
+        logger.info(e)
         lyrics = f"Lyrics are not available\n\n({e})"
         window = customtkinter.CTkToplevel(app)
         window.geometry("580x435")
@@ -1297,7 +1312,7 @@ def checks():
         try:
             state = app.state()
         except:
-            print("no state")
+            logger.info("no state")
             if RPC_CONNECTED == True:
                 RPC.close()
             # sys.exit(1)
@@ -1310,9 +1325,9 @@ check_thread.start()
 
 ffmpeg = subprocess.call("ffmpeg -version", creationflags=CREATE_NO_WINDOW)
 if ffmpeg == 0:
-    print("ffmpeg found")
+    logger.info("ffmpeg found")
 else:
-    print("ffmpeg not found")
+    logger.info("ffmpeg not found")
     warning_frame = customtkinter.CTkFrame(master=app, width=600, height=500)
     warning_frame.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
     warning_label = customtkinter.CTkLabel(
@@ -1323,9 +1338,9 @@ else:
     warning_label.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
 
 if internet_connection == True:
-    print("internet connection found")
+    logger.info("internet connection found")
 else:
-    print("internet connection not found")
+    logger.info("internet connection not found")
     warning_frame = customtkinter.CTkFrame(master=app, width=600, height=500)
     warning_frame.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
     warning_label = customtkinter.CTkLabel(
