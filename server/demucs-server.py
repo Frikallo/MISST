@@ -1,7 +1,6 @@
 import flask
 import os
 import shutil
-import subprocess
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 # Create the application.

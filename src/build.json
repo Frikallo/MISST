@@ -88,6 +88,10 @@
   {
     "optionDest": "datas",
     "value": "C:/Users/noahs/Desktop/Repos/MISST/src/spotdl.exe;."
+  },
+  {
+    "optionDest": "datas",
+    "value": "C:/Users/noahs/Desktop/Repos/MISST/src/ffmpeg.exe;."
   }
  ],
  "nonPyinstallerOptions": {
