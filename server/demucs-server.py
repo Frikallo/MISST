@@ -1,11 +1,22 @@
 import flask
 import os
 import shutil
+from waitress import serve
+import datetime
+import logging
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
+
+loggerName = 'MISST Server'
+logger = logging.getLogger(loggerName)
+logger.setLevel(logging.DEBUG)
+
+logging.basicConfig(format=' %(name)s :: %(levelname)-8s :: %(message)s',
+                    level=logging.DEBUG)
+
+logger.info(f'Logger initialized ({str(datetime.datetime.now()).split(".")[0]})')
 
 # Create the application.
 APP = flask.Flask(__name__)
-config = {"port": 5000, "host": "127.0.0.1", "debug": False, "production": "False", "allowedorigins": "./separated/*"}
 
 # Create a URL route in our application for "/"
 @APP.route('/')
@@ -21,25 +32,27 @@ def upload():
     else:
         os.mkdir('./tmp')
     f.save(f'./tmp/{f.filename}.{f_extension}')
+    logger.info(f.filename)
+    logger.info(f_extension)
     file_path = os.path.abspath(f'./tmp/{f.filename}.{f_extension}')
     cmd = os.system(f'python -m demucs -d cuda "{file_path}"')
-    print(f'done: {cmd}')
+    logger.info(f'done: {cmd}')
     if cmd == 0:
         pass
     else:
         return flask.jsonify({"error": "Something went wrong"})
-    print("File Processed")
+    logger.info("File Processed")
     for i in os.listdir('./tmp'):
         os.remove(f'./tmp/{i}')
     os.rmdir('./tmp')
-    print("Temp Folder Removed")
+    logger.info("Temp Folder Removed")
     shutil.make_archive(f'./separated/mdx_extra_q/{f.filename}', 'zip', f'./separated/mdx_extra_q/{f.filename}')
-    print("Archive Created")
+    logger.info("Archive Created")
     for i in os.listdir(f'./separated/mdx_extra_q/{f.filename}'):
         os.remove(f'./separated/mdx_extra_q/{f.filename}/{i}')
     os.rmdir(f'./separated/mdx_extra_q/{f.filename}')
-    print("Temp Folder Removed")
-    print("Done")
+    logger.info("Temp Folder Removed")
+    logger.info("Done")
     return "OK"
 
 @APP.route('/download/<path:filename>', methods=['GET', 'POST'])
@@ -48,4 +61,4 @@ def download(filename):
     return flask.send_from_directory(directory=dir, path=filename)
 
 if __name__ == '__main__':
-    APP.run(port=config["port"], host=config["host"], debug=config['debug'])
+    serve(APP, host='127.0.0.1', port=5000, threads=1)

@@ -184,8 +184,8 @@ if theme == "Light":
     frame_fg = "black"
     hover_color = "#EBEBEC"
 
-demucs_post = "http://localhost:5000/demucs-upload"
-demucs_get = "http://localhost:5000/download"
+demucs_post = "http://127.0.0.1:5000/demucs-upload"
+demucs_get = "http://127.0.0.1:5000/download"
 
 
 def checkInternetUrllib(url="http://google.com", timeout=3):
@@ -364,14 +364,13 @@ def download_pp_song(url):
         shutil.unpack_archive(f"{songname}.zip", f"./separated/{savename}")
         logger.info("unpacked")
         os.remove(f"{songname}.zip")
-    except:
+    except Exception as e:
+        logger.error(e)
         status_label.configure(text=f"Preprocessing failed")
         return
-    for i in os.listdir("./dl-songs"):
-        os.remove(os.path.join("./dl-songs", i))
-    os.rmdir("./dl-songs")
     label2.configure(text="")
     song = os.path.basename(abspath_song).replace(".mp3", "")
+    print(song)
     label.configure(text=f"{song}", width=240, height=50)
     thread1 = threading.Thread(
         target=play_thread, args=(f"./separated/{song}/bass.wav", 0)
@@ -403,6 +402,9 @@ def download_pp_song(url):
         )
     except:
         pass
+    for i in os.listdir("./dl-songs"):
+        os.remove(os.path.join("./dl-songs", i))
+    os.rmdir("./dl-songs")
     window.destroy()
     del thread1
     del thread2

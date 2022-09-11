@@ -1,5 +1,5 @@
 
-# MISST v1.1.0
+# MISST v1.1.0 (VERY UNSTABLE, BUGGY and a pain to work with)
 
 Original Repository of MISST : **M**usic/**I**nstrumental **S**tem **S**eparation **T**ool.
 
