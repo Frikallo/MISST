@@ -1,4 +1,4 @@
-# MISST 1.1.0
+# MISST 1.1.1
 # Copyright (C) 2022 Frikallo.
 
 # This program is free software: you can redistribute it and/or modify
@@ -69,7 +69,7 @@ gc.enable()
 pygame.mixer.init()
 pygame.mixer.set_num_channels(10)
 
-version = "V1.1.0"
+version = "V1.1.1"
 
 discord_rpc = client_id
 genius_access_token = genius_access_token

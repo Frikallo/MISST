@@ -1,5 +1,5 @@
 
-# MISST v1.1.0 (VERY UNSTABLE, BUGGY and a pain to work with)
+# MISST v1.1.1 (VERY UNSTABLE, BUGGY and a pain to work with)
 
 Original Repository of MISST : **M**usic/**I**nstrumental **S**tem **S**eparation **T**ool.
 
@@ -38,11 +38,11 @@ If possible, check the "log.log" file in your install directory for detailed err
 
 ## Manual Installation (For Developers)
 
-These instructions are for those installing MISST v1.1.0 **manually** only.
+These instructions are for those installing MISST v1.1.1 **manually** only.
 
 1. Download & install Python 3.9 or higher (but no lower than 3.9) [here](https://www.python.org/downloads/)
     - **Note:** Ensure the *"Add Python to PATH"* box is checked
-2. Download the Source code [here](https://github.com/Frikallo/MISST/archive/refs/tags/v1.1.0.zip)
+2. Download the Source code [here](https://github.com/Frikallo/MISST/archive/refs/tags/v1.1.1.zip)
 3. Open the command prompt from the src directory and run the following commands, separately - 
 
 ```
