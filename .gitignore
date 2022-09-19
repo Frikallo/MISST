@@ -3,8 +3,7 @@ src/resources-songs/*
 #Seperated tracks
 src/separated/*
 #install libs
-install-files
-win32Install.zip
+Packed/*
 #tokens
 src/Assets/clientsecrets.py
 #other

@@ -161,8 +161,15 @@ customtkinter.set_default_color_theme("blue")
 app = customtkinter.CTk()
 app.title("MISST")
 app.iconbitmap(r"./icon.ico")
-geometry = "580x435"
+
+WIDTH = 580
+HEIGHT = 435
+
+geometry = f"{WIDTH}x{HEIGHT}"
 app.geometry(geometry)
+app.resizable(False, False)
+app.minsize(WIDTH, HEIGHT)
+app.maxsize(WIDTH, HEIGHT)
 
 check_var1 = tkinter.StringVar(value="on")
 check_var2 = tkinter.StringVar(value="on")
@@ -184,6 +191,7 @@ if theme == "Light":
     frame_fg = "black"
     hover_color = "#EBEBEC"
 
+demucs = "http://127.0.0.1:5000"
 demucs_post = "http://127.0.0.1:5000/demucs-upload"
 demucs_get = "http://127.0.0.1:5000/download"
 
@@ -197,7 +205,17 @@ def checkInternetUrllib(url="http://google.com", timeout=3):
         return False
 
 
+def server_status(url=demucs, timeout=3):
+    try:
+        urllib.request.urlopen(url, timeout=timeout)
+        return True
+    except Exception as e:
+        logger.error(e)
+        return False
+
+
 internet_connection = checkInternetUrllib()
+server_connection = server_status()
 
 
 def preprocess_song():
@@ -218,7 +236,11 @@ def preprocess_song():
         os.remove(f"{songname}.zip")
     except Exception as e:
         logger.error(e)
+        label2.configure(text="")
+        time.sleep(0.5)
         label2.configure("Preprocessing failed")
+        time.sleep(3)
+        label2.configure(text="")
         return
     label2.configure(text="")
     song = os.path.basename(abspath_song).replace(".mp3", "")
@@ -260,6 +282,99 @@ def preprocess_song():
     del thread2
     del thread3
     del thread4
+    gc.collect
+
+
+def download_pp_song(url):
+    if os.path.exists("./dl-songs"):
+        pass
+    else:
+        os.mkdir("./dl-songs")
+    try:
+        spotdl = os.path.abspath("./spotdl.exe")
+        subprocess.call(
+            f"{spotdl} download {url} --output ./dl-songs",
+            creationflags=CREATE_NO_WINDOW,
+        )
+    except:
+        logger.error("Download failed")
+        status_label.configure(text=f"Link is invalid")
+        return
+    status_label.configure(text=f"Preprocessing")
+    count_thread = threading.Thread(target=count, args=(status_label,))
+    count_thread.daemon = True
+    count_thread.start()
+    for i in os.listdir("./dl-songs"):
+        if i.endswith(".mp3"):
+            abspath_song = os.path.join("./dl-songs", i)
+            break
+    songname = os.path.basename(abspath_song).replace(" ", "%20")
+    try:
+        requests.post(demucs_post, files={"file": open(abspath_song, "rb")})
+        logger.info("preprocessed")
+        subprocess.run(
+            f'curl "{demucs_get}/{songname}.zip" -o "{songname.replace("%20", " ")}.zip"',
+            creationflags=CREATE_NO_WINDOW,
+            check=True,
+        )
+        logger.info("downloaded")
+        songname = songname.replace("%20", " ")
+        savename = songname.replace(".mp3", "")
+        shutil.unpack_archive(f"{songname}.zip", f"./separated/{savename}")
+        logger.info("unpacked")
+        os.remove(f"{songname}.zip")
+    except Exception as e:
+        logger.error(e)
+        status_label.configure(text="")
+        time.sleep(0.5)
+        status_label.configure("Preprocessing failed")
+        time.sleep(3)
+        status_label.configure(text="")
+        return
+    label2.configure(text="")
+    song = os.path.basename(abspath_song).replace(".mp3", "")
+    print(song)
+    label.configure(text=f"{song}", width=240, height=50)
+    thread1 = threading.Thread(
+        target=play_thread, args=(f"./separated/{song}/bass.wav", 0)
+    )  #
+    thread2 = threading.Thread(
+        target=play_thread, args=(f"./separated/{song}/drums.wav", 1)
+    )  #
+    thread3 = threading.Thread(
+        target=play_thread, args=(f"./separated/{song}/other.wav", 2)
+    )  #
+    thread4 = threading.Thread(
+        target=play_thread, args=(f"./separated/{song}/vocals.wav", 3)
+    )  #
+    thread1.daemon = True
+    thread1.start()
+    thread2.daemon = True
+    thread2.start()
+    thread3.daemon = True
+    thread3.start()
+    thread4.daemon = True
+    thread4.start()
+    try:
+        RPC.update(
+            large_image="misst",
+            start=start_time,
+            large_text="MISST",
+            state="Listening to seperated audio",
+            details=f"{song}",
+        )
+    except:
+        pass
+    for i in os.listdir("./dl-songs"):
+        os.remove(os.path.join("./dl-songs", i))
+    os.rmdir("./dl-songs")
+    window.destroy()
+    del thread1
+    del thread2
+    del thread3
+    del thread4
+    del song
+    del i
     gc.collect
 
 
@@ -324,95 +439,6 @@ def button_event1():
         master=playlist_frame, text=" ", width=150, height=25
     )
     status_label.place(relx=0.5, rely=0.9, anchor=tkinter.CENTER)
-
-
-def download_pp_song(url):
-    if os.path.exists("./dl-songs"):
-        pass
-    else:
-        os.mkdir("./dl-songs")
-    try:
-        spotdl = os.path.abspath("./spotdl.exe")
-        subprocess.call(
-            f"{spotdl} download {url} --output ./dl-songs",
-            creationflags=CREATE_NO_WINDOW,
-        )
-    except:
-        logger.error("Download failed")
-        status_label.configure(text=f"Link is invalid")
-        return
-    status_label.configure(text=f"Preprocessing")
-    count_thread = threading.Thread(target=count, args=(status_label,))
-    count_thread.daemon = True
-    count_thread.start()
-    for i in os.listdir("./dl-songs"):
-        if i.endswith(".mp3"):
-            abspath_song = os.path.join("./dl-songs", i)
-            break
-    songname = os.path.basename(abspath_song).replace(" ", "%20")
-    try:
-        requests.post(demucs_post, files={"file": open(abspath_song, "rb")})
-        logger.info("preprocessed")
-        subprocess.run(
-            f'curl "{demucs_get}/{songname}.zip" -o "{songname.replace("%20", " ")}.zip"',
-            creationflags=CREATE_NO_WINDOW,
-            check=True,
-        )
-        logger.info("downloaded")
-        songname = songname.replace("%20", " ")
-        savename = songname.replace(".mp3", "")
-        shutil.unpack_archive(f"{songname}.zip", f"./separated/{savename}")
-        logger.info("unpacked")
-        os.remove(f"{songname}.zip")
-    except Exception as e:
-        logger.error(e)
-        status_label.configure(text=f"Preprocessing failed")
-        return
-    label2.configure(text="")
-    song = os.path.basename(abspath_song).replace(".mp3", "")
-    print(song)
-    label.configure(text=f"{song}", width=240, height=50)
-    thread1 = threading.Thread(
-        target=play_thread, args=(f"./separated/{song}/bass.wav", 0)
-    )  #
-    thread2 = threading.Thread(
-        target=play_thread, args=(f"./separated/{song}/drums.wav", 1)
-    )  #
-    thread3 = threading.Thread(
-        target=play_thread, args=(f"./separated/{song}/other.wav", 2)
-    )  #
-    thread4 = threading.Thread(
-        target=play_thread, args=(f"./separated/{song}/vocals.wav", 3)
-    )  #
-    thread1.daemon = True
-    thread1.start()
-    thread2.daemon = True
-    thread2.start()
-    thread3.daemon = True
-    thread3.start()
-    thread4.daemon = True
-    thread4.start()
-    try:
-        RPC.update(
-            large_image="misst",
-            start=start_time,
-            large_text="MISST",
-            state="Listening to seperated audio",
-            details=f"{song}",
-        )
-    except:
-        pass
-    for i in os.listdir("./dl-songs"):
-        os.remove(os.path.join("./dl-songs", i))
-    os.rmdir("./dl-songs")
-    window.destroy()
-    del thread1
-    del thread2
-    del thread3
-    del thread4
-    del song
-    del i
-    gc.collect
 
 
 def isong_1():
@@ -1349,6 +1375,18 @@ else:
         master=warning_frame,
         text="WARNING: internet connection not found\nMake sure you are connected to the internet\nIf connected, restart the program\n\n---------------------------------\n",
         text_font=("Roboto Medium", -18),
+    )
+    warning_label.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
+
+if server_connection == True:
+    logger.info("server connection found")
+else:
+    logger.error("server connection not found")
+    warning_frame = customtkinter.CTkToplevel(master=app, width=350, height=200)
+    warning_label = customtkinter.CTkLabel(
+        master=warning_frame,
+        text="WARNING: server connection not found\nIf server is down preprocessing services are not available\n\n---------------------------------\n",
+        text_font=("Roboto Medium", -12),
     )
     warning_label.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
 
