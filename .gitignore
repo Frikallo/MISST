@@ -20,3 +20,4 @@ src/ffmpeg.exe
 server/ffmpeg.exe
 server/ffplay.exe
 server/ffprobe.exe
+srcV2/*
