@@ -133,6 +133,9 @@ def server_status(url=demucs, timeout=3):
 internet_connection = checkInternetUrllib()
 server_connection = server_status()
 
+if not os.path.exists("./separated"):
+    os.mkdir("./separated")
+
 ## APP CONFIG ----------------------------------------------------------------------------------------------------
 
 customtkinter.set_appearance_mode("System")
