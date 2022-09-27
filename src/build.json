@@ -7,7 +7,7 @@
   },
   {
    "optionDest": "filenames",
-   "value": "C:/Users/noahs/Desktop/Repos/MISST/src/main.py"
+   "value": "C:/Users/noahs/Desktop/Repos/MISST/src/MIIST.py"
   },
   {
    "optionDest": "onefile",
@@ -74,24 +74,20 @@
    "value": "C:/Users/noahs/AppData/Local/Packages/PythonSoftwareFoundation.Python.3.9_qbz5n2kfra8p0/LocalCache/local-packages/Python39/site-packages/customtkinter;customtkinter/"
   },
   {
-    "optionDest": "datas",
-    "value": "C:/Users/noahs/Desktop/Repos/MISST/src/Assets;Assets/"
+   "optionDest": "datas",
+   "value": "C:/Users/noahs/Desktop/Repos/MISST/src/Assets;Assets/"
   },
   {
    "optionDest": "datas",
    "value": "C:/Users/noahs/Desktop/Repos/MISST/src/icon.ico;."
   },
   {
-    "optionDest": "datas",
-    "value": "C:/Users/noahs/Desktop/Repos/MISST/requirements.txt;."
+   "optionDest": "datas",
+   "value": "C:/Users/noahs/Desktop/Repos/MISST/src/spotdl.exe;."
   },
   {
-    "optionDest": "datas",
-    "value": "C:/Users/noahs/Desktop/Repos/MISST/src/spotdl.exe;."
-  },
-  {
-    "optionDest": "datas",
-    "value": "C:/Users/noahs/Desktop/Repos/MISST/src/ffmpeg.exe;."
+   "optionDest": "datas",
+   "value": "C:/Users/noahs/Desktop/Repos/MISST/src/ffmpeg.exe;."
   }
  ],
  "nonPyinstallerOptions": {
