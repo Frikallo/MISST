@@ -23,6 +23,18 @@ APP = flask.Flask(__name__)
 def home():
     return "demucs-server V0.1"
 
+queue_list = 0
+
+@APP.route('/queue', methods=['POST'])
+def queue():
+    global queue_list
+    queue_list += 1
+    print(queue_list)
+    while True:
+        if queue_list == 1:
+            break
+    return "OK"
+
 @APP.route('/demucs-upload', methods=['POST'])
 def upload():
     f = flask.request.files['file']
@@ -53,6 +65,7 @@ def upload():
     os.rmdir(f'./separated/mdx_extra_q/{f.filename}')
     logger.info("Temp Folder Removed")
     logger.info("Done")
+    queue_list -= 1
     return "OK"
 
 @APP.route('/download/<path:filename>', methods=['GET', 'POST'])

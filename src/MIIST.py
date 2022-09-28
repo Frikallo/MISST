@@ -1,6 +1,6 @@
 ## LICENSE ----------------------------------------------------------------------------------------------------
 
-# MISST 2.0.0
+# MISST 2.0.1
 # Copyright (C) 2022 Frikallo.
 
 # This program is free software: you can redistribute it and/or modify
@@ -17,6 +17,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 ## IMPORTS ----------------------------------------------------------------------------------------------------
+from concurrent.futures import thread
 import os
 
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
@@ -32,7 +33,7 @@ import webbrowser
 import logging
 import os
 import time
-from Assets.clientsecrets import client_id, genius_access_token
+from Assets.clientsecrets import client_id, genius_access_token, server_base, importsdest
 import lyricsgenius as lg
 from pypresence import Presence
 import nest_asyncio
@@ -70,19 +71,19 @@ logger.info(f'Logger initialized ({str(datetime.datetime.now()).split(".")[0]})'
 # logger.info('info message')
 # logger.warning('warn message')
 # logger.error('error message')
-# logger.critical('critical message')#
+# logger.critical('critical message')
 
 ## GLOBAL VARIABLES ----------------------------------------------------------------------------------------------------
 
-version = "V2.0.0"
+version = "V2.0.1"
 discord_rpc = client_id
 genius_access_token = genius_access_token
 CREATE_NO_WINDOW = 0x08000000
 GENIUS = True
 
-demucs = "http://127.0.0.1:5000"
-demucs_post = "http://127.0.0.1:5000/demucs-upload"
-demucs_get = "http://127.0.0.1:5000/download"
+demucs_post = f"{server_base}/demucs-upload"
+demucs_get = f"{server_base}/download"
+demucs_queue = f"{server_base}/queue"
 
 ## INIT ----------------------------------------------------------------------------------------------------
 
@@ -112,29 +113,31 @@ other = pygame.mixer.Channel(2)
 vocals = pygame.mixer.Channel(3)
 
 
-def checkInternetUrllib(url="http://google.com", timeout=3):
+def checkInternetUrllib(url="http://google.com"):
     try:
-        urllib.request.urlopen(url, timeout=timeout)
+        urllib.request.urlopen(url)
         return True
     except Exception as e:
         logger.error(e)
         return False
 
+server_connection = None
 
-def server_status(url=demucs, timeout=3):
+def server_status(url=server_base):
+    global server_connection
     try:
-        urllib.request.urlopen(url, timeout=timeout)
+        urllib.request.urlopen(url)
+        server_connection = True
         return True
-    except Exception as e:
-        logger.error(e)
+    except:
+        server_connection = False
         return False
 
 
 internet_connection = checkInternetUrllib()
-server_connection = server_status()
 
-if not os.path.exists("./separated"):
-    os.mkdir("./separated")
+if not os.path.exists(importsdest):
+    os.mkdir(importsdest)
 
 ## APP CONFIG ----------------------------------------------------------------------------------------------------
 
@@ -287,7 +290,6 @@ def import_():
     )
     status_label.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
 
-    status_update(status_label, "Awaiting Instructions")
     ## SONG IMPORT --------------------------------------------------
 
     importsong_label = customtkinter.CTkLabel(
@@ -372,6 +374,25 @@ def import_():
         command=lambda: playlistdlthread.start(),
     )
     spot_Playlistimport.place(relx=0.77, rely=0.85, anchor=tkinter.CENTER)
+
+    if server_connection == True:     
+        status_update(status_label, "Awaiting Instructions")
+    else:
+        mask_frame = customtkinter.CTkFrame(import_window, width=375, height=175)
+        mask_frame.place(relx=0.5, rely=0.35, anchor=tkinter.CENTER)
+        server_off = customtkinter.CTkButton(
+            master=mask_frame, text="", width=100, height=100, image=PhotoImage(file="./Assets/server_off.png"), bg_color=mask_frame.fg_color, fg_color=mask_frame.fg_color, hover_color=mask_frame.fg_color,
+        )
+        server_off.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
+        status_update(status_label, "Server is not available")
+        offline_label = customtkinter.CTkLabel(
+            status_frame, text="(preprocessing services not available while server is down)", text_font=(FONT, -10), height=20
+        )
+        offline_label.place(relx=0.5, rely=0.75, anchor=tkinter.CENTER)
+        spot_Playlistimport.configure(state=tkinter.DISABLED)
+        mp3PlaylistImport.configure(state=tkinter.DISABLED)
+        spot_import.configure(state=tkinter.DISABLED)
+        mp3Import.configure(state=tkinter.DISABLED)
 
 
 def mp3Import_fun(status_label):
@@ -644,9 +665,11 @@ def spot_dl_playlist(url, status_label):
 
 def preprocess(abspath_song, status_label):
     start = time.time()
-
     songname = os.path.basename(abspath_song).replace(" ", "%20")
     try:
+        status_update(status_label, "In Queue")
+        requests.post(demucs_queue)
+        status_update(status_label, "Preprocessing")
         requests.post(demucs_post, files={"file": open(abspath_song, "rb")})
         logger.info("preprocessed")
         subprocess.run(
@@ -657,7 +680,7 @@ def preprocess(abspath_song, status_label):
         logger.info("downloaded")
         songname = songname.replace("%20", " ")
         savename = songname.replace(".mp3", "")
-        shutil.unpack_archive(f"{songname}.zip", f"./separated/{savename}")
+        shutil.unpack_archive(f"{songname}.zip", f"{importsdest}/{savename}")
         logger.info("unpacked")
         os.remove(f"{songname}.zip")
     except:
@@ -690,13 +713,16 @@ def preprocess(abspath_song, status_label):
     time.sleep(2)
     done_label.master.master.destroy()
     status_update(status_label, "Awaiting Instructions")
-    play_song(f"./separated/{savename}")
+    play_song(f"{importsdest}/{savename}")
     return
 
 
 def preprocessmultiple(abspath_song, status_label):
     songname = os.path.basename(abspath_song).replace(" ", "%20")
     try:
+        status_update(status_label, "In Queue")
+        requests.post(demucs_queue)
+        status_update(status_label, "Preprocessing")
         requests.post(demucs_post, files={"file": open(abspath_song, "rb")})
         logger.info("preprocessed")
         subprocess.run(
@@ -707,7 +733,7 @@ def preprocessmultiple(abspath_song, status_label):
         logger.info("downloaded")
         songname = songname.replace("%20", " ")
         savename = songname.replace(".mp3", "")
-        shutil.unpack_archive(f"{songname}.zip", f"./separated/{savename}")
+        shutil.unpack_archive(f"{songname}.zip", f"{importsdest}/{savename}")
         logger.info("unpacked")
         os.remove(f"{songname}.zip")
     except:
@@ -782,15 +808,18 @@ def get_album_art(search):
     return im
 
 
-def east_checks(search_entry, lyric_box):
+def global_checks(search_entry, lyric_box):
+    server_connection = False
     entry_val = None
     num = 0
     songs = []
-    for _ in os.listdir("./separated"):
+    for _ in os.listdir(importsdest):
         num += 1
         songs.append(f"{num}. {_}")
     while True:
         time.sleep(0.5)
+        if server_connection == False:
+            threading.Thread(target=server_status).start()
         lyric_box.configure(
             bg=lyric_box.master.fg_color[
                 1 if customtkinter.get_appearance_mode() == "Dark" else 0
@@ -821,7 +850,7 @@ def play_search(index_label, songs):
     try:
         index = int(index_label)
         song = songs[index - 1]
-        play_song(f"./separated/{song}")
+        play_song(f"{importsdest}/{song}")
     except:
         pass
 
@@ -900,11 +929,11 @@ playbutton = customtkinter.CTkButton(
     text="Play",
     width=150,
     height=25,
-    command=lambda: play_search(index_entry.get(), os.listdir("./separated")),
+    command=lambda: play_search(index_entry.get(), os.listdir(importsdest)),
 )
 playbutton.place(relx=0.5, rely=0.9, anchor=tkinter.CENTER)
 
-east_checks = threading.Thread(target=east_checks, args=(search_entry, lyric_box))
+east_checks = threading.Thread(target=global_checks, args=(search_entry, lyric_box))
 east_checks.daemon = True
 east_checks.start()
 
@@ -1094,5 +1123,5 @@ import_button.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
 
 ## STARTUP ----------------------------------------------------------------------------------------------------
 
-update_rpc("Exploring the client", "Starting up")
+update_rpc(Ltext="Idle", Dtext="Nothing is playing")
 app.mainloop()
