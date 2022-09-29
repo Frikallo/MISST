@@ -820,6 +820,12 @@ def global_checks(search_entry, lyric_box):
         time.sleep(0.5)
         if server_connection == False:
             threading.Thread(target=server_status).start()
+        if len(os.listdir(importsdest)) != num:
+            num = 0
+            songs = []
+            for _ in os.listdir(importsdest):
+                num += 1
+                songs.append(f"{num}. {_}")
         lyric_box.configure(
             bg=lyric_box.master.fg_color[
                 1 if customtkinter.get_appearance_mode() == "Dark" else 0
