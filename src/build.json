@@ -88,6 +88,10 @@
   {
    "optionDest": "datas",
    "value": "C:/Users/noahs/Desktop/Repos/MISST/src/ffmpeg.exe;."
+  },
+  {
+   "optionDest": "datas",
+   "value": "C:/Users/noahs/Desktop/Repos/MISST/src/ffprobe.exe;."
   }
  ],
  "nonPyinstallerOptions": {
