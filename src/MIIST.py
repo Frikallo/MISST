@@ -1,6 +1,6 @@
 ## LICENSE ----------------------------------------------------------------------------------------------------
 
-# MISST 2.0.1
+# MISST 2.0.2
 # Copyright (C) 2022 Frikallo.
 
 # This program is free software: you can redistribute it and/or modify
@@ -29,6 +29,7 @@ import threading
 import customtkinter
 import tkinter
 from tkinter import PhotoImage, filedialog
+import nightcore as nc
 import webbrowser
 import logging
 import os
@@ -75,7 +76,7 @@ logger.info(f'Logger initialized ({str(datetime.datetime.now()).split(".")[0]})'
 
 ## GLOBAL VARIABLES ----------------------------------------------------------------------------------------------------
 
-version = "V2.0.1"
+version = "V2.0.2"
 discord_rpc = client_id
 genius_access_token = genius_access_token
 CREATE_NO_WINDOW = 0x08000000
@@ -126,9 +127,13 @@ server_connection = None
 def server_status(url=server_base):
     global server_connection
     try:
-        urllib.request.urlopen(url)
-        server_connection = True
-        return True
+        req = requests.get(url)
+        if req.text != "SSH Tunnel Down":
+            server_connection = True
+            return True
+        else:
+            server_connection = False
+            return False
     except:
         server_connection = False
         return False
@@ -163,6 +168,8 @@ check_var1 = tkinter.StringVar(value="on")
 check_var2 = tkinter.StringVar(value="on")
 check_var3 = tkinter.StringVar(value="on")
 check_var4 = tkinter.StringVar(value="on")
+nc_var = tkinter.StringVar(value="off")
+loop_var = tkinter.StringVar(value="off")
 
 ## FUNCTIONS ----------------------------------------------------------------------------------------------------
 
@@ -176,7 +183,6 @@ def play_thread(sound, channel):
             gc.collect()
         except:
             songlabel.configure(text="")
-            logger.info("channel {} is done".format(channel))
             return
         while pygame.mixer.get_busy():
             pygame.time.delay(100)
@@ -569,18 +575,37 @@ def update_rpc(Ltext=None, Dtext=None):
 def update_songUI(song):
     songlabel.configure(text="")
     song_name = os.path.basename(os.path.dirname(song))
-    update_rpc(Ltext="Listening to seperated audio", Dtext=song_name)
     try:
         cover_art = ImageTk.PhotoImage(get_album_art(song_name))
     except:
         cover_art = ImageTk.PhotoImage(Image.open("./assets/default.png"))
     songlabel.configure(text=song_name, image=cover_art)
+    update_rpc(Ltext="Listening to seperated audio", Dtext=song_name)
+    nc_checkbox.configure(state="normal")
     label = tkinter.Label(image=cover_art)
     label.image = cover_art
     label.place(relx=2, rely=2, anchor=tkinter.CENTER)
     sample_rate, audio_data = wavfile.read(song)
     duration = audio_data.shape[0] / sample_rate
     t = 0
+
+    progressbar = customtkinter.CTkProgressBar(master=north_frame, width=225, height=10)
+    progressbar.place(relx=0.5, rely=0.7, anchor=tkinter.CENTER)
+    progressbar.set(0)
+
+    progress_label_left = customtkinter.CTkLabel(
+        master=north_frame, text="0:00", text_font=(FONT, -12), width=50
+    )
+    progress_label_left.place(relx=0.1, rely=0.7, anchor=tkinter.CENTER)
+
+    progress_label_right = customtkinter.CTkLabel(
+        master=north_frame, text="0:00", text_font=(FONT, -12), width=50
+    )
+    progress_label_right.place(relx=0.9, rely=0.7, anchor=tkinter.CENTER)
+
+    for _ in os.listdir(importsdest + '/' + song_name):
+        if _.endswith("_nc.wav"):
+            os.remove(importsdest + '/' + song_name + '/' + _)
     while True:
         if songlabel.text == "":
             progressbar.set(0)
@@ -588,10 +613,10 @@ def update_songUI(song):
             progress_label_left.configure(text="0:00")
             progress_label_right.configure(text="0:00")
             update_rpc(Ltext="Idle", Dtext="Nothing is playing")
+            nc_checkbox.configure(state=tkinter.DISABLED)
             break
         if songlabel.text != song_name:
             break
-        time.sleep(1)
         t += 1
         percent = t / duration
         progressbar.set(percent)
@@ -601,6 +626,7 @@ def update_songUI(song):
         progress_label_right.configure(
             text=f"{str(datetime.timedelta(seconds=duration-t)).split('.')[0][2:]}"
         )
+        time.sleep(1)
     return
 
 
@@ -748,21 +774,26 @@ def preprocessmultiple(abspath_song, status_label):
         return
 
 
-def play_song(parent_dir):
+def play_song(parent_dir, nightcore=False):
+    
+    end = ".wav"
+    if nightcore == True:
+        end = "_nc.wav"
+
     thread1 = threading.Thread(
-        target=play_thread, args=(os.path.join(parent_dir, "bass.wav"), 0)
+        target=play_thread, args=(os.path.join(parent_dir, f"bass{end}"), 0)
     )
     thread2 = threading.Thread(
-        target=play_thread, args=(os.path.join(parent_dir, "drums.wav"), 1)
+        target=play_thread, args=(os.path.join(parent_dir, f"drums{end}"), 1)
     )
     thread3 = threading.Thread(
-        target=play_thread, args=(os.path.join(parent_dir, "other.wav"), 2)
+        target=play_thread, args=(os.path.join(parent_dir, f"other{end}"), 2)
     )
     thread4 = threading.Thread(
-        target=play_thread, args=(os.path.join(parent_dir, "vocals.wav"), 3)
+        target=play_thread, args=(os.path.join(parent_dir, f"vocals{end}"), 3)
     )
     songthread = threading.Thread(
-        target=update_songUI, args=(os.path.join(parent_dir, "other.wav"),)
+        target=update_songUI, args=(os.path.join(parent_dir, f"other{end}"),)
     )
 
     thread1.daemon = True
@@ -856,6 +887,7 @@ def play_search(index_label, songs):
     try:
         index = int(index_label)
         song = songs[index - 1]
+        nc_checkbox.deselect()
         play_song(f"{importsdest}/{song}")
     except:
         pass
@@ -865,6 +897,24 @@ def raise_above_all(window):
     window.attributes("-topmost", 1)
     window.attributes("-topmost", 0)
 
+
+def nightcore(song, tones=3):
+    value = nc_var.get()
+    if value == "on":
+        parentdir = os.path.abspath(os.path.join(importsdest, song.text))
+        for _ in os.listdir(parentdir):
+            if _.endswith(".wav"):
+                song = os.path.join(parentdir, _)
+                nc_audio = song @ nc.Tones(tones)
+                _name = _.replace(".wav", "_nc.wav" )
+                nc_audio.export(f"{parentdir}/{_name}", format="wav")
+        play_song(parentdir, nightcore=True)
+        return None
+    if value == "off":
+        if song.text == "":
+            return None
+        play_song(os.path.abspath(os.path.join(importsdest, song.text)))
+        return None
 
 ## USER INTERFACE ----------------------------------------------------------------------------------------------------
 
@@ -1016,7 +1066,7 @@ songlabel = customtkinter.CTkButton(
     width=240,
     height=50,
     text_font=(FONT, -14),
-    command=get_lyrics,
+    command=lambda: threading.Thread(target=get_lyrics, daemon=True).start(),
     fg_color=north_frame.fg_color,
     hover_color=app.fg_color,
 )
@@ -1046,7 +1096,7 @@ checkbox1 = customtkinter.CTkCheckBox(
     onvalue="on",
     offvalue="off",
 )
-checkbox1.place(relx=0.1, rely=0.3, anchor=tkinter.W)
+checkbox1.place(relx=0.1, rely=0.2, anchor=tkinter.W)
 
 checkbox2 = customtkinter.CTkCheckBox(
     master=center_frame,
@@ -1056,7 +1106,7 @@ checkbox2 = customtkinter.CTkCheckBox(
     onvalue="on",
     offvalue="off",
 )
-checkbox2.place(relx=0.1, rely=0.45, anchor=tkinter.W)
+checkbox2.place(relx=0.1, rely=0.35, anchor=tkinter.W)
 
 checkbox3 = customtkinter.CTkCheckBox(
     master=center_frame,
@@ -1066,7 +1116,7 @@ checkbox3 = customtkinter.CTkCheckBox(
     onvalue="on",
     offvalue="off",
 )
-checkbox3.place(relx=0.1, rely=0.6, anchor=tkinter.W)
+checkbox3.place(relx=0.1, rely=0.5, anchor=tkinter.W)
 
 checkbox4 = customtkinter.CTkCheckBox(
     master=center_frame,
@@ -1076,7 +1126,7 @@ checkbox4 = customtkinter.CTkCheckBox(
     onvalue="on",
     offvalue="off",
 )
-checkbox4.place(relx=0.1, rely=0.75, anchor=tkinter.W)
+checkbox4.place(relx=0.1, rely=0.65, anchor=tkinter.W)
 
 slider1 = customtkinter.CTkSlider(
     master=center_frame,
@@ -1085,7 +1135,7 @@ slider1 = customtkinter.CTkSlider(
     command=lambda x: slider_event(x, bass, checkbox1),
     number_of_steps=10,
 )
-slider1.place(relx=0.6, rely=0.3, anchor=tkinter.CENTER)
+slider1.place(relx=0.6, rely=0.2, anchor=tkinter.CENTER)
 
 slider2 = customtkinter.CTkSlider(
     master=center_frame,
@@ -1094,7 +1144,7 @@ slider2 = customtkinter.CTkSlider(
     command=lambda x: slider_event(x, drums, checkbox2),
     number_of_steps=10,
 )
-slider2.place(relx=0.6, rely=0.45, anchor=tkinter.CENTER)
+slider2.place(relx=0.6, rely=0.35, anchor=tkinter.CENTER)
 
 slider3 = customtkinter.CTkSlider(
     master=center_frame,
@@ -1103,7 +1153,7 @@ slider3 = customtkinter.CTkSlider(
     command=lambda x: slider_event(x, other, checkbox3),
     number_of_steps=10,
 )
-slider3.place(relx=0.6, rely=0.6, anchor=tkinter.CENTER)
+slider3.place(relx=0.6, rely=0.5, anchor=tkinter.CENTER)
 
 slider4 = customtkinter.CTkSlider(
     master=center_frame,
@@ -1112,7 +1162,18 @@ slider4 = customtkinter.CTkSlider(
     command=lambda x: slider_event(x, vocals, checkbox4),
     number_of_steps=10,
 )
-slider4.place(relx=0.6, rely=0.75, anchor=tkinter.CENTER)
+slider4.place(relx=0.6, rely=0.65, anchor=tkinter.CENTER)
+
+nc_checkbox = customtkinter.CTkSwitch(
+    master=center_frame,
+    text="nightcore",
+    command=lambda: threading.Thread(target=nightcore, daemon=True, args=(songlabel,)).start(),
+    variable=nc_var,
+    onvalue="on",
+    offvalue="off",
+)
+nc_checkbox.place(relx=0.5, rely=0.9, anchor=tkinter.CENTER)
+nc_checkbox.configure(state=tkinter.DISABLED)
 
 ## SOUTH FRAME ----------------------------------------------------------------------------------------------------
 

@@ -17,6 +17,7 @@ server/separated/*
 output/*
 src/MISST.log
 src/ffmpeg.exe
+src/ffprobe.exe
 server/ffmpeg.exe
 server/ffplay.exe
 server/ffprobe.exe
