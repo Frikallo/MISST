@@ -10,7 +10,7 @@ version = r.url.split('/')[-1]
 
 print("MISST Install Wizard V0.1")
 print("This script will install the required dependencies for MISST. As well as install the required files for the server and client.")
-default_dir = os.path.expanduser('~') + "\MISST-temp"
+default_dir = os.path.expanduser('~') + "\MISST-Bundle"
 install_dir = input(f"Enter dir in which to install MISST ({default_dir}) ~300mb: ")
 if install_dir == "":
     install_dir = default_dir
@@ -56,8 +56,8 @@ print(f"Creating shortcut on desktop ({shortcut_path})")
 try:
     shell = win32com.client.Dispatch("WScript.Shell")
     shortcut = shell.CreateShortCut(shortcut_path)
-    shortcut.Targetpath = os.path.abspath(os.path.expanduser('~')) + "MISST\MISST.exe"
-    shortcut.IconLocation = os.path.abspath(os.path.expanduser('~')) + "MISST\icon.ico"
+    shortcut.Targetpath = os.path.abspath(os.path.expanduser('~')) + "\MISST\MISST.exe"
+    shortcut.IconLocation = os.path.abspath(os.path.expanduser('~')) + "\MISST\icon.ico"
     shortcut.save()
 except:
     print("Failed to create shortcut, exiting.")
