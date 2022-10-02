@@ -4,16 +4,26 @@ import shutil
 from waitress import serve
 import datetime
 import logging
+import logging.config
+logging.config.dictConfig({
+    'version': 1,
+    'disable_existing_loggers': True,
+})
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 loggerName = 'MISST Server'
 logger = logging.getLogger(loggerName)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 
 logging.basicConfig(format=' %(name)s :: %(levelname)-8s :: %(message)s',
-                    level=logging.DEBUG)
+                    level=logging.INFO)
+
+host = '127.0.0.1'
+port = 5000
 
 logger.info(f'Logger initialized ({str(datetime.datetime.now()).split(".")[0]})')
+logger.info(f'Host: {host}')
+logger.info(f'Port: {port}')
 
 # Create the application.
 APP = flask.Flask(__name__)
@@ -36,7 +46,7 @@ def queue():
     return "OK"
 
 @APP.route('/demucs-upload', methods=['POST'])
-def upload():
+def upload(queue_list=queue_list):
     f = flask.request.files['file']
     f_extension = flask.request.files['file'].filename.split('.')[-1]
     if os.path.exists('./tmp'):
@@ -74,4 +84,4 @@ def download(filename):
     return flask.send_from_directory(directory=dir, path=filename)
 
 if __name__ == '__main__':
-    serve(APP, host='127.0.0.1', port=5000, threads=1)
+    serve(APP, host=host, port=port, threads=1)

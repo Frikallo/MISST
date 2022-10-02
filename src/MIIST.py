@@ -17,7 +17,6 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 ## IMPORTS ----------------------------------------------------------------------------------------------------
-from concurrent.futures import thread
 import os
 
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
@@ -43,9 +42,8 @@ import requests
 import shutil
 import urllib.request
 import gc
-from PIL import Image
+from PIL import Image, ImageTk
 import io
-from PIL import ImageTk
 
 ## LOGGER ----------------------------------------------------------------------------------------------------
 
@@ -143,6 +141,10 @@ internet_connection = checkInternetUrllib()
 
 if not os.path.exists(importsdest):
     os.mkdir(importsdest)
+
+if os.path.exists('./dl-songs'):
+    shutil.rmtree('./dl-songs')
+    logger.info("dl-songs folder deleted")
 
 ## APP CONFIG ----------------------------------------------------------------------------------------------------
 
@@ -736,8 +738,7 @@ def preprocess(abspath_song, status_label):
         width=200,
     )
     done_label.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
-    time.sleep(2)
-    done_label.master.master.destroy()
+    time.sleep(5)
     status_update(status_label, "Awaiting Instructions")
     play_song(f"{importsdest}/{savename}")
     return
