@@ -27,7 +27,7 @@ else:
 print(f"Installing MISST to {os.path.abspath(install_dir)}")
 print("Downloading binaries...")
 try:
-    urllib.request.urlretrieve(f"https://github.com/Frikallo/MISST/releases/download/{version}/MIISTwin32.zip", "MISST.zip")
+    urllib.request.urlretrieve(f"https://github.com/Frikallo/MISST/releases/download/{version}/MISSTwin32.zip", "MISST.zip")
 except Exception as e:
     print(f"Failed to download binaries, exiting. ({e})")
     print("Failed to download binaries, exiting.")
