@@ -711,6 +711,7 @@ def preprocess(abspath_song, status_label):
         shutil.unpack_archive(f"{songname}.zip", f"{importsdest}/{savename}")
         logger.info("unpacked")
         os.remove(f"{songname}.zip")
+        play_song(f"{importsdest}/{savename}")
     except:
         logger.error("Preprocessing failed")
         error_label = customtkinter.CTkLabel(
@@ -738,18 +739,15 @@ def preprocess(abspath_song, status_label):
         width=200,
     )
     done_label.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
-    time.sleep(5)
+    time.sleep(3)
     status_update(status_label, "Awaiting Instructions")
-    play_song(f"{importsdest}/{savename}")
     return
 
 
 def preprocessmultiple(abspath_song, status_label):
     songname = os.path.basename(abspath_song).replace(" ", "%20")
     try:
-        status_update(status_label, "In Queue")
         requests.post(demucs_queue)
-        status_update(status_label, "Preprocessing")
         requests.post(demucs_post, files={"file": open(abspath_song, "rb")})
         logger.info("preprocessed")
         subprocess.run(
