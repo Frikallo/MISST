@@ -1,5 +1,12 @@
-
+[![GitHub release](https://img.shields.io/github/release/frikallo/misst.svg)](https://GitHub.com/frikallo/misst/releases/) ![Github All Releases](https://img.shields.io/github/downloads/frikallo/misst/total?color=blue) ![License](https://img.shields.io/github/license/frikallo/misst?color=blue) ![Hits-of-Code](https://hitsofcode.com/github/frikallo/MISST?branch=main)
 # MISST v2.0.2
+
+![](src/assets/showcaseimage1.jpeg)
+| _`MISST` on Windows 11 with dark mode and 'Blue' theme with 'Micheal Jackson's Chicago' playing_
+
+![](src/assets/showcaseimage2.jpeg)
+| _`MISST` on Windows 11 with dark mode and 'Dark-Blue' theme with 'Jojis's Gimme Love' playing_
+###
 
 Original Repository of MISST : **M**usic/**I**nstrumental **S**tem **S**eparation **T**ool.
 
@@ -13,10 +20,10 @@ This project is OpenSource, feel free to use, study and/or send pull request.
 - [x] Extract and manipulate the 4 core stems from your audio files as they play
 - [x] Save your stems as audio files
 - [x] If imported from your music library, view lyrics and metadata just as you would in your old music player
-- [ ] No memory leaks
+- [x] Minimal memory usage
 - [ ] Make it as fast as possible (Preprocessing, Model loading, etc.)
 - [ ] Stable on Windows, Linux and MacOS
-- [ ] Stable on 32 and 64 bits
+- [x] Stable on 32 and 64 bits
 - [ ] Proper installer/updater
 
 
