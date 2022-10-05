@@ -310,7 +310,7 @@ def import_():
         text="Import from .mp3",
         width=150,
         height=25,
-        command=lambda: mp3Import_fun(status_label),
+        command=lambda: import_fun1(status_label),
     )
     mp3Import.place(relx=0.23, rely=0.3, anchor=tkinter.CENTER)
 
@@ -330,7 +330,7 @@ def import_():
         text="Import from Spotify",
         width=150,
         height=25,
-        command=lambda: spot_import_fun(spot_importEntry.get(), status_label),
+        command=lambda: import_fun2(spot_importEntry.get(), status_label),
     )
     spot_import.place(relx=0.23, rely=0.85, anchor=tkinter.CENTER)
 
@@ -342,7 +342,7 @@ def import_():
     importplaylist_label.place(relx=0.77, rely=0.1, anchor=tkinter.CENTER)
 
     playlistthread = threading.Thread(
-        target=mp3PlaylistImport_fun, args=(status_label,)
+        target=import_fun3, args=(status_label,)
     )
     playlistthread.daemon = True
 
@@ -369,7 +369,7 @@ def import_():
     spot_PlaylistimportEntry.place(relx=0.77, rely=0.65, anchor=tkinter.CENTER)
 
     playlistdlthread = threading.Thread(
-        target=spot_Playlistimport_fun,
+        target=import_fun4,
         args=(spot_PlaylistimportEntry.get(), status_label),
     )
     playlistdlthread.daemon = True
@@ -403,7 +403,7 @@ def import_():
         mp3Import.configure(state=tkinter.DISABLED)
 
 
-def mp3Import_fun(status_label):
+def import_fun1(status_label):
     file = filedialog.askopenfilename(
         initialdir="/",
         title="Select file",
@@ -436,7 +436,7 @@ def mp3Import_fun(status_label):
         errorlabel.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
 
 
-def spot_import_fun(url, status_label):
+def import_fun2(url, status_label):
     if url == "":
         return
     if not url.startswith("https://open.spotify.com/track/"):
@@ -452,7 +452,7 @@ def spot_import_fun(url, status_label):
         dlthread.start()
 
 
-def mp3PlaylistImport_fun(status_label):
+def import_fun3(status_label):
     files = filedialog.askopenfilenames(
         initialdir="/",
         title="Select files",
@@ -494,7 +494,7 @@ def mp3PlaylistImport_fun(status_label):
         errorlabel.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
 
 
-def spot_Playlistimport_fun(url, status_label):
+def import_fun4(url, status_label):
     if url == "":
         errorlabel = customtkinter.CTkLabel(
             master=status_label.master,
