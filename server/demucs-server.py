@@ -45,6 +45,10 @@ def queue():
             break
     return "OK"
 
+@APP.route('/check')
+def check_alive():
+    return "OK"
+
 @APP.route('/demucs-upload', methods=['POST'])
 def upload(queue_list=queue_list):
     f = flask.request.files['file']
