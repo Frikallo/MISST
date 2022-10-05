@@ -1,10 +1,10 @@
 [![GitHub release](https://img.shields.io/github/release/frikallo/misst.svg)](https://GitHub.com/frikallo/misst/releases/) ![Github All Releases](https://img.shields.io/github/downloads/frikallo/misst/total?color=blue) ![License](https://img.shields.io/github/license/frikallo/misst?color=blue) ![Hits-of-Code](https://hitsofcode.com/github/frikallo/MISST?branch=main)
 # MISST v2.0.2
 
-![](https://github.com/Frikallo/MISST/src/assets/showcaseimage1.jpeg)
+![](https://github.com/Frikallo/MISST/blob/main/src/Assets/showcaseimage1.jpeg)
 | _`MISST` on Windows 11 with dark mode and 'Blue' theme with 'Micheal Jackson's Chicago' playing_
 
-![](https://github.com/Frikallo/MISST/src/assets/showcaseimage2.jpeg)
+![](https://github.com/Frikallo/MISST/blob/main/src/Assets/showcaseimage2.jpeg)
 | _`MISST` on Windows 11 with dark mode and 'Dark-Blue' theme with 'Jojis's Gimme Love' playing_
 ###
 
