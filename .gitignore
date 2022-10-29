@@ -1,12 +1,21 @@
-#Spotify Playlist (mp3's)
+## Spotify Playlist (mp3's)
+
 src/resources-songs/*
+
 #Seperated tracks
+
 src/separated/*
-#install libs
+
+#Install libs
+
 Packed/*
-#tokens
+
+#Tokens & Secrets
+
 src/Assets/clientsecrets.py
-#other
+
+## Other
+
 src/Assets/__pycache__/*
 src/Assets/last_playlist.log
 venv/*
