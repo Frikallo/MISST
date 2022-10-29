@@ -47,6 +47,7 @@ def queue():
 
 @APP.route('/check')
 def check_alive():
+    logger.info('Alive')
     return "OK"
 
 @APP.route('/demucs-upload', methods=['POST'])

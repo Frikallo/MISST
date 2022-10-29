@@ -33,7 +33,12 @@ import webbrowser
 import logging
 import os
 import time
-from Assets.clientsecrets import client_id, genius_access_token, server_base, importsdest
+from Assets.clientsecrets import (
+    client_id,
+    genius_access_token,
+    server_base,
+    importsdest,
+)
 import lyricsgenius as lg
 from pypresence import Presence
 import nest_asyncio
@@ -44,6 +49,7 @@ import urllib.request
 import gc
 from PIL import Image, ImageTk
 import io
+import music_tag
 
 ## LOGGER ----------------------------------------------------------------------------------------------------
 
@@ -120,7 +126,9 @@ def checkInternetUrllib(url="http://google.com"):
         logger.error(e)
         return False
 
+
 server_connection = None
+
 
 def server_status(url=server_base):
     global server_connection
@@ -142,8 +150,8 @@ internet_connection = checkInternetUrllib()
 if not os.path.exists(importsdest):
     os.mkdir(importsdest)
 
-if os.path.exists('./dl-songs'):
-    shutil.rmtree('./dl-songs')
+if os.path.exists("./dl-songs"):
+    shutil.rmtree("./dl-songs")
     logger.info("dl-songs folder deleted")
 
 ## APP CONFIG ----------------------------------------------------------------------------------------------------
@@ -171,7 +179,6 @@ check_var2 = tkinter.StringVar(value="on")
 check_var3 = tkinter.StringVar(value="on")
 check_var4 = tkinter.StringVar(value="on")
 nc_var = tkinter.StringVar(value="off")
-loop_var = tkinter.StringVar(value="off")
 
 ## FUNCTIONS ----------------------------------------------------------------------------------------------------
 
@@ -341,9 +348,7 @@ def import_():
     )
     importplaylist_label.place(relx=0.77, rely=0.1, anchor=tkinter.CENTER)
 
-    playlistthread = threading.Thread(
-        target=import_fun3, args=(status_label,)
-    )
+    playlistthread = threading.Thread(target=import_fun3, args=(status_label,))
     playlistthread.daemon = True
 
     mp3PlaylistImport = customtkinter.CTkButton(
@@ -383,18 +388,28 @@ def import_():
     )
     spot_Playlistimport.place(relx=0.77, rely=0.85, anchor=tkinter.CENTER)
 
-    if server_connection == True:     
+    if server_connection == True:
         status_update(status_label, "Awaiting Instructions")
     else:
         mask_frame = customtkinter.CTkFrame(import_window, width=375, height=175)
         mask_frame.place(relx=0.5, rely=0.35, anchor=tkinter.CENTER)
         server_off = customtkinter.CTkButton(
-            master=mask_frame, text="", width=100, height=100, image=PhotoImage(file="./Assets/server_off.png"), bg_color=mask_frame.fg_color, fg_color=mask_frame.fg_color, hover_color=mask_frame.fg_color,
+            master=mask_frame,
+            text="",
+            width=100,
+            height=100,
+            image=PhotoImage(file="./Assets/server_off.png"),
+            bg_color=mask_frame.fg_color,
+            fg_color=mask_frame.fg_color,
+            hover_color=mask_frame.fg_color,
         )
         server_off.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
         status_update(status_label, "Server is not available")
         offline_label = customtkinter.CTkLabel(
-            status_frame, text="(preprocessing services not available while server is down)", text_font=(FONT, -10), height=20
+            status_frame,
+            text="(preprocessing services not available while server is down)",
+            text_font=(FONT, -10),
+            height=20,
         )
         offline_label.place(relx=0.5, rely=0.75, anchor=tkinter.CENTER)
         spot_Playlistimport.configure(state=tkinter.DISABLED)
@@ -577,8 +592,9 @@ def update_rpc(Ltext=None, Dtext=None):
 def update_songUI(song):
     songlabel.configure(text="")
     song_name = os.path.basename(os.path.dirname(song))
+    song_dir = os.path.dirname(song)
     try:
-        cover_art = ImageTk.PhotoImage(get_album_art(song_name))
+        cover_art = ImageTk.PhotoImage(get_album_art(song_dir))
     except:
         cover_art = ImageTk.PhotoImage(Image.open("./assets/default.png"))
     songlabel.configure(text=song_name, image=cover_art)
@@ -605,9 +621,9 @@ def update_songUI(song):
     )
     progress_label_right.place(relx=0.9, rely=0.7, anchor=tkinter.CENTER)
 
-    for _ in os.listdir(importsdest + '/' + song_name):
+    for _ in os.listdir(importsdest + "/" + song_name):
         if _.endswith("_nc.wav"):
-            os.remove(importsdest + '/' + song_name + '/' + _)
+            os.remove(importsdest + "/" + song_name + "/" + _)
     while True:
         if songlabel.text == "":
             progressbar.set(0)
@@ -694,6 +710,7 @@ def spot_dl_playlist(url, status_label):
 def preprocess(abspath_song, status_label):
     start = time.time()
     songname = os.path.basename(abspath_song).replace(" ", "%20")
+
     try:
         status_update(status_label, "In Queue")
         requests.post(demucs_queue)
@@ -711,7 +728,6 @@ def preprocess(abspath_song, status_label):
         shutil.unpack_archive(f"{songname}.zip", f"{importsdest}/{savename}")
         logger.info("unpacked")
         os.remove(f"{songname}.zip")
-        play_song(f"{importsdest}/{savename}")
     except:
         logger.error("Preprocessing failed")
         error_label = customtkinter.CTkLabel(
@@ -722,6 +738,17 @@ def preprocess(abspath_song, status_label):
         )
         error_label.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
         return
+
+    try:
+        metadata = music_tag.load_file(abspath_song)
+        metaart = metadata["artwork"]
+        metaimg = Image.open(io.BytesIO(metaart.first.data))
+        metaimg.save(f"{importsdest}/{savename}/cover.png")
+        play_song(f"{importsdest}/{savename}")
+    except:
+        logger.error("No metadata found")
+        shutil.copyfile("./Assets/default.png", f"{importsdest}/{savename}/cover.png")
+        pass
 
     try:
         for i in os.listdir("./dl-songs"):
@@ -774,7 +801,7 @@ def preprocessmultiple(abspath_song, status_label):
 
 
 def play_song(parent_dir, nightcore=False):
-    
+
     end = ".wav"
     if nightcore == True:
         end = "_nc.wav"
@@ -819,18 +846,9 @@ def status_update(status_label, status):
     status_thread.start()
 
 
-def get_album_art(search):
+def get_album_art(abspathsong):
     try:
-        genius_search_url = f"https://api.genius.com/search?q={search}&access_token={genius_access_token}"
-        response = requests.get(url=genius_search_url, params=None, headers=None)
-        response.raise_for_status()
-        response_json = response.json()
-        album_cover = response_json["response"]["hits"][0]["result"][
-            "song_art_image_thumbnail_url"
-        ]
-        logger.info(f"Album cover url: {album_cover}")
-        raw_data = requests.get(album_cover).content
-        im = Image.open(io.BytesIO(raw_data))
+        im = Image.open(f"{abspathsong}/cover.png")
         im = im.resize((40, 40))
     except Exception as e:
         logger.error(f"Error getting album art: {e}")
@@ -905,7 +923,7 @@ def nightcore(song, tones=3):
             if _.endswith(".wav"):
                 song = os.path.join(parentdir, _)
                 nc_audio = song @ nc.Tones(tones)
-                _name = _.replace(".wav", "_nc.wav" )
+                _name = _.replace(".wav", "_nc.wav")
                 nc_audio.export(f"{parentdir}/{_name}", format="wav")
         play_song(parentdir, nightcore=True)
         return None
@@ -914,6 +932,7 @@ def nightcore(song, tones=3):
             return None
         play_song(os.path.abspath(os.path.join(importsdest, song.text)))
         return None
+
 
 ## USER INTERFACE ----------------------------------------------------------------------------------------------------
 
@@ -1166,7 +1185,9 @@ slider4.place(relx=0.6, rely=0.65, anchor=tkinter.CENTER)
 nc_checkbox = customtkinter.CTkSwitch(
     master=center_frame,
     text="nightcore",
-    command=lambda: threading.Thread(target=nightcore, daemon=True, args=(songlabel,)).start(),
+    command=lambda: threading.Thread(
+        target=nightcore, daemon=True, args=(songlabel,)
+    ).start(),
     variable=nc_var,
     onvalue="on",
     offvalue="off",
