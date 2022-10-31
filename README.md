@@ -2,7 +2,7 @@
 # MISST v2.0.2
 
 ![](https://github.com/Frikallo/MISST/blob/main/src/Assets/showcaseimage1.jpeg)
-| _`MISST` on Windows 11 with dark mode and 'Blue' theme with 'Micheal Jackson's Chicago' playing_
+| _`MISST` on Windows 11 with light mode and 'Blue' theme with 'Micheal Jackson's Chicago' playing_
 
 ![](https://github.com/Frikallo/MISST/blob/main/src/Assets/showcaseimage2.jpeg)
 | _`MISST` on Windows 11 with dark mode and 'Dark-Blue' theme with 'Jojis's Gimme Love' playing_
