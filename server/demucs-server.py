@@ -42,6 +42,7 @@ def queue():
     print(queue_list)
     while True:
         if queue_list == 1:
+            queue_list -= 1
             break
     return "OK"
 
@@ -51,7 +52,7 @@ def check_alive():
     return "OK"
 
 @APP.route('/demucs-upload', methods=['POST'])
-def upload(queue_list=queue_list):
+def upload():
     f = flask.request.files['file']
     f_extension = flask.request.files['file'].filename.split('.')[-1]
     if os.path.exists('./tmp'):
@@ -80,7 +81,6 @@ def upload(queue_list=queue_list):
     os.rmdir(f'./separated/mdx_extra_q/{f.filename}')
     logger.info("Temp Folder Removed")
     logger.info("Done")
-    queue_list -= 1
     return "OK"
 
 @APP.route('/download/<path:filename>', methods=['GET', 'POST'])

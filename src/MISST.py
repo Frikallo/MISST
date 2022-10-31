@@ -607,19 +607,19 @@ def update_songUI(song):
     duration = audio_data.shape[0] / sample_rate
     t = 0
 
-    progressbar = customtkinter.CTkProgressBar(master=north_frame, width=225, height=10)
-    progressbar.place(relx=0.5, rely=0.7, anchor=tkinter.CENTER)
-    progressbar.set(0)
-
     progress_label_left = customtkinter.CTkLabel(
-        master=north_frame, text="0:00", text_font=(FONT, -12), width=50
+        master=north_frame, text="0:00", text_font=(FONT, -12), width=75
     )
     progress_label_left.place(relx=0.1, rely=0.7, anchor=tkinter.CENTER)
 
     progress_label_right = customtkinter.CTkLabel(
-        master=north_frame, text="0:00", text_font=(FONT, -12), width=50
+        master=north_frame, text="0:00", text_font=(FONT, -12), width=75
     )
     progress_label_right.place(relx=0.9, rely=0.7, anchor=tkinter.CENTER)
+
+    progressbar = customtkinter.CTkProgressBar(master=north_frame, width=225, height=10)
+    progressbar.place(relx=0.5, rely=0.7, anchor=tkinter.CENTER)
+    progressbar.set(0)
 
     for _ in os.listdir(importsdest + "/" + song_name):
         if _.endswith("_nc.wav"):
@@ -713,7 +713,7 @@ def preprocess(abspath_song, status_label):
 
     try:
         status_update(status_label, "In Queue")
-        requests.post(demucs_queue)
+        queue = requests.post(demucs_queue)
         status_update(status_label, "Preprocessing")
         requests.post(demucs_post, files={"file": open(abspath_song, "rb")})
         logger.info("preprocessed")
@@ -874,6 +874,12 @@ def global_checks(search_entry, lyric_box):
             for _ in os.listdir(importsdest):
                 num += 1
                 songs.append(f"{num}. {_}")
+
+            lyric_box.configure(state="normal")
+            lyric_box.delete("1.0", tkinter.END)
+            lyric_box.insert(tkinter.END, "\n\n".join(songs))
+            lyric_box.configure(state=tkinter.DISABLED)
+
         lyric_box.configure(
             bg=lyric_box.master.fg_color[
                 1 if customtkinter.get_appearance_mode() == "Dark" else 0
