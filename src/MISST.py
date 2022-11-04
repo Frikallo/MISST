@@ -1,6 +1,6 @@
 ## LICENSE ----------------------------------------------------------------------------------------------------
 
-# MISST 2.0.2
+# MISST 2.0.3
 # Copyright (C) 2022 Frikallo.
 
 # This program is free software: you can redistribute it and/or modify
@@ -80,7 +80,7 @@ logger.info(f'Logger initialized ({str(datetime.datetime.now()).split(".")[0]})'
 
 ## GLOBAL VARIABLES ----------------------------------------------------------------------------------------------------
 
-version = "V2.0.2"
+version = "V2.0.3"
 discord_rpc = client_id
 genius_access_token = genius_access_token
 CREATE_NO_WINDOW = 0x08000000
@@ -178,6 +178,7 @@ check_var1 = tkinter.StringVar(value="on")
 check_var2 = tkinter.StringVar(value="on")
 check_var3 = tkinter.StringVar(value="on")
 check_var4 = tkinter.StringVar(value="on")
+playlist_url = tkinter.StringVar(value="")
 nc_var = tkinter.StringVar(value="off")
 
 ## FUNCTIONS ----------------------------------------------------------------------------------------------------
@@ -337,7 +338,7 @@ def import_():
         text="Import from Spotify",
         width=150,
         height=25,
-        command=lambda: import_fun2(spot_importEntry.get(), status_label),
+        command=lambda: threading.Thread(target=import_fun2, args=(spot_importEntry.get(), status_label), daemon=True).start(),
     )
     spot_import.place(relx=0.23, rely=0.85, anchor=tkinter.CENTER)
 
@@ -373,18 +374,12 @@ def import_():
     )
     spot_PlaylistimportEntry.place(relx=0.77, rely=0.65, anchor=tkinter.CENTER)
 
-    playlistdlthread = threading.Thread(
-        target=import_fun4,
-        args=(spot_PlaylistimportEntry.get(), status_label),
-    )
-    playlistdlthread.daemon = True
-
     spot_Playlistimport = customtkinter.CTkButton(
         master=song_frame,
         text="Import from Spotify",
         width=150,
         height=25,
-        command=lambda: playlistdlthread.start(),
+        command=lambda: threading.Thread(target=import_fun4, args=(spot_PlaylistimportEntry.get(), status_label), daemon=True).start(),
     )
     spot_Playlistimport.place(relx=0.77, rely=0.85, anchor=tkinter.CENTER)
 
@@ -453,10 +448,26 @@ def import_fun1(status_label):
 
 def import_fun2(url, status_label):
     if url == "":
+        errorlabel = customtkinter.CTkLabel(
+            master=status_label.master,
+            text="No url provided",
+            text_font=(FONT, -14),
+            width=200,
+        )
+        errorlabel.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
+        time.sleep(1)
+        errorlabel.destroy()
         return
     if not url.startswith("https://open.spotify.com/track/"):
-        status_label.configure(text=f"")
-        status_label.configure(text=f"Invalid url")
+        errorlabel = customtkinter.CTkLabel(
+            master=status_label.master,
+            text="Invalid url",
+            text_font=(FONT, -14),
+            width=200,
+        )
+        errorlabel.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
+        time.sleep(1)
+        errorlabel.destroy()
         return
     else:
         status_label.configure(text=f"")
@@ -483,7 +494,7 @@ def import_fun3(status_label):
                 preprocessmultiple(file, status_label)
             donelabel = customtkinter.CTkLabel(
                 master=status_label.master,
-                text="Done! {} songs imported \n(results can be found {}/separated)".format(
+                text="Done! {} songs imported! \n(results can be found in \n{}/separated)".format(
                     len(files), os.getcwd()
                 ),
                 text_font=(FONT, -14),
@@ -518,8 +529,11 @@ def import_fun4(url, status_label):
             width=200,
         )
         errorlabel.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
+        time.sleep(1)
+        errorlabel.destroy()
         return
-    if not url.startswith("https://open.spotify.com/playlist/"):
+    if not url.startswith("https://open.spotify.com/playlist/") and not url.startswith("https://open.spotify.com/album/"):
+        print(url)
         errorlabel = customtkinter.CTkLabel(
             master=status_label.master,
             text="Invalid url",
@@ -527,6 +541,8 @@ def import_fun4(url, status_label):
             width=200,
         )
         errorlabel.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
+        time.sleep(1)
+        errorlabel.destroy()
         return
     else:
         status_label.configure(text=f"")
@@ -543,7 +559,7 @@ def import_fun4(url, status_label):
             preprocessmultiple("./dl-songs/" + i, status_label)
         donelabel = customtkinter.CTkLabel(
             master=status_label.master,
-            text="Done! {} songs imported \n(results can be found {}/separated)".format(
+            text="Done! {} songs imported! \n(results can be found in \n{}/separated)".format(
                 len(os.listdir("./dl-songs")), os.getcwd()
             ),
             text_font=(FONT, -14),
@@ -798,6 +814,23 @@ def preprocessmultiple(abspath_song, status_label):
         )
         error_label.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
         return
+    try:
+        metadata = music_tag.load_file(abspath_song)
+        metaart = metadata["artwork"]
+        metaimg = Image.open(io.BytesIO(metaart.first.data))
+        metaimg.save(f"{importsdest}/{savename}/cover.png")
+        play_song(f"{importsdest}/{savename}")
+    except:
+        logger.error("No metadata found")
+        shutil.copyfile("./Assets/default.png", f"{importsdest}/{savename}/cover.png")
+        pass
+
+    try:
+        for i in os.listdir("./dl-songs"):
+            os.remove(os.path.join("./dl-songs", i))
+        os.rmdir("./dl-songs")
+    except:
+        pass
 
 
 def play_song(parent_dir, nightcore=False):
