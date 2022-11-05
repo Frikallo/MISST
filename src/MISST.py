@@ -89,6 +89,7 @@ GENIUS = True
 demucs_post = f"{server_base}/demucs-upload"
 demucs_get = f"{server_base}/download"
 demucs_queue = f"{server_base}/queue"
+demucs_coverart = f"{server_base}/coverart"
 
 ## INIT ----------------------------------------------------------------------------------------------------
 
@@ -494,7 +495,7 @@ def import_fun3(status_label):
                 preprocessmultiple(file, status_label)
             donelabel = customtkinter.CTkLabel(
                 master=status_label.master,
-                text="Done! {} songs imported! \n(results can be found in \n{}/separated)".format(
+                text="Done! {} songs imported! \nresults can be found in:\n{}/separated".format(
                     len(files), os.getcwd()
                 ),
                 text_font=(FONT, -14),
@@ -518,6 +519,12 @@ def import_fun3(status_label):
             width=200,
         )
         errorlabel.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
+    try:
+        for i in os.listdir("./dl-songs"):
+            os.remove(os.path.join("./dl-songs", i))
+        os.rmdir("./dl-songs")
+    except:
+        pass
 
 
 def import_fun4(url, status_label):
@@ -559,13 +566,19 @@ def import_fun4(url, status_label):
             preprocessmultiple("./dl-songs/" + i, status_label)
         donelabel = customtkinter.CTkLabel(
             master=status_label.master,
-            text="Done! {} songs imported! \n(results can be found in \n{}/separated)".format(
+            text="Done! {} songs imported! \nresults can be found in:\n{}/separated".format(
                 len(os.listdir("./dl-songs")), os.getcwd()
             ),
             text_font=(FONT, -14),
             width=200,
         )
         donelabel.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
+        try:
+            for i in os.listdir("./dl-songs"):
+                os.remove(os.path.join("./dl-songs", i))
+            os.rmdir("./dl-songs")
+        except:
+            pass
         return
 
 
@@ -589,14 +602,14 @@ def count(label, text):
     return
 
 
-def update_rpc(Ltext=None, Dtext=None):
+def update_rpc(Ltext=None, Dtext=None, image='icon-0', large_text='MISST'):
     start_time = time.time()
     if RPC_CONNECTED:
         try:
             RPC.update(
-                large_image="misst",
+                large_image=image,
                 start=start_time,
-                large_text="MISST",
+                large_text=large_text,
                 state=Ltext,
                 details=Dtext,
             )
@@ -610,11 +623,12 @@ def update_songUI(song):
     song_name = os.path.basename(os.path.dirname(song))
     song_dir = os.path.dirname(song)
     try:
-        cover_art = ImageTk.PhotoImage(get_album_art(song_dir))
+        cover_art = ImageTk.PhotoImage(get_album_art(song_dir, song_name))
     except:
         cover_art = ImageTk.PhotoImage(Image.open("./assets/default.png"))
     songlabel.configure(text=song_name, image=cover_art)
-    update_rpc(Ltext="Listening to seperated audio", Dtext=song_name)
+    web_name = song_name.replace(" ", "")
+    update_rpc(Ltext="Listening to seperated audio", Dtext=song_name, image=f'{server_base}getcoverart/{web_name}.png', large_text=song_name)
     nc_checkbox.configure(state="normal")
     label = tkinter.Label(image=cover_art)
     label.image = cover_art
@@ -646,7 +660,7 @@ def update_songUI(song):
             songlabel.configure(text="(song name)", image=None)
             progress_label_left.configure(text="0:00")
             progress_label_right.configure(text="0:00")
-            update_rpc(Ltext="Idle", Dtext="Nothing is playing")
+            update_rpc(Ltext="Idle", Dtext="Nothing is playing", image="icon-0", large_text="MISST")
             nc_checkbox.configure(state=tkinter.DISABLED)
             break
         if songlabel.text != song_name:
@@ -819,17 +833,9 @@ def preprocessmultiple(abspath_song, status_label):
         metaart = metadata["artwork"]
         metaimg = Image.open(io.BytesIO(metaart.first.data))
         metaimg.save(f"{importsdest}/{savename}/cover.png")
-        play_song(f"{importsdest}/{savename}")
     except:
         logger.error("No metadata found")
         shutil.copyfile("./Assets/default.png", f"{importsdest}/{savename}/cover.png")
-        pass
-
-    try:
-        for i in os.listdir("./dl-songs"):
-            os.remove(os.path.join("./dl-songs", i))
-        os.rmdir("./dl-songs")
-    except:
         pass
 
 
@@ -879,12 +885,28 @@ def status_update(status_label, status):
     status_thread.start()
 
 
-def get_album_art(abspathsong):
+def get_album_art(abspathsong, songname):
+    web_name = songname.replace(" ", "")
+
     try:
         im = Image.open(f"{abspathsong}/cover.png")
         im = im.resize((40, 40))
+        im.save(f"{abspathsong}/{web_name}.png")
+        os.remove(f"{abspathsong}/cover.png")
+    except:
+        pass
+
+    try:
+        im = Image.open(f"{abspathsong}/{web_name}.png")
     except Exception as e:
-        logger.error(f"Error getting album art: {e}")
+        logger.error(f"No album art found: {e}")
+        return None
+
+    try:
+        req = requests.post(demucs_coverart, files={"file": open(f"{abspathsong}/{web_name}.png", "rb")}, json={"name": web_name})
+        logger.info(f"Cover art uploaded to server: {req.status_code}")
+    except Exception as e:
+        logger.error(f"Error uploading cover art: {e}")
         return None
     return im
 

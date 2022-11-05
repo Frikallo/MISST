@@ -1,7 +1,3 @@
-## Spotify Playlist (mp3's)
-
-src/resources-songs/*
-
 #Seperated tracks
 
 src/separated/*
@@ -17,17 +13,13 @@ src/Assets/clientsecrets.py
 ## Other
 
 src/Assets/__pycache__/*
-src/Assets/last_playlist.log
 venv/*
-src/newuser
-src/dl-songs/*
 separated/*
 server/separated/*
-output/*
 src/MISST.log
 src/ffmpeg.exe
 src/ffprobe.exe
 server/ffmpeg.exe
 server/ffplay.exe
 server/ffprobe.exe
-srcV2/*
+output/*
