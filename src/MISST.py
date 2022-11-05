@@ -179,7 +179,6 @@ check_var1 = tkinter.StringVar(value="on")
 check_var2 = tkinter.StringVar(value="on")
 check_var3 = tkinter.StringVar(value="on")
 check_var4 = tkinter.StringVar(value="on")
-playlist_url = tkinter.StringVar(value="")
 nc_var = tkinter.StringVar(value="off")
 
 ## FUNCTIONS ----------------------------------------------------------------------------------------------------
@@ -602,13 +601,14 @@ def count(label, text):
     return
 
 
-def update_rpc(Ltext=None, Dtext=None, image='icon-0', large_text='MISST'):
+def update_rpc(Ltext=None, Dtext=None, image='icon-0', large_text='MISST', end_time=None):
     start_time = time.time()
     if RPC_CONNECTED:
         try:
             RPC.update(
                 large_image=image,
                 start=start_time,
+                end=end_time,
                 large_text=large_text,
                 state=Ltext,
                 details=Dtext,
@@ -628,13 +628,13 @@ def update_songUI(song):
         cover_art = ImageTk.PhotoImage(Image.open("./assets/default.png"))
     songlabel.configure(text=song_name, image=cover_art)
     web_name = song_name.replace(" ", "")
-    update_rpc(Ltext="Listening to seperated audio", Dtext=song_name, image=f'{server_base}getcoverart/{web_name}.png', large_text=song_name)
     nc_checkbox.configure(state="normal")
     label = tkinter.Label(image=cover_art)
     label.image = cover_art
     label.place(relx=2, rely=2, anchor=tkinter.CENTER)
     sample_rate, audio_data = wavfile.read(song)
     duration = audio_data.shape[0] / sample_rate
+    update_rpc(Ltext="Listening to seperated audio", Dtext=song_name, image=f'{server_base}getcoverart/{web_name}.png', large_text=song_name, end_time=time.time() + duration)
     t = 0
 
     progress_label_left = customtkinter.CTkLabel(
@@ -890,14 +890,15 @@ def get_album_art(abspathsong, songname):
 
     try:
         im = Image.open(f"{abspathsong}/cover.png")
-        im = im.resize((40, 40))
         im.save(f"{abspathsong}/{web_name}.png")
+        im = im.resize((40, 40))
         os.remove(f"{abspathsong}/cover.png")
     except:
         pass
 
     try:
         im = Image.open(f"{abspathsong}/{web_name}.png")
+        im = im.resize((40, 40))
     except Exception as e:
         logger.error(f"No album art found: {e}")
         return None
