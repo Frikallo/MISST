@@ -50,6 +50,7 @@ import gc
 from PIL import Image, ImageTk
 import io
 import music_tag
+import random
 
 ## LOGGER ----------------------------------------------------------------------------------------------------
 
@@ -656,20 +657,25 @@ def update_songUI(song):
             os.remove(importsdest + "/" + song_name + "/" + _)
     while True:
         if songlabel.text == "":
-            progressbar.set(0)
-            songlabel.configure(text="(song name)", image=None)
-            progress_label_left.configure(text="0:00")
-            progress_label_right.configure(text="0:00")
-            update_rpc(Ltext="Idle", Dtext="Nothing is playing", image="icon-0", large_text="MISST")
-            nc_checkbox.configure(state=tkinter.DISABLED)
 
-            playpause_button.configure(state=tkinter.DISABLED)
-            next_button.configure(state=tkinter.DISABLED)
-            previous_button.configure(state=tkinter.DISABLED)
-            shuffle_button.configure(state=tkinter.DISABLED)
-            repeat_button.configure(state=tkinter.DISABLED)
+            if loop == True:
+                play_song(song_dir)
+                break
+            else:
+                progressbar.set(0)
+                songlabel.configure(text="(song name)", image=None)
+                progress_label_left.configure(text="0:00")
+                progress_label_right.configure(text="0:00")
+                update_rpc(Ltext="Idle", Dtext="Nothing is playing", image="icon-0", large_text="MISST")
+                nc_checkbox.configure(state=tkinter.DISABLED)
 
-            break
+                playpause_button.configure(state=tkinter.DISABLED)
+                next_button.configure(state=tkinter.DISABLED)
+                previous_button.configure(state=tkinter.DISABLED)
+                shuffle_button.configure(state=tkinter.DISABLED)
+                repeat_button.configure(state=tkinter.DISABLED)
+                break
+
         if songlabel.text != song_name:
             break
 
@@ -679,7 +685,7 @@ def update_songUI(song):
                 time.sleep(0.1)
                 if playing != False:
                     update_rpc(Ltext="Listening to seperated audio", Dtext=song_name, image=f'{server_base}getcoverart/{web_name}.png', large_text=song_name, end_time=time.time() + duration - t)
-
+                    break
         t += 1
         percent = t / duration
         progressbar.set(percent)
@@ -860,11 +866,7 @@ def play_song(parent_dir, nightcore=False):
     if nightcore == True:
         end = "_nc.wav"
 
-    playpause_button.configure(state="normal")
-    next_button.configure(state="normal")
-    previous_button.configure(state="normal")
-    shuffle_button.configure(state="normal")
-    repeat_button.configure(state="normal")
+    reset_interface()
 
     thread1 = threading.Thread(
         target=play_thread, args=(os.path.join(parent_dir, f"bass{end}"), 0)
@@ -1062,6 +1064,118 @@ def playpause():
         playing = False
         return None
 
+
+def next_song():
+    songs = os.listdir(importsdest)
+    index = songs.index(songlabel.text)
+    try:
+        play_song(f"{importsdest}/{songs[index + 1]}")
+        return None
+    except:
+        return None
+
+
+def last_song():
+    songs = os.listdir(importsdest)
+    index = songs.index(songlabel.text)
+    if index == 0:
+        return None
+    try:
+        play_song(f"{importsdest}/{songs[index - 1]}")
+        return None
+    except:
+        return None
+
+
+def shuffle():
+    songs = os.listdir(importsdest)
+    random.shuffle(songs)
+    play_song(f"{importsdest}/{songs[0]}")
+
+loop = None
+
+def loop_song():
+    global loop
+
+    if loop != True:
+        loop = True
+        repeat_button = customtkinter.CTkButton(
+            master=interface_frame,
+            image=PhotoImage(file=resize_image(interface_assets[7], 25)),
+            command=lambda: loop_song(),
+            text="",
+            width=40,
+            height=40,
+            fg_color=interface_frame.fg_color,
+            hover_color=app.fg_color,
+        )
+        repeat_button.place(relx=0.7, rely=0.5, anchor=tkinter.CENTER)
+        return None
+    else:
+        loop = False
+        repeat_button = customtkinter.CTkButton(
+            master=interface_frame,
+            image=PhotoImage(file=resize_image(interface_assets[6], 25)),
+            command=lambda: loop_song(),
+            text="",
+            width=40,
+            height=40,
+            fg_color=interface_frame.fg_color,
+            hover_color=app.fg_color,
+        )
+        repeat_button.place(relx=0.7, rely=0.5, anchor=tkinter.CENTER)
+        return None
+
+
+def reset_interface():
+    global playing
+    playing = True
+
+    playpause_button = customtkinter.CTkButton(
+        master=interface_frame,
+        image=PhotoImage(file=resize_image(interface_assets[0], 40)),
+        command=lambda: playpause(),
+        text="",
+        width=40,
+        height=40,
+        fg_color=interface_frame.fg_color,
+        hover_color=app.fg_color,
+        state="normal"
+    )
+    playpause_button.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
+
+    if loop == False or loop == None:
+        repeat_button = customtkinter.CTkButton(
+            master=interface_frame,
+            image=PhotoImage(file=resize_image(interface_assets[6], 25)),
+            command=lambda: loop_song(),
+            text="",
+            width=40,
+            height=40,
+            fg_color=interface_frame.fg_color,
+            hover_color=app.fg_color,
+            state="normal"
+        )
+        repeat_button.place(relx=0.7, rely=0.5, anchor=tkinter.CENTER)
+    elif loop == True:
+        repeat_button = customtkinter.CTkButton(
+            master=interface_frame,
+            image=PhotoImage(file=resize_image(interface_assets[7], 25)),
+            command=lambda: loop_song(),
+            text="",
+            width=40,
+            height=40,
+            fg_color=interface_frame.fg_color,
+            hover_color=app.fg_color,
+            state="normal"
+        )
+        repeat_button.place(relx=0.7, rely=0.5, anchor=tkinter.CENTER)
+
+    next_button.configure(state="normal")
+    previous_button.configure(state="normal")
+    shuffle_button.configure(state="normal")
+    repeat_button.configure(state="normal")
+
 ## USER INTERFACE ----------------------------------------------------------------------------------------------------
 
 FONT = "Roboto Medium"
@@ -1117,7 +1231,7 @@ playpause_button = customtkinter.CTkButton(
 next_button = customtkinter.CTkButton(
     master=interface_frame,
     image=PhotoImage(file=resize_image(interface_assets[4], 30)),
-    command=lambda: webbrowser.open("https://github.com/Frikallo", new=2),
+    command=lambda: next_song(),
     text="",
     width=40,
     height=40,
@@ -1129,7 +1243,7 @@ next_button = customtkinter.CTkButton(
 previous_button = customtkinter.CTkButton(
     master=interface_frame,
     image=PhotoImage(file=resize_image(interface_assets[3], 30)),
-    command=lambda: webbrowser.open("https://github.com/Frikallo", new=2),
+    command=lambda: last_song(),
     text="",
     width=40,
     height=40,
@@ -1141,7 +1255,7 @@ previous_button = customtkinter.CTkButton(
 shuffle_button = customtkinter.CTkButton(
     master=interface_frame,
     image=PhotoImage(file=resize_image(interface_assets[2], 25)),
-    command=lambda: webbrowser.open("https://github.com/Frikallo", new=2),
+    command=lambda: shuffle(),
     text="",
     width=40,
     height=40,
@@ -1153,7 +1267,7 @@ shuffle_button = customtkinter.CTkButton(
 repeat_button = customtkinter.CTkButton(
     master=interface_frame,
     image=PhotoImage(file=resize_image(interface_assets[6], 25)),
-    command=lambda: webbrowser.open("https://github.com/Frikallo", new=2),
+    command=lambda: loop_song(),
     text="",
     width=40,
     height=40,
