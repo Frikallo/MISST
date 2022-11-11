@@ -662,9 +662,24 @@ def update_songUI(song):
             progress_label_right.configure(text="0:00")
             update_rpc(Ltext="Idle", Dtext="Nothing is playing", image="icon-0", large_text="MISST")
             nc_checkbox.configure(state=tkinter.DISABLED)
+
+            playpause_button.configure(state=tkinter.DISABLED)
+            next_button.configure(state=tkinter.DISABLED)
+            previous_button.configure(state=tkinter.DISABLED)
+            shuffle_button.configure(state=tkinter.DISABLED)
+            repeat_button.configure(state=tkinter.DISABLED)
+
             break
         if songlabel.text != song_name:
             break
+
+        if playing == False:
+            update_rpc(Ltext="(Paused)", Dtext=song_name, image=f'{server_base}getcoverart/{web_name}.png', large_text=song_name, end_time=None)
+            while playing == False:
+                time.sleep(0.1)
+                if playing != False:
+                    update_rpc(Ltext="Listening to seperated audio", Dtext=song_name, image=f'{server_base}getcoverart/{web_name}.png', large_text=song_name, end_time=time.time() + duration - t)
+
         t += 1
         percent = t / duration
         progressbar.set(percent)
@@ -845,6 +860,12 @@ def play_song(parent_dir, nightcore=False):
     if nightcore == True:
         end = "_nc.wav"
 
+    playpause_button.configure(state="normal")
+    next_button.configure(state="normal")
+    previous_button.configure(state="normal")
+    shuffle_button.configure(state="normal")
+    repeat_button.configure(state="normal")
+
     thread1 = threading.Thread(
         target=play_thread, args=(os.path.join(parent_dir, f"bass{end}"), 0)
     )
@@ -995,6 +1016,51 @@ def nightcore(song, tones=3):
         play_song(os.path.abspath(os.path.join(importsdest, song.text)))
         return None
 
+playing = None
+
+def playpause():
+    global playing
+    
+    if playing == False:
+
+        other.unpause()
+        vocals.unpause()
+        bass.unpause()
+        drums.unpause()
+
+        playpause_button = customtkinter.CTkButton(
+            master=interface_frame,
+            image=PhotoImage(file=resize_image(interface_assets[0], 40)),
+            command=lambda: playpause(),
+            text="",
+            width=40,
+            height=40,
+            fg_color=interface_frame.fg_color,
+            hover_color=app.fg_color,
+        )
+        playpause_button.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
+        playing = True
+        return None
+
+    if other.get_busy() or vocals.get_busy() or bass.get_busy() or drums.get_busy():
+        other.pause()
+        vocals.pause()
+        bass.pause()
+        drums.pause()
+
+        playpause_button = customtkinter.CTkButton(
+            master=interface_frame,
+            image=PhotoImage(file=resize_image(interface_assets[1], 40)),
+            command=lambda: playpause(),
+            text="",
+            width=40,
+            height=40,
+            fg_color=interface_frame.fg_color,
+            hover_color=app.fg_color,
+        )
+        playpause_button.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
+        playing = False
+        return None
 
 ## USER INTERFACE ----------------------------------------------------------------------------------------------------
 
@@ -1016,7 +1082,92 @@ west_frame.place(relx=0, rely=0.5, anchor=tkinter.W)
 east_frame = customtkinter.CTkFrame(master=app, width=175, height=445, corner_radius=8)
 east_frame.place(relx=1, rely=0.5, anchor=tkinter.E)
 
+interface_toplevel = customtkinter.CTkToplevel(app)
+interface_toplevel.title("Demucs GUI")
+interface_toplevel.iconbitmap("icon.ico")
+interface_toplevel.geometry("400x150")
+
 raise_above_all(app)
+
+## INTERFACE ELEMENTS ------------------------------------------------------------------------------------------------
+
+interface_frame = customtkinter.CTkFrame(
+    master=interface_toplevel, width=350, height=100, corner_radius=8
+)
+
+def resize_image(image, size):
+    im = Image.open(f'./Assets/player/{image}')
+    im = im.resize((size, size))
+    im = im.save(f'./Assets/player/{image}')
+    return f'./Assets/player/{image}'
+interface_assets = os.listdir('./Assets/player')
+
+playpause_button = customtkinter.CTkButton(
+    master=interface_frame,
+    image=PhotoImage(file=resize_image(interface_assets[0], 40)),
+    command=lambda: playpause(),
+    text="",
+    width=40,
+    height=40,
+    fg_color=interface_frame.fg_color,
+    hover_color=app.fg_color,
+    state=tkinter.DISABLED
+)
+
+next_button = customtkinter.CTkButton(
+    master=interface_frame,
+    image=PhotoImage(file=resize_image(interface_assets[4], 30)),
+    command=lambda: webbrowser.open("https://github.com/Frikallo", new=2),
+    text="",
+    width=40,
+    height=40,
+    fg_color=interface_frame.fg_color,
+    hover_color=app.fg_color,
+    state=tkinter.DISABLED
+)
+
+previous_button = customtkinter.CTkButton(
+    master=interface_frame,
+    image=PhotoImage(file=resize_image(interface_assets[3], 30)),
+    command=lambda: webbrowser.open("https://github.com/Frikallo", new=2),
+    text="",
+    width=40,
+    height=40,
+    fg_color=interface_frame.fg_color,
+    hover_color=app.fg_color,
+    state=tkinter.DISABLED
+)
+
+shuffle_button = customtkinter.CTkButton(
+    master=interface_frame,
+    image=PhotoImage(file=resize_image(interface_assets[2], 25)),
+    command=lambda: webbrowser.open("https://github.com/Frikallo", new=2),
+    text="",
+    width=40,
+    height=40,
+    fg_color=interface_frame.fg_color,
+    hover_color=app.fg_color,
+    state=tkinter.DISABLED
+)
+
+repeat_button = customtkinter.CTkButton(
+    master=interface_frame,
+    image=PhotoImage(file=resize_image(interface_assets[6], 25)),
+    command=lambda: webbrowser.open("https://github.com/Frikallo", new=2),
+    text="",
+    width=40,
+    height=40,
+    fg_color=interface_frame.fg_color,
+    hover_color=app.fg_color,
+    state=tkinter.DISABLED
+)
+
+interface_frame.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
+playpause_button.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
+next_button.place(relx=0.6, rely=0.5, anchor=tkinter.CENTER)
+previous_button.place(relx=0.4, rely=0.5, anchor=tkinter.CENTER)
+shuffle_button.place(relx=0.3, rely=0.5, anchor=tkinter.CENTER)
+repeat_button.place(relx=0.7, rely=0.5, anchor=tkinter.CENTER)
 
 ## EAST FRAME ----------------------------------------------------------------------------------------------------
 
