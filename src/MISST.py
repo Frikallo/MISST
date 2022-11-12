@@ -339,7 +339,9 @@ def import_():
         text="Import from Spotify",
         width=150,
         height=25,
-        command=lambda: threading.Thread(target=import_fun2, args=(spot_importEntry.get(), status_label), daemon=True).start(),
+        command=lambda: threading.Thread(
+            target=import_fun2, args=(spot_importEntry.get(), status_label), daemon=True
+        ).start(),
     )
     spot_import.place(relx=0.23, rely=0.85, anchor=tkinter.CENTER)
 
@@ -380,7 +382,11 @@ def import_():
         text="Import from Spotify",
         width=150,
         height=25,
-        command=lambda: threading.Thread(target=import_fun4, args=(spot_PlaylistimportEntry.get(), status_label), daemon=True).start(),
+        command=lambda: threading.Thread(
+            target=import_fun4,
+            args=(spot_PlaylistimportEntry.get(), status_label),
+            daemon=True,
+        ).start(),
     )
     spot_Playlistimport.place(relx=0.77, rely=0.85, anchor=tkinter.CENTER)
 
@@ -539,7 +545,9 @@ def import_fun4(url, status_label):
         time.sleep(1)
         errorlabel.destroy()
         return
-    if not url.startswith("https://open.spotify.com/playlist/") and not url.startswith("https://open.spotify.com/album/"):
+    if not url.startswith("https://open.spotify.com/playlist/") and not url.startswith(
+        "https://open.spotify.com/album/"
+    ):
         print(url)
         errorlabel = customtkinter.CTkLabel(
             master=status_label.master,
@@ -602,7 +610,9 @@ def count(label, text):
     return
 
 
-def update_rpc(Ltext=None, Dtext=None, image='icon-0', large_text='MISST', end_time=None):
+def update_rpc(
+    Ltext=None, Dtext=None, image="icon-0", large_text="MISST", end_time=None
+):
     start_time = time.time()
     if RPC_CONNECTED:
         try:
@@ -635,7 +645,13 @@ def update_songUI(song):
     label.place(relx=2, rely=2, anchor=tkinter.CENTER)
     sample_rate, audio_data = wavfile.read(song)
     duration = audio_data.shape[0] / sample_rate
-    update_rpc(Ltext="Listening to seperated audio", Dtext=song_name, image=f'{server_base}getcoverart/{web_name}.png', large_text=song_name, end_time=time.time() + duration)
+    update_rpc(
+        Ltext="Listening to seperated audio",
+        Dtext=song_name,
+        image=f"{server_base}getcoverart/{web_name}.png",
+        large_text=song_name,
+        end_time=time.time() + duration,
+    )
     t = 0
 
     progress_label_left = customtkinter.CTkLabel(
@@ -666,7 +682,12 @@ def update_songUI(song):
                 songlabel.configure(text="(song name)", image=None)
                 progress_label_left.configure(text="0:00")
                 progress_label_right.configure(text="0:00")
-                update_rpc(Ltext="Idle", Dtext="Nothing is playing", image="icon-0", large_text="MISST")
+                update_rpc(
+                    Ltext="Idle",
+                    Dtext="Nothing is playing",
+                    image="icon-0",
+                    large_text="MISST",
+                )
                 nc_checkbox.configure(state=tkinter.DISABLED)
 
                 playpause_button.configure(state=tkinter.DISABLED)
@@ -680,11 +701,23 @@ def update_songUI(song):
             break
 
         if playing == False:
-            update_rpc(Ltext="(Paused)", Dtext=song_name, image=f'{server_base}getcoverart/{web_name}.png', large_text=song_name, end_time=None)
+            update_rpc(
+                Ltext="(Paused)",
+                Dtext=song_name,
+                image=f"{server_base}getcoverart/{web_name}.png",
+                large_text=song_name,
+                end_time=None,
+            )
             while playing == False:
                 time.sleep(0.1)
                 if playing != False:
-                    update_rpc(Ltext="Listening to seperated audio", Dtext=song_name, image=f'{server_base}getcoverart/{web_name}.png', large_text=song_name, end_time=time.time() + duration - t)
+                    update_rpc(
+                        Ltext="Listening to seperated audio",
+                        Dtext=song_name,
+                        image=f"{server_base}getcoverart/{web_name}.png",
+                        large_text=song_name,
+                        end_time=time.time() + duration - t,
+                    )
                     break
         t += 1
         percent = t / duration
@@ -927,7 +960,11 @@ def get_album_art(abspathsong, songname):
         return None
 
     try:
-        req = requests.post(demucs_coverart, files={"file": open(f"{abspathsong}/{web_name}.png", "rb")}, json={"name": web_name})
+        req = requests.post(
+            demucs_coverart,
+            files={"file": open(f"{abspathsong}/{web_name}.png", "rb")},
+            json={"name": web_name},
+        )
         logger.info(f"Cover art uploaded to server: {req.status_code}")
     except Exception as e:
         logger.error(f"Error uploading cover art: {e}")
@@ -1018,11 +1055,13 @@ def nightcore(song, tones=3):
         play_song(os.path.abspath(os.path.join(importsdest, song.text)))
         return None
 
+
 playing = None
+
 
 def playpause():
     global playing
-    
+
     if playing == False:
 
         other.unpause()
@@ -1092,7 +1131,9 @@ def shuffle():
     random.shuffle(songs)
     play_song(f"{importsdest}/{songs[0]}")
 
+
 loop = None
+
 
 def loop_song():
     global loop
@@ -1109,7 +1150,7 @@ def loop_song():
             fg_color=interface_frame.fg_color,
             hover_color=app.fg_color,
         )
-        repeat_button.place(relx=0.7, rely=0.5, anchor=tkinter.CENTER)
+        repeat_button.place(relx=0.88, rely=0.5, anchor=tkinter.CENTER)
         return None
     else:
         loop = False
@@ -1123,7 +1164,7 @@ def loop_song():
             fg_color=interface_frame.fg_color,
             hover_color=app.fg_color,
         )
-        repeat_button.place(relx=0.7, rely=0.5, anchor=tkinter.CENTER)
+        repeat_button.place(relx=0.88, rely=0.5, anchor=tkinter.CENTER)
         return None
 
 
@@ -1140,7 +1181,7 @@ def reset_interface():
         height=40,
         fg_color=interface_frame.fg_color,
         hover_color=app.fg_color,
-        state="normal"
+        state="normal",
     )
     playpause_button.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
 
@@ -1154,9 +1195,9 @@ def reset_interface():
             height=40,
             fg_color=interface_frame.fg_color,
             hover_color=app.fg_color,
-            state="normal"
+            state="normal",
         )
-        repeat_button.place(relx=0.7, rely=0.5, anchor=tkinter.CENTER)
+        repeat_button.place(relx=0.88, rely=0.5, anchor=tkinter.CENTER)
     elif loop == True:
         repeat_button = customtkinter.CTkButton(
             master=interface_frame,
@@ -1167,20 +1208,26 @@ def reset_interface():
             height=40,
             fg_color=interface_frame.fg_color,
             hover_color=app.fg_color,
-            state="normal"
+            state="normal",
         )
-        repeat_button.place(relx=0.7, rely=0.5, anchor=tkinter.CENTER)
+        repeat_button.place(relx=0.88, rely=0.5, anchor=tkinter.CENTER)
 
     next_button.configure(state="normal")
     previous_button.configure(state="normal")
     shuffle_button.configure(state="normal")
     repeat_button.configure(state="normal")
 
+
 ## USER INTERFACE ----------------------------------------------------------------------------------------------------
 
 FONT = "Roboto Medium"
 north_frame = customtkinter.CTkFrame(master=app, width=350, height=100, corner_radius=8)
 north_frame.place(relx=0.5, rely=0.13, anchor=tkinter.CENTER)
+
+interface_frame = customtkinter.CTkFrame(
+    master=app, width=175, height=100, corner_radius=8
+)
+interface_frame.place(relx=1, rely=0.13, anchor=tkinter.E)
 
 center_frame = customtkinter.CTkFrame(
     master=app, width=350, height=200, corner_radius=8
@@ -1193,28 +1240,21 @@ south_frame.place(relx=0.5, rely=0.87, anchor=tkinter.CENTER)
 west_frame = customtkinter.CTkFrame(master=app, width=175, height=445, corner_radius=8)
 west_frame.place(relx=0, rely=0.5, anchor=tkinter.W)
 
-east_frame = customtkinter.CTkFrame(master=app, width=175, height=445, corner_radius=8)
-east_frame.place(relx=1, rely=0.5, anchor=tkinter.E)
-
-interface_toplevel = customtkinter.CTkToplevel(app)
-interface_toplevel.title("Demucs GUI")
-interface_toplevel.iconbitmap("icon.ico")
-interface_toplevel.geometry("400x150")
+east_frame = customtkinter.CTkFrame(master=app, width=175, height=310, corner_radius=8)
+east_frame.place(relx=1, rely=0.63, anchor=tkinter.E)
 
 raise_above_all(app)
 
 ## INTERFACE ELEMENTS ------------------------------------------------------------------------------------------------
 
-interface_frame = customtkinter.CTkFrame(
-    master=interface_toplevel, width=350, height=100, corner_radius=8
-)
-
 def resize_image(image, size):
-    im = Image.open(f'./Assets/player/{image}')
+    im = Image.open(f"./Assets/player/{image}")
     im = im.resize((size, size))
-    im = im.save(f'./Assets/player/{image}')
-    return f'./Assets/player/{image}'
-interface_assets = os.listdir('./Assets/player')
+    im = im.save(f"./Assets/player/{image}")
+    return f"./Assets/player/{image}"
+
+
+interface_assets = os.listdir("./Assets/player")
 
 playpause_button = customtkinter.CTkButton(
     master=interface_frame,
@@ -1225,7 +1265,7 @@ playpause_button = customtkinter.CTkButton(
     height=40,
     fg_color=interface_frame.fg_color,
     hover_color=app.fg_color,
-    state=tkinter.DISABLED
+    state=tkinter.DISABLED,
 )
 
 next_button = customtkinter.CTkButton(
@@ -1237,7 +1277,7 @@ next_button = customtkinter.CTkButton(
     height=40,
     fg_color=interface_frame.fg_color,
     hover_color=app.fg_color,
-    state=tkinter.DISABLED
+    state=tkinter.DISABLED,
 )
 
 previous_button = customtkinter.CTkButton(
@@ -1249,7 +1289,7 @@ previous_button = customtkinter.CTkButton(
     height=40,
     fg_color=interface_frame.fg_color,
     hover_color=app.fg_color,
-    state=tkinter.DISABLED
+    state=tkinter.DISABLED,
 )
 
 shuffle_button = customtkinter.CTkButton(
@@ -1261,7 +1301,7 @@ shuffle_button = customtkinter.CTkButton(
     height=40,
     fg_color=interface_frame.fg_color,
     hover_color=app.fg_color,
-    state=tkinter.DISABLED
+    state=tkinter.DISABLED,
 )
 
 repeat_button = customtkinter.CTkButton(
@@ -1273,22 +1313,21 @@ repeat_button = customtkinter.CTkButton(
     height=40,
     fg_color=interface_frame.fg_color,
     hover_color=app.fg_color,
-    state=tkinter.DISABLED
+    state=tkinter.DISABLED,
 )
 
-interface_frame.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
 playpause_button.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
-next_button.place(relx=0.6, rely=0.5, anchor=tkinter.CENTER)
-previous_button.place(relx=0.4, rely=0.5, anchor=tkinter.CENTER)
-shuffle_button.place(relx=0.3, rely=0.5, anchor=tkinter.CENTER)
-repeat_button.place(relx=0.7, rely=0.5, anchor=tkinter.CENTER)
+next_button.place(relx=0.7, rely=0.5, anchor=tkinter.CENTER)
+previous_button.place(relx=0.3, rely=0.5, anchor=tkinter.CENTER)
+shuffle_button.place(relx=0.12, rely=0.5, anchor=tkinter.CENTER)
+repeat_button.place(relx=0.88, rely=0.5, anchor=tkinter.CENTER)
 
 ## EAST FRAME ----------------------------------------------------------------------------------------------------
 
 east_frame_title = customtkinter.CTkLabel(
     master=east_frame, text="Imported", text_font=(FONT, -16)
 )
-east_frame_title.place(relx=0.5, rely=0.1, anchor=tkinter.CENTER)
+east_frame_title.place(relx=0.5, rely=0.08, anchor=tkinter.CENTER)
 
 search_entry = customtkinter.CTkEntry(
     master=east_frame,
@@ -1296,10 +1335,10 @@ search_entry = customtkinter.CTkEntry(
     height=25,
     placeholder_text="Search for audio",
 )
-search_entry.place(relx=0.5, rely=0.17, anchor=tkinter.CENTER)
+search_entry.place(relx=0.5, rely=0.16, anchor=tkinter.CENTER)
 
 listframe = customtkinter.CTkFrame(
-    master=east_frame, width=150, height=250, corner_radius=8
+    master=east_frame, width=150, height=175, corner_radius=8
 )
 listframe.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
 
@@ -1311,7 +1350,7 @@ lyric_box = tkinter.Text(
     borderwidth=0,
     master=listframe,
     width=16,
-    height=16,
+    height=11,
     font=(FONT, -12),
 )
 lyric_box.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
@@ -1323,7 +1362,7 @@ index_entry = customtkinter.CTkEntry(
     height=25,
     placeholder_text="Enter index of audio",
 )
-index_entry.place(relx=0.5, rely=0.83, anchor=tkinter.CENTER)
+index_entry.place(relx=0.5, rely=0.84, anchor=tkinter.CENTER)
 
 playbutton = customtkinter.CTkButton(
     master=east_frame,
@@ -1332,7 +1371,7 @@ playbutton = customtkinter.CTkButton(
     height=25,
     command=lambda: play_search(index_entry.get(), os.listdir(importsdest)),
 )
-playbutton.place(relx=0.5, rely=0.9, anchor=tkinter.CENTER)
+playbutton.place(relx=0.5, rely=0.93, anchor=tkinter.CENTER)
 
 east_checks = threading.Thread(target=global_checks, args=(search_entry, lyric_box))
 east_checks.daemon = True
