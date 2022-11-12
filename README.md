@@ -1,5 +1,5 @@
-[![GitHub release](https://img.shields.io/github/release/frikallo/misst.svg)](https://GitHub.com/frikallo/misst/releases/) ![Github All Releases](https://img.shields.io/github/downloads/frikallo/misst/total?color=blue) ![License](https://img.shields.io/github/license/frikallo/misst?color=blue) ![Hits-of-Code](https://hitsofcode.com/github/frikallo/MISST?branch=main) [![Better Uptime Badge](https://betteruptime.com/status-badges/v1/monitor/i55r.svg)](https://betteruptime.com/?utm_source=status_badge)
-# MISST v2.0.3
+[![GitHub release](https://img.shields.io/github/release/frikallo/misst.svg)](https://GitHub.com/frikallo/misst/releastemes/) ![Github All Releases](https://img.shields.io/github/downloads/frikallo/misst/total?color=blue) ![License](https://img.shields.io/github/license/frikallo/misst?color=blue) ![Hits-of-Code](https://hitsofcode.com/github/frikallo/MISST?branch=main) [![Better Uptime Badge](https://betteruptime.com/status-badges/v1/monitor/i55r.svg)](https://betteruptime.com/?utm_source=status_badge)
+# MISST v2.0.4
 
 ![](https://github.com/Frikallo/MISST/blob/main/src/Assets/showcaseimage1.jpeg)
 | _`MISST` on Windows 11 with light mode and 'Blue' theme with 'Micheal Jackson's Chicago' playing_
@@ -28,7 +28,7 @@ This project is OpenSource, feel free to use, study and/or send pull request.
 
 
 ## Installation
-as of version 2.0.3, MISST is not available for any platform with guaranteed compatibility. Until a later version, please refer to [Manual Installation](https://github.com/Frikallo/MISST/#manual-installation-for-developers) .
+as of version 2.0.4, MISST is not available for any platform with guaranteed compatibility. Until a later version, please refer to [Manual Installation](https://github.com/Frikallo/MISST/#manual-installation-for-developers) .
 
 ### Application Notes
 
@@ -45,11 +45,11 @@ If possible, check the "log.log" file in your install directory for detailed err
 
 ## Manual Installation (For Developers)
 
-These instructions are for those installing MISST v2.0.3 **manually** only.
+These instructions are for those installing MISST v2.0.4 **manually** only.
 
 1. Download & install Python 3.9 or higher (but no lower than 3.9) [here](https://www.python.org/downloads/)
     - **Note:** Ensure the *"Add Python to PATH"* box is checked
-2. Download the Source code [here](https://github.com/Frikallo/MISST/archive/refs/tags/v2.0.3.zip)
+2. Download the Source code [here](https://github.com/Frikallo/MISST/archive/refs/tags/v2.0.4.zip)
 3. Open the command prompt from the src directory and run the following commands, separately - 
 
 ```

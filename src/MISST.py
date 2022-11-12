@@ -1,6 +1,6 @@
 ## LICENSE ----------------------------------------------------------------------------------------------------
 
-# MISST 2.0.3
+# MISST 2.0.4
 # Copyright (C) 2022 Frikallo.
 
 # This program is free software: you can redistribute it and/or modify
@@ -51,6 +51,7 @@ from PIL import Image, ImageTk
 import io
 import music_tag
 import random
+from ping3 import ping, verbose_ping
 
 ## LOGGER ----------------------------------------------------------------------------------------------------
 
@@ -81,7 +82,7 @@ logger.info(f'Logger initialized ({str(datetime.datetime.now()).split(".")[0]})'
 
 ## GLOBAL VARIABLES ----------------------------------------------------------------------------------------------------
 
-version = "V2.0.3"
+version = "V2.0.4"
 discord_rpc = client_id
 genius_access_token = genius_access_token
 CREATE_NO_WINDOW = 0x08000000
@@ -130,7 +131,7 @@ def checkInternetUrllib(url="http://google.com"):
 
 
 server_connection = None
-
+server_ping = int(ping(server_base[7:-6]) * 1000)
 
 def server_status(url=server_base):
     global server_connection
@@ -146,7 +147,7 @@ def server_status(url=server_base):
         server_connection = False
         return False
 
-
+server_connection = server_status()
 internet_connection = checkInternetUrllib()
 
 if not os.path.exists(importsdest):
@@ -689,12 +690,6 @@ def update_songUI(song):
                     large_text="MISST",
                 )
                 nc_checkbox.configure(state=tkinter.DISABLED)
-
-                playpause_button.configure(state=tkinter.DISABLED)
-                next_button.configure(state=tkinter.DISABLED)
-                previous_button.configure(state=tkinter.DISABLED)
-                shuffle_button.configure(state=tkinter.DISABLED)
-                repeat_button.configure(state=tkinter.DISABLED)
                 break
 
         if songlabel.text != song_name:
@@ -973,7 +968,6 @@ def get_album_art(abspathsong, songname):
 
 
 def global_checks(search_entry, lyric_box):
-    server_connection = False
     entry_val = None
     num = 0
     songs = []
@@ -982,8 +976,6 @@ def global_checks(search_entry, lyric_box):
         songs.append(f"{num}. {_}")
     while True:
         time.sleep(0.5)
-        if server_connection == False:
-            threading.Thread(target=server_status).start()
         if len(os.listdir(importsdest)) != num:
             num = 0
             songs = []
@@ -1071,11 +1063,11 @@ def playpause():
 
         playpause_button = customtkinter.CTkButton(
             master=interface_frame,
-            image=PhotoImage(file=resize_image(interface_assets[0], 40)),
+            image=PhotoImage(file=resize_image(interface_assets[0], 32)),
             command=lambda: playpause(),
             text="",
-            width=40,
-            height=40,
+            width=32,
+            height=32,
             fg_color=interface_frame.fg_color,
             hover_color=app.fg_color,
         )
@@ -1091,11 +1083,11 @@ def playpause():
 
         playpause_button = customtkinter.CTkButton(
             master=interface_frame,
-            image=PhotoImage(file=resize_image(interface_assets[1], 40)),
+            image=PhotoImage(file=resize_image(interface_assets[1], 32)),
             command=lambda: playpause(),
             text="",
-            width=40,
-            height=40,
+            width=32,
+            height=32,
             fg_color=interface_frame.fg_color,
             hover_color=app.fg_color,
         )
@@ -1145,8 +1137,8 @@ def loop_song():
             image=PhotoImage(file=resize_image(interface_assets[7], 25)),
             command=lambda: loop_song(),
             text="",
-            width=40,
-            height=40,
+            width=25,
+            height=25,
             fg_color=interface_frame.fg_color,
             hover_color=app.fg_color,
         )
@@ -1159,8 +1151,8 @@ def loop_song():
             image=PhotoImage(file=resize_image(interface_assets[6], 25)),
             command=lambda: loop_song(),
             text="",
-            width=40,
-            height=40,
+            width=25,
+            height=25,
             fg_color=interface_frame.fg_color,
             hover_color=app.fg_color,
         )
@@ -1174,11 +1166,11 @@ def reset_interface():
 
     playpause_button = customtkinter.CTkButton(
         master=interface_frame,
-        image=PhotoImage(file=resize_image(interface_assets[0], 40)),
+        image=PhotoImage(file=resize_image(interface_assets[0], 32)),
         command=lambda: playpause(),
         text="",
-        width=40,
-        height=40,
+        width=32,
+        height=32,
         fg_color=interface_frame.fg_color,
         hover_color=app.fg_color,
         state="normal",
@@ -1191,8 +1183,8 @@ def reset_interface():
             image=PhotoImage(file=resize_image(interface_assets[6], 25)),
             command=lambda: loop_song(),
             text="",
-            width=40,
-            height=40,
+            width=25,
+            height=25,
             fg_color=interface_frame.fg_color,
             hover_color=app.fg_color,
             state="normal",
@@ -1204,8 +1196,8 @@ def reset_interface():
             image=PhotoImage(file=resize_image(interface_assets[7], 25)),
             command=lambda: loop_song(),
             text="",
-            width=40,
-            height=40,
+            width=25,
+            height=25,
             fg_color=interface_frame.fg_color,
             hover_color=app.fg_color,
             state="normal",
@@ -1258,11 +1250,11 @@ interface_assets = os.listdir("./Assets/player")
 
 playpause_button = customtkinter.CTkButton(
     master=interface_frame,
-    image=PhotoImage(file=resize_image(interface_assets[0], 40)),
+    image=PhotoImage(file=resize_image(interface_assets[0], 32)),
     command=lambda: playpause(),
     text="",
-    width=40,
-    height=40,
+    width=32,
+    height=32,
     fg_color=interface_frame.fg_color,
     hover_color=app.fg_color,
     state=tkinter.DISABLED,
@@ -1273,8 +1265,8 @@ next_button = customtkinter.CTkButton(
     image=PhotoImage(file=resize_image(interface_assets[4], 30)),
     command=lambda: next_song(),
     text="",
-    width=40,
-    height=40,
+    width=30,
+    height=30,
     fg_color=interface_frame.fg_color,
     hover_color=app.fg_color,
     state=tkinter.DISABLED,
@@ -1285,8 +1277,8 @@ previous_button = customtkinter.CTkButton(
     image=PhotoImage(file=resize_image(interface_assets[3], 30)),
     command=lambda: last_song(),
     text="",
-    width=40,
-    height=40,
+    width=30,
+    height=30,
     fg_color=interface_frame.fg_color,
     hover_color=app.fg_color,
     state=tkinter.DISABLED,
@@ -1297,8 +1289,8 @@ shuffle_button = customtkinter.CTkButton(
     image=PhotoImage(file=resize_image(interface_assets[2], 25)),
     command=lambda: shuffle(),
     text="",
-    width=40,
-    height=40,
+    width=25,
+    height=25,
     fg_color=interface_frame.fg_color,
     hover_color=app.fg_color,
     state=tkinter.DISABLED,
@@ -1309,8 +1301,8 @@ repeat_button = customtkinter.CTkButton(
     image=PhotoImage(file=resize_image(interface_assets[6], 25)),
     command=lambda: loop_song(),
     text="",
-    width=40,
-    height=40,
+    width=25,
+    height=25,
     fg_color=interface_frame.fg_color,
     hover_color=app.fg_color,
     state=tkinter.DISABLED,
@@ -1418,29 +1410,11 @@ profile_button = customtkinter.CTkButton(
 profile_button.place(relx=0.6, rely=0.17, anchor=tkinter.CENTER)
 github_button.place(relx=0.4, rely=0.17, anchor=tkinter.CENTER)
 
-back_button = customtkinter.CTkButton(
-    master=west_frame,
-    text=f"<--",
-    command=lambda: print("back"),
-    corner_radius=0,
-    width=75,
-    fg_color=west_frame.fg_color,
-    hover_color=app.fg_color,
-    state=tkinter.DISABLED,
-)
-back_button.place(relx=0.3, rely=0.9, anchor=tkinter.CENTER)
+connected = server_connection
+connected_img = 'connected.png' if connected else 'disconnected.png'
+connection = 'Connected' if connected else 'Disconnected'
+delay = f'{server_ping}ms' if connected else 'N/A'
 
-forward_button = customtkinter.CTkButton(
-    master=west_frame,
-    text=f"-->",
-    command=lambda: print("forward"),
-    corner_radius=0,
-    width=75,
-    fg_color=west_frame.fg_color,
-    hover_color=app.fg_color,
-    state=tkinter.DISABLED,
-)
-forward_button.place(relx=0.7, rely=0.9, anchor=tkinter.CENTER)
 
 ## NORTH FRAME ----------------------------------------------------------------------------------------------------
 
