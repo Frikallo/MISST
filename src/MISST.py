@@ -51,7 +51,6 @@ from PIL import Image, ImageTk
 import io
 import music_tag
 import random
-from ping3 import ping, verbose_ping
 
 ## LOGGER ----------------------------------------------------------------------------------------------------
 
@@ -131,7 +130,6 @@ def checkInternetUrllib(url="http://google.com"):
 
 
 server_connection = None
-server_ping = int(ping(server_base[7:-6]) * 1000)
 
 def server_status(url=server_base):
     global server_connection
@@ -612,13 +610,14 @@ def count(label, text):
 
 
 def update_rpc(
-    Ltext=None, Dtext=None, image="icon-0", large_text="MISST", end_time=None
+    Ltext=None, Dtext=None, image="icon-0", large_text="MISST", end_time=None, small_image=None
 ):
     start_time = time.time()
     if RPC_CONNECTED:
         try:
             RPC.update(
                 large_image=image,
+                small_image=small_image,
                 start=start_time,
                 end=end_time,
                 large_text=large_text,
@@ -652,6 +651,7 @@ def update_songUI(song):
         image=f"{server_base}getcoverart/{web_name}.png",
         large_text=song_name,
         end_time=time.time() + duration,
+        small_image="icon-0",
     )
     t = 0
 
@@ -676,6 +676,7 @@ def update_songUI(song):
         if songlabel.text == "":
 
             if loop == True:
+                nc_checkbox.deselect()
                 play_song(song_dir)
                 break
             else:
@@ -702,6 +703,7 @@ def update_songUI(song):
                 image=f"{server_base}getcoverart/{web_name}.png",
                 large_text=song_name,
                 end_time=None,
+                small_image="icon-0",
             )
             while playing == False:
                 time.sleep(0.1)
@@ -712,6 +714,7 @@ def update_songUI(song):
                         image=f"{server_base}getcoverart/{web_name}.png",
                         large_text=song_name,
                         end_time=time.time() + duration - t,
+                        small_image="icon-0",
                     )
                     break
         t += 1
@@ -793,6 +796,8 @@ def preprocess(abspath_song, status_label):
     try:
         status_update(status_label, "In Queue")
         queue = requests.post(demucs_queue)
+        logger.info("Added to queue")
+        logger.info(queue.content)
         status_update(status_label, "Preprocessing")
         requests.post(demucs_post, files={"file": open(abspath_song, "rb")})
         logger.info("preprocessed")
@@ -823,7 +828,6 @@ def preprocess(abspath_song, status_label):
         metaart = metadata["artwork"]
         metaimg = Image.open(io.BytesIO(metaart.first.data))
         metaimg.save(f"{importsdest}/{savename}/cover.png")
-        play_song(f"{importsdest}/{savename}")
     except:
         logger.error("No metadata found")
         shutil.copyfile("./Assets/default.png", f"{importsdest}/{savename}/cover.png")
@@ -954,16 +958,19 @@ def get_album_art(abspathsong, songname):
         logger.error(f"No album art found: {e}")
         return None
 
-    try:
-        req = requests.post(
-            demucs_coverart,
-            files={"file": open(f"{abspathsong}/{web_name}.png", "rb")},
-            json={"name": web_name},
-        )
-        logger.info(f"Cover art uploaded to server: {req.status_code}")
-    except Exception as e:
-        logger.error(f"Error uploading cover art: {e}")
-        return None
+    if RPC_CONNECTED:
+        try:
+            req = requests.post(
+                demucs_coverart,
+                files={"file": open(f"{abspathsong}/{web_name}.png", "rb")},
+                json={"name": web_name},
+                timeout=0.5,
+            )
+            logger.info(f"Cover art uploaded to server: {req.status_code}")
+        except Exception as e:
+            logger.error(f"Error uploading cover art: {e}")
+            pass
+
     return im
 
 
@@ -1100,6 +1107,7 @@ def next_song():
     songs = os.listdir(importsdest)
     index = songs.index(songlabel.text)
     try:
+        nc_checkbox.deselect()
         play_song(f"{importsdest}/{songs[index + 1]}")
         return None
     except:
@@ -1112,6 +1120,7 @@ def last_song():
     if index == 0:
         return None
     try:
+        nc_checkbox.deselect()
         play_song(f"{importsdest}/{songs[index - 1]}")
         return None
     except:
@@ -1121,6 +1130,7 @@ def last_song():
 def shuffle():
     songs = os.listdir(importsdest)
     random.shuffle(songs)
+    nc_checkbox.deselect()
     play_song(f"{importsdest}/{songs[0]}")
 
 
@@ -1210,6 +1220,14 @@ def reset_interface():
     repeat_button.configure(state="normal")
 
 
+def issue_window():
+    return None
+
+
+def settings_window():
+    return None
+
+
 ## USER INTERFACE ----------------------------------------------------------------------------------------------------
 
 FONT = "Roboto Medium"
@@ -1293,7 +1311,6 @@ shuffle_button = customtkinter.CTkButton(
     height=25,
     fg_color=interface_frame.fg_color,
     hover_color=app.fg_color,
-    state=tkinter.DISABLED,
 )
 
 repeat_button = customtkinter.CTkButton(
@@ -1305,7 +1322,6 @@ repeat_button = customtkinter.CTkButton(
     height=25,
     fg_color=interface_frame.fg_color,
     hover_color=app.fg_color,
-    state=tkinter.DISABLED,
 )
 
 playpause_button.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
@@ -1410,11 +1426,20 @@ profile_button = customtkinter.CTkButton(
 profile_button.place(relx=0.6, rely=0.17, anchor=tkinter.CENTER)
 github_button.place(relx=0.4, rely=0.17, anchor=tkinter.CENTER)
 
-connected = server_connection
-connected_img = 'connected.png' if connected else 'disconnected.png'
-connection = 'Connected' if connected else 'Disconnected'
-delay = f'{server_ping}ms' if connected else 'N/A'
+settings_button = customtkinter.CTkButton(
+    master=west_frame, text_font=(FONT, -12), text='', image=PhotoImage(file=f'./Assets/settings.png'), bg_color=west_frame.fg_color, fg_color=west_frame.fg_color, hover_color=app.fg_color, width=25, height=25, command=lambda: settings_window()
+)
+settings_button.place(relx=0.3, rely=0.9, anchor=tkinter.CENTER)
 
+issue_button = customtkinter.CTkButton(
+    master=west_frame, text_font=(FONT, -12), text='', image=PhotoImage(file=f'./Assets/issue.png'), bg_color=west_frame.fg_color, fg_color=west_frame.fg_color, hover_color=app.fg_color, width=25, height=25, command=lambda: issue_window()
+)
+issue_button.place(relx=0.5, rely=0.9, anchor=tkinter.CENTER)
+
+pull_req = customtkinter.CTkButton(
+    master=west_frame, text_font=(FONT, -12), text='', image=PhotoImage(file=f'./Assets/git-pull-request.png'), bg_color=west_frame.fg_color, fg_color=west_frame.fg_color, hover_color=app.fg_color, width=25, height=25, corner_radius=16, command=lambda: webbrowser.open("https://github.com/Frikallo/MISST/pulls")
+)
+pull_req.place(relx=0.7, rely=0.9, anchor=tkinter.CENTER)
 
 ## NORTH FRAME ----------------------------------------------------------------------------------------------------
 
