@@ -11,7 +11,7 @@ version = r.url.split('/')[-1]
 print("MISST Install Wizard V0.1")
 print("This script will install the required dependencies for MISST. As well as install the required files for the server and client.")
 default_dir = os.path.expanduser('~') + "\MISST-Bundle"
-install_dir = input(f"Enter dir in which to install MISST ({default_dir}) ~300mb: ")
+install_dir = input(f"Enter dir in which to install MISST (defaults to '{default_dir}') ~200mb: ")
 if install_dir == "":
     install_dir = default_dir
 if os.path.exists(install_dir):

@@ -38,6 +38,9 @@ from Assets.clientsecrets import (
     genius_access_token,
     server_base,
     importsdest,
+    rpc,
+    autoplay,
+    preprocess_method
 )
 import lyricsgenius as lg
 from pypresence import Presence
@@ -51,6 +54,7 @@ from PIL import Image, ImageTk
 import io
 import music_tag
 import random
+from ping3 import ping
 
 ## LOGGER ----------------------------------------------------------------------------------------------------
 
@@ -105,14 +109,18 @@ except:
     GENIUS = False
     logger.error("connection failed")
 
-RPC = Presence(discord_rpc)
-try:
-    RPC.connect()
-    logger.info("Connected to Discord")
-    RPC_CONNECTED = True
-except:
+if rpc == True:
+    RPC = Presence(discord_rpc)
+    try:
+        RPC.connect()
+        logger.info("Connected to Discord")
+        RPC_CONNECTED = True
+    except:
+        RPC_CONNECTED = False
+        logger.error("RPC connection failed")
+else:
     RPC_CONNECTED = False
-    logger.error("RPC connection failed")
+    logger.info("RPC disabled")
 
 bass = pygame.mixer.Channel(0)
 drums = pygame.mixer.Channel(1)
@@ -591,6 +599,53 @@ def import_fun4(url, status_label):
 
 ## UTIL FUNCTIONS ----------------------------------------------------------------------------------------------------
 
+def getsize(dir):
+    total = 0
+    for entry in os.scandir(dir):
+        if entry.is_file():
+            total += entry.stat().st_size
+        elif entry.is_dir():
+            total += getsize(entry.path)
+    return total
+
+
+def format_size(size):
+    for x in ['bytes','KB','MB','GB','TB']:
+        if size < 1024.0:
+            return "%3.1f %s" % (size, x)
+        size /= 1024.0
+    return size
+
+
+def clear_downloads(dir):
+    try:
+        shutil.rmtree(dir)
+        os.mkdir(dir)
+        settings()
+    except:
+        pass
+
+
+def change_location():
+    global importsdest
+    importsdest = filedialog.askdirectory(initialdir=os.path.abspath(importsdest))
+    update_setting("importsdest", importsdest)
+    settings()
+    return None
+
+
+def update_setting(setting, value):
+    settings = open('./Assets/clientsecrets.py').readlines()
+    lines = []
+    for line in settings:
+        if setting in line:
+            line = f"{setting} = {value}\n"
+            lines.append(line)
+        else:
+            lines.append(line)
+    with open('./Assets/clientsecrets.py', 'w') as f:
+        f.writelines(lines)
+
 
 def count(label, text):
     t = 0
@@ -678,6 +733,9 @@ def update_songUI(song):
             if loop == True:
                 nc_checkbox.deselect()
                 play_song(song_dir)
+                break
+            if autoplay == True:
+                next_song()
                 break
             else:
                 progressbar.set(0)
@@ -851,6 +909,7 @@ def preprocess(abspath_song, status_label):
     done_label.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
     time.sleep(3)
     status_update(status_label, "Awaiting Instructions")
+    play_song(f"{importsdest}/{savename}")
     return
 
 
@@ -1220,12 +1279,151 @@ def reset_interface():
     repeat_button.configure(state="normal")
 
 
-def issue_window():
+inprogress = None
+
+
+def refresh():
+    global inprogress
+    if inprogress == True:
+        return None
+    inprogress = True
+    try:
+        import_window.destroy()
+    except:
+        pass
+    server_connection = server_status()
+    delay = int(ping(server_base[7:-6]) * 1000)
+    if server_connection == True:
+        refresh_button.configure(image=None, text=f'{delay}ms', width=25, height=25)
+        time.sleep(1.5)
+        refresh_button.configure(text='', image=PhotoImage(file=f'./Assets/reload.png'), width=25, height=25)
+    else:
+        refresh_button.configure(text='', image=PhotoImage(file=f'./Assets/no-connection.png'), width=25, height=25)
+        time.sleep(1.5)
+        refresh_button.configure(text='', image=PhotoImage(file=f'./Assets/reload.png'), width=25, height=25)
+    inprogress = False
     return None
 
 
-def settings_window():
-    return None
+settings_window = None
+
+
+def settings():
+    global settings_window
+    try: 
+        settings_window.destroy()
+    except:
+        pass
+    
+    if os.path.isdir(importsdest) == False:
+        os.mkdir(importsdest)
+
+    settings_window = customtkinter.CTkToplevel(
+        master=app
+    )
+    settings_window.title('Settings')
+    settings_window.geometry('400x400')
+    settings_window.resizable(False, False)
+    settings_window.iconbitmap('./icon.ico')
+
+    settings_frame = customtkinter.CTkFrame(
+        master=settings_window, width=350, height=350
+    )
+    settings_frame.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
+
+    setting_header = customtkinter.CTkLabel(
+        master=settings_frame, text='Settings', text_font=(FONT, -18)
+    )
+    setting_header.place(relx=0.5, rely=0.1, anchor=tkinter.CENTER)
+
+    general_frame = customtkinter.CTkFrame(
+        master=settings_frame, width=300, height=125
+    )
+    general_frame.place(relx=0.5, rely=0.35, anchor=tkinter.CENTER)
+
+    general_header = customtkinter.CTkLabel(
+        master= general_frame, text='General', text_font=(FONT, -16)
+    )
+    general_header.place(relx=0.2, rely=0.15, anchor=tkinter.CENTER)
+
+    autoplay_box = customtkinter.CTkSwitch(
+        master=general_frame, text='Autoplay', text_font=(FONT, -12), command=lambda: update_setting('autoplay', True if autoplay_box.get() == 1 else False)
+    )
+    autoplay_box.place(relx=0.28, rely=0.4, anchor=tkinter.CENTER)
+    if autoplay == True:
+        autoplay_box.select()
+    else:
+        pass
+
+    rpc_box = customtkinter.CTkSwitch(
+        master=general_frame, text='Discord RPC', text_font=(FONT, -12), command=lambda: update_setting('rpc', True if rpc_box.get() == 1 else False)
+    )
+    rpc_box.place(relx=0.31, rely=0.625, anchor=tkinter.CENTER)
+    if rpc == True:
+        rpc_box.select()
+    else:
+        pass
+
+    preprocess_method_box = customtkinter.CTkSwitch(
+        master=general_frame, text='Preprocess on Server?', text_font=(FONT, -12), command=lambda: update_setting('preprocess_method', "'server'" if preprocess_method_box.get() == 1 else "'client'")
+    )
+    preprocess_method_box.place(relx=0.4, rely=0.85, anchor=tkinter.CENTER)
+    if preprocess_method == 'server':
+        preprocess_method_box.select()
+    else:
+        pass
+
+    ### General Settings ###
+
+    storage_frame = customtkinter.CTkFrame(
+        master=settings_frame, width=300, height=125
+    )
+    storage_frame.place(relx=0.5, rely=0.75, anchor=tkinter.CENTER)
+
+    storage_header = customtkinter.CTkLabel(
+        master= storage_frame, text='Storage', text_font=(FONT, -16)
+    )
+    storage_header.place(relx=0.2, rely=0.15, anchor=tkinter.CENTER)
+
+    downloads_header = customtkinter.CTkLabel(
+        master=storage_frame, text='Downloads:', text_font=(FONT, -12, 'bold')
+    )
+    downloads_header.place(relx=0.24, rely=0.4, anchor=tkinter.CENTER)
+
+    downloads_info = customtkinter.CTkLabel(
+        master=storage_frame, text=format_size(getsize(importsdest)), text_font=(FONT, -12), width=25, state=tkinter.DISABLED
+    )
+    downloads_info.place(relx=0.45, rely=0.4, anchor=tkinter.CENTER)
+
+    downloads_subheader = customtkinter.CTkLabel(
+        master=storage_frame, text='Downloaded Content', text_font=(FONT, -11), state=tkinter.DISABLED
+    )
+    downloads_subheader.place(relx=0.29, rely=0.55, anchor=tkinter.CENTER)
+
+    clear_downloads_button = customtkinter.CTkButton(
+        master=storage_frame, text='Clear Downloads', text_font=(FONT, -12), width=15, height=2, command=lambda: clear_downloads(importsdest)
+    )
+    clear_downloads_button.place(relx=0.75, rely=0.475, anchor=tkinter.CENTER)
+
+    storage_location_header = customtkinter.CTkLabel(
+        master=storage_frame, text='Storage Location:', text_font=(FONT, -12, 'bold')
+    )
+    storage_location_header.place(relx=0.305, rely=0.7, anchor=tkinter.CENTER)
+
+    dir = os.path.abspath(importsdest)
+    n = 23
+    chunks = [dir[i:i+n] for i in range(0, len(dir), n)]
+    location_text = dir if len(dir) < 25 else f'{chunks[0]}..'
+
+    storage_location_info = customtkinter.CTkLabel(
+        master=storage_frame, text=location_text, text_font=(FONT, -11), width=25, state=tkinter.DISABLED
+    )
+    storage_location_info.place(relx=0.345, rely=0.85, anchor=tkinter.CENTER)
+
+    change_location_button = customtkinter.CTkButton(
+        master=storage_frame, text='Change Location', text_font=(FONT, -12), width=15, height=2, command=lambda: change_location()
+    )
+    change_location_button.place(relx=0.75, rely=0.775, anchor=tkinter.CENTER)
 
 
 ## USER INTERFACE ----------------------------------------------------------------------------------------------------
@@ -1427,14 +1625,14 @@ profile_button.place(relx=0.6, rely=0.17, anchor=tkinter.CENTER)
 github_button.place(relx=0.4, rely=0.17, anchor=tkinter.CENTER)
 
 settings_button = customtkinter.CTkButton(
-    master=west_frame, text_font=(FONT, -12), text='', image=PhotoImage(file=f'./Assets/settings.png'), bg_color=west_frame.fg_color, fg_color=west_frame.fg_color, hover_color=app.fg_color, width=25, height=25, command=lambda: settings_window()
+    master=west_frame, text_font=(FONT, -12), text='', image=PhotoImage(file=f'./Assets/settings.png'), bg_color=west_frame.fg_color, fg_color=west_frame.fg_color, hover_color=app.fg_color, width=25, height=25, command=lambda: settings()
 )
 settings_button.place(relx=0.3, rely=0.9, anchor=tkinter.CENTER)
 
-issue_button = customtkinter.CTkButton(
-    master=west_frame, text_font=(FONT, -12), text='', image=PhotoImage(file=f'./Assets/issue.png'), bg_color=west_frame.fg_color, fg_color=west_frame.fg_color, hover_color=app.fg_color, width=25, height=25, command=lambda: issue_window()
+refresh_button = customtkinter.CTkButton(
+    master=west_frame, text_font=(FONT, -12), text='', image=PhotoImage(file=f'./Assets/reload.png'), bg_color=west_frame.fg_color, fg_color=west_frame.fg_color, hover_color=app.fg_color, width=25, height=25, command=lambda: threading.Thread(target=refresh, daemon=True).start()
 )
-issue_button.place(relx=0.5, rely=0.9, anchor=tkinter.CENTER)
+refresh_button.place(relx=0.5, rely=0.9, anchor=tkinter.CENTER)
 
 pull_req = customtkinter.CTkButton(
     master=west_frame, text_font=(FONT, -12), text='', image=PhotoImage(file=f'./Assets/git-pull-request.png'), bg_color=west_frame.fg_color, fg_color=west_frame.fg_color, hover_color=app.fg_color, width=25, height=25, corner_radius=16, command=lambda: webbrowser.open("https://github.com/Frikallo/MISST/pulls")
