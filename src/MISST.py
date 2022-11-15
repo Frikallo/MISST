@@ -628,10 +628,16 @@ def clear_downloads(dir):
 
 def change_location():
     global importsdest
-    importsdest = filedialog.askdirectory(initialdir=os.path.abspath(importsdest))
-    update_setting("importsdest", importsdest)
-    settings()
-    return None
+    try:
+        importsdest = filedialog.askdirectory(initialdir=os.path.abspath(importsdest))
+        if importsdest != "" and os.path.isdir(os.path.abspath(importsdest)):
+            update_setting("importsdest", importsdest)
+            settings()
+            return None
+        else:
+            return None
+    except:
+        return None
 
 
 def update_setting(setting, value):
