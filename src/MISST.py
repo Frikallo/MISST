@@ -876,13 +876,18 @@ def preprocess(abspath_song, status_label):
         logger.info("downloaded")
         songname = songname.replace("%20", " ")
         savename = songname.replace(".mp3", "")
-        n = len(savename in os.listdir(importsdest))
+        ns = []
+        for _ in os.listdir(importsdest):
+            if savename in _:
+                ns.append(_) # get all songs with the same name
+        n = len(ns)
         if os.path.exists(f"{importsdest}/{savename}"):
             savename = f"{savename} ({n + 1})"
         shutil.unpack_archive(f"{songname}.zip", f"{importsdest}/{savename}")
         logger.info("unpacked")
         os.remove(f"{songname}.zip")
-    except:
+    except Exception as e:
+        logger.error(e)
         logger.error("Preprocessing failed")
         error_label = customtkinter.CTkLabel(
             status_label.master,
@@ -939,13 +944,18 @@ def preprocessmultiple(abspath_song, status_label):
         logger.info("downloaded")
         songname = songname.replace("%20", " ")
         savename = songname.replace(".mp3", "")
-        n = len(savename in os.listdir(importsdest))
+        ns = []
+        for _ in os.listdir(importsdest):
+            if savename in _:
+                ns.append(_) # get all songs with the same name
+        n = len(ns)
         if os.path.exists(f"{importsdest}/{savename}"):
             savename = f"{savename} ({n + 1})"
         shutil.unpack_archive(f"{songname}.zip", f"{importsdest}/{savename}")
         logger.info("unpacked")
         os.remove(f"{songname}.zip")
-    except:
+    except Exception as e:
+        logger.error(e)
         logger.error("Preprocessing failed")
         error_label = customtkinter.CTkLabel(
             status_label.master,
