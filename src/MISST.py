@@ -61,17 +61,17 @@ from ping3 import ping
 loggerName = "MISST"
 logFormatter = logging.Formatter(fmt=" %(name)s :: %(levelname)-8s :: %(message)s")
 logger = logging.getLogger(loggerName)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 
 logging.basicConfig(
     filename="MISST.log",
     filemode="a",
     format=" %(name)s :: %(levelname)-8s :: %(message)s",
-    level=logging.DEBUG,
+    level=logging.INFO,
 )
 
 consoleHandler = logging.StreamHandler()
-consoleHandler.setLevel(logging.DEBUG)
+consoleHandler.setLevel(logging.INFO)
 consoleHandler.setFormatter(logFormatter)
 
 logger.addHandler(consoleHandler)
@@ -167,7 +167,7 @@ if os.path.exists("./dl-songs"):
 
 customtkinter.set_appearance_mode("System")
 customtkinter.set_default_color_theme(
-    "blue"
+    "./Assets/Themes/MISST.json"
 )  # Themes: "blue" (standard), "green", "dark-blue"
 
 app = customtkinter.CTk()
@@ -741,8 +741,11 @@ def update_songUI(song):
                 play_song(song_dir)
                 break
             if autoplay == True:
-                next_song()
-                break
+                try:
+                    next_song(song_name)
+                    break
+                except:
+                    pass
             else:
                 progressbar.set(0)
                 songlabel.configure(text="(song name)", image=None)
@@ -873,6 +876,9 @@ def preprocess(abspath_song, status_label):
         logger.info("downloaded")
         songname = songname.replace("%20", " ")
         savename = songname.replace(".mp3", "")
+        n = len(savename in os.listdir(importsdest))
+        if os.path.exists(f"{importsdest}/{savename}"):
+            savename = f"{savename} ({n + 1})"
         shutil.unpack_archive(f"{songname}.zip", f"{importsdest}/{savename}")
         logger.info("unpacked")
         os.remove(f"{songname}.zip")
@@ -933,6 +939,9 @@ def preprocessmultiple(abspath_song, status_label):
         logger.info("downloaded")
         songname = songname.replace("%20", " ")
         savename = songname.replace(".mp3", "")
+        n = len(savename in os.listdir(importsdest))
+        if os.path.exists(f"{importsdest}/{savename}"):
+            savename = f"{savename} ({n + 1})"
         shutil.unpack_archive(f"{songname}.zip", f"{importsdest}/{savename}")
         logger.info("unpacked")
         os.remove(f"{songname}.zip")
@@ -1168,9 +1177,11 @@ def playpause():
         return None
 
 
-def next_song():
+def next_song(song):
+    global loop
+    loop = False
     songs = os.listdir(importsdest)
-    index = songs.index(songlabel.text)
+    index = songs.index(song)
     try:
         nc_checkbox.deselect()
         play_song(f"{importsdest}/{songs[index + 1]}")
@@ -1179,9 +1190,11 @@ def next_song():
         return None
 
 
-def last_song():
+def last_song(song):
+    global loop
+    loop = False
     songs = os.listdir(importsdest)
-    index = songs.index(songlabel.text)
+    index = songs.index(song)
     if index == 0:
         return None
     try:
@@ -1193,10 +1206,16 @@ def last_song():
 
 
 def shuffle():
-    songs = os.listdir(importsdest)
-    random.shuffle(songs)
-    nc_checkbox.deselect()
-    play_song(f"{importsdest}/{songs[0]}")
+    global loop
+    loop = False
+    try:
+        songs = os.listdir(importsdest)
+        random.shuffle(songs)
+        nc_checkbox.deselect()
+        play_song(f"{importsdest}/{songs[0]}")
+    except:
+        logger.warning("No songs to shuffle!")
+        pass
 
 
 loop = None
@@ -1485,7 +1504,7 @@ playpause_button = customtkinter.CTkButton(
 next_button = customtkinter.CTkButton(
     master=interface_frame,
     image=PhotoImage(file=resize_image(interface_assets[4], 30)),
-    command=lambda: next_song(),
+    command=lambda: next_song(songlabel.text),
     text="",
     width=30,
     height=30,
@@ -1497,7 +1516,7 @@ next_button = customtkinter.CTkButton(
 previous_button = customtkinter.CTkButton(
     master=interface_frame,
     image=PhotoImage(file=resize_image(interface_assets[3], 30)),
-    command=lambda: last_song(),
+    command=lambda: last_song(songlabel.text),
     text="",
     width=30,
     height=30,
