@@ -857,6 +857,8 @@ def spot_dl_playlist(url, status_label):
 
 
 def preprocess(abspath_song, status_label):
+    global inprogress
+    inprogress = True
     start = time.time()
     songname = os.path.basename(abspath_song).replace(" ", "%20")
 
@@ -926,6 +928,8 @@ def preprocess(abspath_song, status_label):
 
 
 def preprocessmultiple(abspath_song, status_label):
+    global inprogress
+    inprogress = True
     songname = os.path.basename(abspath_song).replace(" ", "%20")
     try:
         requests.post(demucs_queue)
@@ -1327,6 +1331,7 @@ def refresh():
         time.sleep(1.5)
         refresh_button.configure(text='', image=PhotoImage(file=f'./Assets/reload.png'), width=25, height=25)
     inprogress = False
+    import_()
     return None
 
 
