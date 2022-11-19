@@ -882,7 +882,7 @@ def preprocess(abspath_song, status_label):
                 ns.append(_) # get all songs with the same name
         n = len(ns)
         if os.path.exists(f"{importsdest}/{savename}"):
-            savename = f"{savename} ({n + 1})"
+            savename = f"{savename} ({n})"
         shutil.unpack_archive(f"{songname}.zip", f"{importsdest}/{savename}")
         logger.info("unpacked")
         os.remove(f"{songname}.zip")
@@ -950,7 +950,7 @@ def preprocessmultiple(abspath_song, status_label):
                 ns.append(_) # get all songs with the same name
         n = len(ns)
         if os.path.exists(f"{importsdest}/{savename}"):
-            savename = f"{savename} ({n + 1})"
+            savename = f"{savename} ({n})"
         shutil.unpack_archive(f"{songname}.zip", f"{importsdest}/{savename}")
         logger.info("unpacked")
         os.remove(f"{songname}.zip")
