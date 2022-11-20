@@ -964,7 +964,7 @@ def preprocessmultiple(abspath_song, status_label):
             width=200,
         )
         error_label.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
-        return
+        pass
     try:
         metadata = music_tag.load_file(abspath_song)
         metaart = metadata["artwork"]
@@ -974,6 +974,7 @@ def preprocessmultiple(abspath_song, status_label):
         logger.error("No metadata found")
         shutil.copyfile("./Assets/default.png", f"{importsdest}/{savename}/cover.png")
         pass
+    return
 
 
 def play_song(parent_dir, nightcore=False):
@@ -1120,7 +1121,13 @@ def raise_above_all(window):
     window.attributes("-topmost", 0)
 
 
+inprogress = None
+
+
 def nightcore(song, tones=3):
+    if inprogress == True:
+        return None
+    inprogress = True
     value = nc_var.get()
     if value == "on":
         parentdir = os.path.abspath(os.path.join(importsdest, song.text))
@@ -1131,11 +1138,13 @@ def nightcore(song, tones=3):
                 _name = _.replace(".wav", "_nc.wav")
                 nc_audio.export(f"{parentdir}/{_name}", format="wav")
         play_song(parentdir, nightcore=True)
+        inprogress = False
         return None
     if value == "off":
         if song.text == "":
             return None
         play_song(os.path.abspath(os.path.join(importsdest, song.text)))
+        inprogress = False
         return None
 
 
@@ -1144,7 +1153,10 @@ playing = None
 
 def playpause():
     global playing
-
+    global inprogress
+    if inprogress == True:
+        return None
+    inprogress = True
     if playing == False:
 
         other.unpause()
@@ -1164,6 +1176,7 @@ def playpause():
         )
         playpause_button.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
         playing = True
+        inprogress = False
         return None
 
     if other.get_busy() or vocals.get_busy() or bass.get_busy() or drums.get_busy():
@@ -1184,47 +1197,67 @@ def playpause():
         )
         playpause_button.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
         playing = False
+        inprogress = False
         return None
 
 
 def next_song(song):
     global loop
+    global inprogress
+    if inprogress == True:
+        return None
+    inprogress = True
     loop = False
     songs = os.listdir(importsdest)
     index = songs.index(song)
     try:
         nc_checkbox.deselect()
         play_song(f"{importsdest}/{songs[index + 1]}")
+        inprogress = False
         return None
     except:
+        inprogress = False
         return None
 
 
 def last_song(song):
     global loop
+    global inprogress
+    if inprogress == True:
+        return None
+    inprogress = True
     loop = False
     songs = os.listdir(importsdest)
     index = songs.index(song)
     if index == 0:
+        inprogress = False
         return None
     try:
         nc_checkbox.deselect()
         play_song(f"{importsdest}/{songs[index - 1]}")
+        inprogress = False
         return None
     except:
+        inprogress = False
         return None
 
 
 def shuffle():
     global loop
     loop = False
+    global inprogress
+    if inprogress == True:
+        return None
+    inprogress = True
     try:
         songs = os.listdir(importsdest)
         random.shuffle(songs)
         nc_checkbox.deselect()
         play_song(f"{importsdest}/{songs[0]}")
+        inprogress = False
     except:
         logger.warning("No songs to shuffle!")
+        inprogress = False
         pass
 
 
@@ -1233,6 +1266,10 @@ loop = None
 
 def loop_song():
     global loop
+    global inprogress
+    if inprogress == True:
+        return None
+    inprogress = True
 
     if loop != True:
         loop = True
@@ -1247,6 +1284,7 @@ def loop_song():
             hover_color=app.fg_color,
         )
         repeat_button.place(relx=0.88, rely=0.5, anchor=tkinter.CENTER)
+        inprogress = False
         return None
     else:
         loop = False
@@ -1261,6 +1299,7 @@ def loop_song():
             hover_color=app.fg_color,
         )
         repeat_button.place(relx=0.88, rely=0.5, anchor=tkinter.CENTER)
+        inprogress = False
         return None
 
 
@@ -1312,9 +1351,6 @@ def reset_interface():
     previous_button.configure(state="normal")
     shuffle_button.configure(state="normal")
     repeat_button.configure(state="normal")
-
-
-inprogress = None
 
 
 def refresh():
