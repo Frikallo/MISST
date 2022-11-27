@@ -1,6 +1,6 @@
 ## LICENSE ----------------------------------------------------------------------------------------------------
 
-# MISST 2.0.4
+# MISST 2.0.5
 # Copyright (C) 2022 Frikallo.
 
 # This program is free software: you can redistribute it and/or modify
@@ -85,7 +85,7 @@ logger.info(f'Logger initialized ({str(datetime.datetime.now()).split(".")[0]})'
 
 ## GLOBAL VARIABLES ----------------------------------------------------------------------------------------------------
 
-version = "V2.0.4"
+version = "V2.0.5"
 discord_rpc = client_id
 genius_access_token = genius_access_token
 CREATE_NO_WINDOW = 0x08000000
@@ -733,6 +733,9 @@ def update_songUI(song):
     for _ in os.listdir(importsdest + "/" + song_name):
         if _.endswith("_nc.wav"):
             os.remove(importsdest + "/" + song_name + "/" + _)
+
+    percent = 0
+
     while True:
         if songlabel.text == "":
 
@@ -740,12 +743,6 @@ def update_songUI(song):
                 nc_checkbox.deselect()
                 play_song(song_dir)
                 break
-            if autoplay == True:
-                try:
-                    next_song(song_name)
-                    break
-                except:
-                    pass
             else:
                 progressbar.set(0)
                 songlabel.configure(text="(song name)", image=None)
@@ -794,6 +791,12 @@ def update_songUI(song):
             text=f"{str(datetime.timedelta(seconds=duration-t)).split('.')[0][2:]}"
         )
         time.sleep(1)
+    if autoplay == True and percent >= 0.99:
+        try:
+            next_song(song_name)
+            return
+        except:
+            pass
     return
 
 
@@ -972,7 +975,10 @@ def preprocessmultiple(abspath_song, status_label):
         metaimg.save(f"{importsdest}/{savename}/cover.png")
     except:
         logger.error("No metadata found")
-        shutil.copyfile("./Assets/default.png", f"{importsdest}/{savename}/cover.png")
+        try:
+            shutil.copyfile("./Assets/default.png", f"{importsdest}/{savename}/cover.png")
+        except:
+            pass
         pass
     return
 
@@ -1125,9 +1131,6 @@ inprogress = None
 
 
 def nightcore(song, tones=3):
-    if inprogress == True:
-        return None
-    inprogress = True
     value = nc_var.get()
     if value == "on":
         parentdir = os.path.abspath(os.path.join(importsdest, song.text))
@@ -1138,13 +1141,11 @@ def nightcore(song, tones=3):
                 _name = _.replace(".wav", "_nc.wav")
                 nc_audio.export(f"{parentdir}/{_name}", format="wav")
         play_song(parentdir, nightcore=True)
-        inprogress = False
         return None
     if value == "off":
         if song.text == "":
             return None
         play_song(os.path.abspath(os.path.join(importsdest, song.text)))
-        inprogress = False
         return None
 
 
