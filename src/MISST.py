@@ -791,7 +791,7 @@ def update_songUI(song):
             text=f"{str(datetime.timedelta(seconds=duration-t)).split('.')[0][2:]}"
         )
         time.sleep(1)
-    if autoplay == True and percent >= 0.99:
+    if autoplay == True and percent >= 0.99 and loop == False:
         try:
             next_song(song_name)
             return
