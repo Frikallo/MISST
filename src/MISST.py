@@ -22,9 +22,10 @@ import os
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 import sys
-sys.path.append(os.path.abspath('./binaries'))
-sys.path.append(os.path.abspath('./binaries/ffmpeg.exe'))
-sys.path.append(os.path.abspath('./binaries/ffmprobe.exe'))
+
+sys.path.append(os.path.abspath("./binaries"))
+sys.path.append(os.path.abspath("./binaries/ffmpeg.exe"))
+sys.path.append(os.path.abspath("./binaries/ffmprobe.exe"))
 import pygame
 import datetime
 from scipy.io import wavfile
@@ -58,7 +59,7 @@ from Assets.clientsecrets import (
     DarkerHover_ThemeDark,
     DarkerHover_ThemeLight,
     color_darker_light,
-    color_darker_dark
+    color_darker_dark,
 )
 import lyricsgenius as lg
 from pypresence import Presence
@@ -160,6 +161,7 @@ def checkInternetUrllib(url="http://google.com"):
 
 server_connection = None
 
+
 def server_status(url=server_base):
     global server_connection
     try:
@@ -173,6 +175,7 @@ def server_status(url=server_base):
     except:
         server_connection = False
         return False
+
 
 server_connection = server_status()
 internet_connection = checkInternetUrllib()
@@ -619,6 +622,7 @@ def import_fun4(url, status_label):
 
 ## UTIL FUNCTIONS ----------------------------------------------------------------------------------------------------
 
+
 def getsize(dir):
     total = 0
     for entry in os.scandir(dir):
@@ -630,7 +634,7 @@ def getsize(dir):
 
 
 def format_size(size):
-    for x in ['bytes','KB','MB','GB','TB']:
+    for x in ["bytes", "KB", "MB", "GB", "TB"]:
         if size < 1024.0:
             return "%3.1f %s" % (size, x)
         size /= 1024.0
@@ -640,8 +644,8 @@ def format_size(size):
 def clear_downloads(dir, frame):
     try:
         for file in os.listdir(dir):
-            file = os.path.join(dir, file).replace('\\','/')
-            if os.path.isdir(file) and os.path.isfile(file + '/info.json'):
+            file = os.path.join(dir, file).replace("\\", "/")
+            if os.path.isdir(file) and os.path.isfile(file + "/info.json"):
                 shutil.rmtree(file)
         frame.destroy()
         settings()
@@ -660,11 +664,19 @@ def clear_downloads_window(dir, settings_window):
     )
     confirmation_header.place(relx=0.5, rely=0.45, anchor=tkinter.CENTER)
     confirmation_yes = customtkinter.CTkButton(
-        master=confirmation_frame, text="Yes", text_font=(FONT, -12), command=lambda: clear_downloads(dir, confirmation_frame), width=80
+        master=confirmation_frame,
+        text="Yes",
+        text_font=(FONT, -12),
+        command=lambda: clear_downloads(dir, confirmation_frame),
+        width=80,
     )
     confirmation_yes.place(relx=0.35, rely=0.55, anchor=tkinter.CENTER)
     confirmation_no = customtkinter.CTkButton(
-        master=confirmation_frame, text="No", text_font=(FONT, -12), command=lambda: confirmation_frame.destroy(), width=80
+        master=confirmation_frame,
+        text="No",
+        text_font=(FONT, -12),
+        command=lambda: confirmation_frame.destroy(),
+        width=80,
     )
     confirmation_no.place(relx=0.65, rely=0.55, anchor=tkinter.CENTER)
 
@@ -672,12 +684,16 @@ def clear_downloads_window(dir, settings_window):
 def change_location():
     global importsdest
     try:
-        importsdest_nocheck = filedialog.askdirectory(initialdir=os.path.abspath(importsdest))
-        importsdest_nocheck = importsdest_nocheck.replace('\\','/')
-        if importsdest_nocheck != "" and os.path.isdir(os.path.abspath(importsdest_nocheck)):
+        importsdest_nocheck = filedialog.askdirectory(
+            initialdir=os.path.abspath(importsdest)
+        )
+        importsdest_nocheck = importsdest_nocheck.replace("\\", "/")
+        if importsdest_nocheck != "" and os.path.isdir(
+            os.path.abspath(importsdest_nocheck)
+        ):
             dummypath = os.path.join(importsdest_nocheck, str(uuid.uuid4()))
             try:
-                with open(dummypath, 'w'):
+                with open(dummypath, "w"):
                     pass
                 os.remove(dummypath)
                 importsdest = importsdest_nocheck
@@ -711,18 +727,18 @@ def update_setting(setting, value):
     elif setting == "preprocess_method":
         preprocess_method = value
     elif setting == "dark_theme":
-        dark_theme = value.replace("'","")
+        dark_theme = value.replace("'", "")
     elif setting == "light_theme":
-        light_theme = value.replace("'","")
+        light_theme = value.replace("'", "")
     elif setting == "hover_color_light":
-        hover_color_light = value.replace("'","")
+        hover_color_light = value.replace("'", "")
     elif setting == "hover_color_dark":
-        hover_color_dark = value.replace("'","")
+        hover_color_dark = value.replace("'", "")
     elif setting == "color_darker_light":
-        color_darker_light = value.replace("'","")
+        color_darker_light = value.replace("'", "")
     elif setting == "color_darker_dark":
-        color_darker_dark = value.replace("'","")
-    settings = open('./Assets/clientsecrets.py').readlines()
+        color_darker_dark = value.replace("'", "")
+    settings = open("./Assets/clientsecrets.py").readlines()
     lines = []
     for line in settings:
         if setting in line:
@@ -730,7 +746,7 @@ def update_setting(setting, value):
             lines.append(line)
         else:
             lines.append(line)
-    with open('./Assets/clientsecrets.py', 'w') as f:
+    with open("./Assets/clientsecrets.py", "w") as f:
         f.writelines(lines)
 
 
@@ -752,7 +768,12 @@ def count(label, text):
 
 
 def update_rpc(
-    Ltext=None, Dtext=None, image="icon-0", large_text="MISST", end_time=None, small_image=None
+    Ltext=None,
+    Dtext=None,
+    image="icon-0",
+    large_text="MISST",
+    end_time=None,
+    small_image=None,
 ):
     start_time = time.time()
     if RPC_CONNECTED:
@@ -963,7 +984,7 @@ def preprocess(abspath_song, status_label):
         ns = []
         for _ in os.listdir(importsdest):
             if savename in _:
-                ns.append(_) # get all songs with the same name
+                ns.append(_)  # get all songs with the same name
         n = len(ns)
         if os.path.exists(f"{importsdest}/{savename}"):
             savename = f"{savename} ({n})"
@@ -1031,7 +1052,7 @@ def preprocessmultiple(abspath_song, status_label):
         ns = []
         for _ in os.listdir(importsdest):
             if savename in _:
-                ns.append(_) # get all songs with the same name
+                ns.append(_)  # get all songs with the same name
         n = len(ns)
         if os.path.exists(f"{importsdest}/{savename}"):
             savename = f"{savename} ({n})"
@@ -1057,7 +1078,9 @@ def preprocessmultiple(abspath_song, status_label):
     except:
         logger.error("No metadata found")
         try:
-            shutil.copyfile("./Assets/default.png", f"{importsdest}/{savename}/cover.png")
+            shutil.copyfile(
+                "./Assets/default.png", f"{importsdest}/{savename}/cover.png"
+            )
         except:
             pass
         pass
@@ -1459,13 +1482,28 @@ def refresh():
         server_connection = server_status()
         delay = int(ping(server_base[7:-6]) * 1000)
         if server_connection == True:
-            refresh_button.configure(image=None, text=f'{delay}ms', width=25, height=25)
+            refresh_button.configure(image=None, text=f"{delay}ms", width=25, height=25)
             time.sleep(1.5)
-            refresh_button.configure(text='', image=PhotoImage(file=f'./Assets/reload.png'), width=25, height=25)
+            refresh_button.configure(
+                text="",
+                image=PhotoImage(file=f"./Assets/reload.png"),
+                width=25,
+                height=25,
+            )
         else:
-            refresh_button.configure(text='', image=PhotoImage(file=f'./Assets/no-connection.png'), width=25, height=25)
+            refresh_button.configure(
+                text="",
+                image=PhotoImage(file=f"./Assets/no-connection.png"),
+                width=25,
+                height=25,
+            )
             time.sleep(1.5)
-            refresh_button.configure(text='', image=PhotoImage(file=f'./Assets/reload.png'), width=25, height=25)
+            refresh_button.configure(
+                text="",
+                image=PhotoImage(file=f"./Assets/reload.png"),
+                width=25,
+                height=25,
+            )
         inprogress = False
     except:
         return None
@@ -1479,31 +1517,55 @@ def lighten_color(color, amount=0.5):
         c = color
     c = colorsys.rgb_to_hls(*mc.to_rgb(c))
     string = colorsys.hls_to_rgb(c[0], 1 - amount * (1 - c[1]), c[2])
-    hex_string = '#%02x%02x%02x' % (int(string[0] * 255), int(string[1] * 255), int(string[2] * 255))
-    return hex_string.replace('-', '')
+    hex_string = "#%02x%02x%02x" % (
+        int(string[0] * 255),
+        int(string[1] * 255),
+        int(string[2] * 255),
+    )
+    return hex_string.replace("-", "")
 
 
 def change_color_light(button_light):
-    color1 = askcolor(title="Choose color for (Light)", initialcolor=button_light.fg_color)[1]
+    color1 = askcolor(
+        title="Choose color for (Light)", initialcolor=button_light.fg_color
+    )[1]
     if color1 is not None:
         button_light.configure(fg_color=color1)
         accent_theme = lighten_color(color1, 1.5)
         hover_color_darker = lighten_color(accent_theme, 1.5)
-        theme = str(json_data).replace("defaultLight", color1).replace("defaultDark", dark_theme).replace("LightHover", accent_theme).replace("DarkHover", hover_color_dark).replace("DarkerHoverLight", hover_color_darker).replace("DarkerHoverDark", color_darker_dark)
+        theme = (
+            str(json_data)
+            .replace("defaultLight", color1)
+            .replace("defaultDark", dark_theme)
+            .replace("LightHover", accent_theme)
+            .replace("DarkHover", hover_color_dark)
+            .replace("DarkerHoverLight", hover_color_darker)
+            .replace("DarkerHoverDark", color_darker_dark)
+        )
         update_setting("color_darker_light", f"'{hover_color_darker}'")
         update_setting("hover_color_light", f"'{accent_theme}'")
         update_setting("light_theme", f"'{color1}'")
         with open("./Assets/Themes/MISST.json", "w") as f:
             f.write(theme)
 
-                
+
 def change_color_dark(button_dark):
-    color2 = askcolor(title="Choose color for (Dark)", initialcolor=button_dark.fg_color)[1]
+    color2 = askcolor(
+        title="Choose color for (Dark)", initialcolor=button_dark.fg_color
+    )[1]
     if color2 is not None:
         button_dark.configure(fg_color=color2)
         accent_theme = lighten_color(color2, 1.5)
         hover_color_darker = lighten_color(accent_theme, 1.5)
-        theme = str(json_data).replace("defaultDark", color2).replace("defaultLight", light_theme).replace("LightHover", hover_color_light).replace("DarkHover", accent_theme).replace("DarkerHoverDark", hover_color_darker).replace("DarkerHoverLight", color_darker_light)
+        theme = (
+            str(json_data)
+            .replace("defaultDark", color2)
+            .replace("defaultLight", light_theme)
+            .replace("LightHover", hover_color_light)
+            .replace("DarkHover", accent_theme)
+            .replace("DarkerHoverDark", hover_color_darker)
+            .replace("DarkerHoverLight", color_darker_light)
+        )
         update_setting("color_darker_dark", f"'{hover_color_darker}'")
         update_setting("hover_color_dark", f"'{accent_theme}'")
         update_setting("dark_theme", f"'{color2}'")
@@ -1512,7 +1574,15 @@ def change_color_dark(button_dark):
 
 
 def reset_theme(button_light, button_dark):
-    theme = str(json_data).replace("defaultLight", DefaultLight_Theme).replace("defaultDark", DefaultDark_Theme).replace("LightHover", DefaultHover_ThemeLight).replace("DarkHover", DefaultHover_ThemeDark).replace("DarkerHoverLight", DarkerHover_ThemeLight).replace("DarkerHoverDark", DarkerHover_ThemeDark)
+    theme = (
+        str(json_data)
+        .replace("defaultLight", DefaultLight_Theme)
+        .replace("defaultDark", DefaultDark_Theme)
+        .replace("LightHover", DefaultHover_ThemeLight)
+        .replace("DarkHover", DefaultHover_ThemeDark)
+        .replace("DarkerHoverLight", DarkerHover_ThemeLight)
+        .replace("DarkerHoverDark", DarkerHover_ThemeDark)
+    )
     update_setting("light_theme", f"'{DefaultLight_Theme}'")
     update_setting("dark_theme", f"'{DefaultDark_Theme}'")
     update_setting("hover_color_light", f"'{DefaultHover_ThemeLight}'")
@@ -1540,22 +1610,25 @@ def settings():
     settings_frame.place(relx=0.25, rely=0.47, anchor=tkinter.CENTER)
 
     setting_header = customtkinter.CTkLabel(
-        master=settings_frame, text='Settings', text_font=(FONT, -18)
+        master=settings_frame, text="Settings", text_font=(FONT, -18)
     )
     setting_header.place(relx=0.5, rely=0.1, anchor=tkinter.CENTER)
 
-    general_frame = customtkinter.CTkFrame(
-        master=settings_frame, width=300, height=125
-    )
+    general_frame = customtkinter.CTkFrame(master=settings_frame, width=300, height=125)
     general_frame.place(relx=0.5, rely=0.35, anchor=tkinter.CENTER)
 
     general_header = customtkinter.CTkLabel(
-        master= general_frame, text='General', text_font=(FONT, -16)
+        master=general_frame, text="General", text_font=(FONT, -16)
     )
     general_header.place(relx=0.2, rely=0.15, anchor=tkinter.CENTER)
 
     autoplay_box = customtkinter.CTkSwitch(
-        master=general_frame, text='Autoplay', text_font=(FONT, -12), command=lambda: update_setting('autoplay', True if autoplay_box.get() == 1 else False)
+        master=general_frame,
+        text="Autoplay",
+        text_font=(FONT, -12),
+        command=lambda: update_setting(
+            "autoplay", True if autoplay_box.get() == 1 else False
+        ),
     )
     autoplay_box.place(relx=0.28, rely=0.4, anchor=tkinter.CENTER)
     if autoplay == True:
@@ -1564,7 +1637,10 @@ def settings():
         pass
 
     rpc_box = customtkinter.CTkSwitch(
-        master=general_frame, text='Discord RPC', text_font=(FONT, -12), command=lambda: update_setting('rpc', True if rpc_box.get() == 1 else False)
+        master=general_frame,
+        text="Discord RPC",
+        text_font=(FONT, -12),
+        command=lambda: update_setting("rpc", True if rpc_box.get() == 1 else False),
     )
     rpc_box.place(relx=0.31, rely=0.625, anchor=tkinter.CENTER)
     if rpc == True:
@@ -1573,7 +1649,13 @@ def settings():
         pass
 
     preprocess_method_box = customtkinter.CTkSwitch(
-        master=general_frame, text='Preprocess on Server?', text_font=(FONT, -12), command=lambda: update_setting('preprocess_method', "'server'" if preprocess_method_box.get() == 1 else "'client'")
+        master=general_frame,
+        text="Preprocess on Server?",
+        text_font=(FONT, -12),
+        command=lambda: update_setting(
+            "preprocess_method",
+            "'server'" if preprocess_method_box.get() == 1 else "'client'",
+        ),
     )
     preprocess_method_box.place(relx=0.4, rely=0.85, anchor=tkinter.CENTER)
     if preprocess_method == "'server'" or preprocess_method == "server":
@@ -1583,91 +1665,146 @@ def settings():
 
     ### General Settings ###
 
-    storage_frame = customtkinter.CTkFrame(
-        master=settings_frame, width=300, height=125
-    )
+    storage_frame = customtkinter.CTkFrame(master=settings_frame, width=300, height=125)
     storage_frame.place(relx=0.5, rely=0.75, anchor=tkinter.CENTER)
 
     storage_header = customtkinter.CTkLabel(
-        master= storage_frame, text='Storage', text_font=(FONT, -16)
+        master=storage_frame, text="Storage", text_font=(FONT, -16)
     )
     storage_header.place(relx=0.2, rely=0.15, anchor=tkinter.CENTER)
 
     downloads_header = customtkinter.CTkLabel(
-        master=storage_frame, text='Downloads:', text_font=(FONT, -12, 'bold')
+        master=storage_frame, text="Downloads:", text_font=(FONT, -12, "bold")
     )
     downloads_header.place(relx=0.24, rely=0.4, anchor=tkinter.CENTER)
 
     downloads_info = customtkinter.CTkLabel(
-        master=storage_frame, text=format_size(getsize(importsdest)), text_font=(FONT, -12), width=25, state=tkinter.DISABLED
+        master=storage_frame,
+        text=format_size(getsize(importsdest)),
+        text_font=(FONT, -12),
+        width=25,
+        state=tkinter.DISABLED,
     )
     downloads_info.place(relx=0.45, rely=0.4, anchor=tkinter.CENTER)
 
     downloads_subheader = customtkinter.CTkLabel(
-        master=storage_frame, text='Downloaded Content', text_font=(FONT, -11), state=tkinter.DISABLED
+        master=storage_frame,
+        text="Downloaded Content",
+        text_font=(FONT, -11),
+        state=tkinter.DISABLED,
     )
     downloads_subheader.place(relx=0.29, rely=0.55, anchor=tkinter.CENTER)
 
     clear_downloads_button = customtkinter.CTkButton(
-        master=storage_frame, text='Clear Downloads', text_font=(FONT, -12), width=15, height=2, command=lambda: clear_downloads_window(importsdest, settings_window)
+        master=storage_frame,
+        text="Clear Downloads",
+        text_font=(FONT, -12),
+        width=15,
+        height=2,
+        command=lambda: clear_downloads_window(importsdest, settings_window),
     )
     clear_downloads_button.place(relx=0.75, rely=0.475, anchor=tkinter.CENTER)
 
     storage_location_header = customtkinter.CTkLabel(
-        master=storage_frame, text='Storage Location:', text_font=(FONT, -12, 'bold')
+        master=storage_frame, text="Storage Location:", text_font=(FONT, -12, "bold")
     )
     storage_location_header.place(relx=0.305, rely=0.7, anchor=tkinter.CENTER)
 
     dir = os.path.abspath(importsdest)
     dirlen = len(dir)
     n = 20
-    location_text = dir if dirlen <= n else '...' + dir[-(n-dirlen):]
+    location_text = dir if dirlen <= n else "..." + dir[-(n - dirlen) :]
 
     storage_location_info = customtkinter.CTkLabel(
-        master=storage_frame, text=location_text, text_font=(FONT, -11), width=25, state=tkinter.DISABLED
+        master=storage_frame,
+        text=location_text,
+        text_font=(FONT, -11),
+        width=25,
+        state=tkinter.DISABLED,
     )
     storage_location_info.place(relx=0.345, rely=0.85, anchor=tkinter.CENTER)
 
     change_location_button = customtkinter.CTkButton(
-        master=storage_frame, text='Change Location', text_font=(FONT, -12), width=15, height=2, command=lambda: change_location()
+        master=storage_frame,
+        text="Change Location",
+        text_font=(FONT, -12),
+        width=15,
+        height=2,
+        command=lambda: change_location(),
     )
     change_location_button.place(relx=0.75, rely=0.775, anchor=tkinter.CENTER)
 
-    theme_frame = customtkinter.CTkFrame(
-        master=settings_window, width=350, height=380
-    )
+    theme_frame = customtkinter.CTkFrame(master=settings_window, width=350, height=380)
     theme_frame.place(relx=0.75, rely=0.47, anchor=tkinter.CENTER)
 
     theme_header = customtkinter.CTkLabel(
-        master=theme_frame, text='Theme', text_font=(FONT, -18)
+        master=theme_frame, text="Theme", text_font=(FONT, -18)
     )
     theme_header.place(relx=0.5, rely=0.1, anchor=tkinter.CENTER)
 
-    theme_frame_mini = customtkinter.CTkFrame(
-        master=theme_frame, width=300, height=275
-    )
+    theme_frame_mini = customtkinter.CTkFrame(master=theme_frame, width=300, height=275)
     theme_frame_mini.place(relx=0.5, rely=0.55, anchor=tkinter.CENTER)
 
-    button_light = customtkinter.CTkButton(master=theme_frame_mini, height=100, width=200, corner_radius=10, border_color="white", fg_color=light_theme, border_width=2, text="Light", hover_color=None, command=lambda: change_color_light(button_light))
+    button_light = customtkinter.CTkButton(
+        master=theme_frame_mini,
+        height=100,
+        width=200,
+        corner_radius=10,
+        border_color="white",
+        fg_color=light_theme,
+        border_width=2,
+        text="Light",
+        hover_color=None,
+        command=lambda: change_color_light(button_light),
+    )
     button_light.place(relx=0.5, rely=0.25, anchor=tkinter.CENTER)
 
-    button_dark = customtkinter.CTkButton(master=theme_frame_mini, height=100, width=200, corner_radius=10, border_color="white", fg_color=dark_theme, border_width=2, text="Dark", hover_color=None, command=lambda: change_color_dark(button_dark))
+    button_dark = customtkinter.CTkButton(
+        master=theme_frame_mini,
+        height=100,
+        width=200,
+        corner_radius=10,
+        border_color="white",
+        fg_color=dark_theme,
+        border_width=2,
+        text="Dark",
+        hover_color=None,
+        command=lambda: change_color_dark(button_dark),
+    )
     button_dark.place(relx=0.5, rely=0.75, anchor=tkinter.CENTER)
 
     info_label = customtkinter.CTkLabel(
-        master=settings_window, text='Note: You must restart the app for changes to take effect.', text_font=(FONT, -12), state=tkinter.DISABLED, height=10
+        master=settings_window,
+        text="Note: You must restart the app for changes to take effect.",
+        text_font=(FONT, -12),
+        state=tkinter.DISABLED,
+        height=10,
     )
     info_label.place(relx=0.5, rely=0.95, anchor=tkinter.CENTER)
 
     reset_button = customtkinter.CTkButton(
-        master=settings_window, text='Reset', text_font=(FONT, -12, 'underline'), command=lambda: reset_theme(button_light, button_dark), fg_color=settings_window.fg_color, hover_color=theme_frame.fg_color, width=15
+        master=settings_window,
+        text="Reset",
+        text_font=(FONT, -12, "underline"),
+        command=lambda: reset_theme(button_light, button_dark),
+        fg_color=settings_window.fg_color,
+        hover_color=theme_frame.fg_color,
+        width=15,
     )
     reset_button.place(relx=0.75, rely=0.95, anchor=tkinter.CENTER)
 
     goback_button = customtkinter.CTkButton(
-        master=settings_window, text='', image=PhotoImage(file='./Assets/goback.png'), text_font=(FONT, -12), command=lambda: settings_window.destroy(), fg_color=settings_window.fg_color, hover_color=theme_frame.fg_color, width=15
+        master=settings_window,
+        text="",
+        image=PhotoImage(file="./Assets/goback.png"),
+        text_font=(FONT, -12),
+        command=lambda: settings_window.destroy(),
+        fg_color=settings_window.fg_color,
+        hover_color=theme_frame.fg_color,
+        width=15,
     )
     goback_button.place(relx=0.25, rely=0.95, anchor=tkinter.CENTER)
+
 
 ## USER INTERFACE ----------------------------------------------------------------------------------------------------
 
@@ -1697,6 +1834,7 @@ east_frame.place(relx=1, rely=0.63, anchor=tkinter.E)
 raise_above_all(app)
 
 ## INTERFACE ELEMENTS ------------------------------------------------------------------------------------------------
+
 
 def resize_image(image, size):
     im = Image.open(f"./Assets/player/{image}")
@@ -1868,17 +2006,45 @@ profile_button.place(relx=0.6, rely=0.17, anchor=tkinter.CENTER)
 github_button.place(relx=0.4, rely=0.17, anchor=tkinter.CENTER)
 
 settings_button = customtkinter.CTkButton(
-    master=west_frame, text_font=(FONT, -12), text='', image=PhotoImage(file=f'./Assets/settings.png'), bg_color=west_frame.fg_color, fg_color=west_frame.fg_color, hover_color=app.fg_color, width=25, height=25, command=lambda: settings()
+    master=west_frame,
+    text_font=(FONT, -12),
+    text="",
+    image=PhotoImage(file=f"./Assets/settings.png"),
+    bg_color=west_frame.fg_color,
+    fg_color=west_frame.fg_color,
+    hover_color=app.fg_color,
+    width=25,
+    height=25,
+    command=lambda: settings(),
 )
 settings_button.place(relx=0.3, rely=0.9, anchor=tkinter.CENTER)
 
 refresh_button = customtkinter.CTkButton(
-    master=west_frame, text_font=(FONT, -12), text='', image=PhotoImage(file=f'./Assets/reload.png'), bg_color=west_frame.fg_color, fg_color=west_frame.fg_color, hover_color=app.fg_color, width=25, height=25, command=lambda: threading.Thread(target=refresh, daemon=True).start()
+    master=west_frame,
+    text_font=(FONT, -12),
+    text="",
+    image=PhotoImage(file=f"./Assets/reload.png"),
+    bg_color=west_frame.fg_color,
+    fg_color=west_frame.fg_color,
+    hover_color=app.fg_color,
+    width=25,
+    height=25,
+    command=lambda: threading.Thread(target=refresh, daemon=True).start(),
 )
 refresh_button.place(relx=0.5, rely=0.9, anchor=tkinter.CENTER)
 
 lyrics = customtkinter.CTkButton(
-    master=west_frame, text_font=(FONT, -12), text='', image=PhotoImage(file=f'./Assets/lyrics.png'), bg_color=west_frame.fg_color, fg_color=west_frame.fg_color, hover_color=app.fg_color, width=25, height=25, corner_radius=16, command = lambda: threading.Thread(target=get_lyrics, daemon=True).start(),
+    master=west_frame,
+    text_font=(FONT, -12),
+    text="",
+    image=PhotoImage(file=f"./Assets/lyrics.png"),
+    bg_color=west_frame.fg_color,
+    fg_color=west_frame.fg_color,
+    hover_color=app.fg_color,
+    width=25,
+    height=25,
+    corner_radius=16,
+    command=lambda: threading.Thread(target=get_lyrics, daemon=True).start(),
 )
 lyrics.place(relx=0.7, rely=0.9, anchor=tkinter.CENTER)
 
