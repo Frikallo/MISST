@@ -21,12 +21,17 @@ import os
 
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
+import sys
+sys.path.append(os.path.abspath('./binaries'))
+sys.path.append(os.path.abspath('./binaries/ffmpeg.exe'))
+sys.path.append(os.path.abspath('./binaries/ffmprobe.exe'))
 import pygame
 import datetime
 from scipy.io import wavfile
 import threading
 import customtkinter
 import tkinter
+from tkinter.colorchooser import askcolor
 from tkinter import PhotoImage, filedialog
 import nightcore as nc
 import webbrowser
@@ -40,7 +45,16 @@ from Assets.clientsecrets import (
     importsdest,
     rpc,
     autoplay,
-    preprocess_method
+    preprocess_method,
+    dark_theme,
+    light_theme,
+    DefaultDark_Theme,
+    DefaultLight_Theme,
+    json_data,
+    hover_color_light,
+    hover_color_dark,
+    DefaultHover_ThemeLight,
+    DefaultHover_ThemeDark,
 )
 import lyricsgenius as lg
 from pypresence import Presence
@@ -55,6 +69,9 @@ import io
 import music_tag
 import random
 from ping3 import ping
+import uuid
+import matplotlib.colors as mc
+import colorsys
 
 ## LOGGER ----------------------------------------------------------------------------------------------------
 
@@ -172,7 +189,7 @@ customtkinter.set_default_color_theme(
 
 app = customtkinter.CTk()
 app.title("MISST")
-app.iconbitmap(r"./icon.ico")
+app.iconbitmap(r"./Assets/icon.ico")
 
 WIDTH = 755
 HEIGHT = 435
@@ -259,7 +276,7 @@ def get_lyrics():
         window = customtkinter.CTkToplevel(app)
         window.geometry("580x435")
         window.title("MISST")
-        window.iconbitmap(r"./icon.ico")
+        window.iconbitmap(r"./Assets/icon.ico")
         raise_above_all(window)
 
         lyric_box = tkinter.Text(
@@ -296,7 +313,7 @@ def import_():
     import_window = customtkinter.CTkToplevel(app)
     import_window.geometry(f"{WIDTH}x{HEIGHT}")
     import_window.title("MISST")
-    import_window.iconbitmap(r"./icon.ico")
+    import_window.iconbitmap(r"./Assets/icon.ico")
 
     import_window.resizable(False, False)
     import_window.minsize(WIDTH, HEIGHT)
@@ -555,7 +572,6 @@ def import_fun4(url, status_label):
     if not url.startswith("https://open.spotify.com/playlist/") and not url.startswith(
         "https://open.spotify.com/album/"
     ):
-        print(url)
         errorlabel = customtkinter.CTkLabel(
             master=status_label.master,
             text="Invalid url",
@@ -617,30 +633,84 @@ def format_size(size):
     return size
 
 
-def clear_downloads(dir):
+def clear_downloads(dir, frame):
     try:
-        shutil.rmtree(dir)
-        os.mkdir(dir)
+        for file in os.listdir(dir):
+            file = os.path.join(dir, file).replace('\\','/')
+            if os.path.isdir(file) and os.path.isfile(file + '/info.json'):
+                shutil.rmtree(file)
+        frame.destroy()
         settings()
     except:
         pass
 
 
+def clear_downloads_window(dir):
+    confirmation_frame = customtkinter.CTkFrame(
+        master=settings_window, width=350, height=350
+    )
+    confirmation_frame.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
+    confirmation_header = customtkinter.CTkLabel(
+        master=confirmation_frame, text="Are you sure?", text_font=(FONT, -16)
+    )
+    confirmation_header.place(relx=0.5, rely=0.45, anchor=tkinter.CENTER)
+    confirmation_yes = customtkinter.CTkButton(
+        master=confirmation_frame, text="Yes", text_font=(FONT, -12), command=lambda: clear_downloads(dir, confirmation_frame), width=80
+    )
+    confirmation_yes.place(relx=0.35, rely=0.55, anchor=tkinter.CENTER)
+    confirmation_no = customtkinter.CTkButton(
+        master=confirmation_frame, text="No", text_font=(FONT, -12), command=lambda: confirmation_frame.destroy(), width=80
+    )
+    confirmation_no.place(relx=0.65, rely=0.55, anchor=tkinter.CENTER)
+
+
 def change_location():
     global importsdest
     try:
-        importsdest = filedialog.askdirectory(initialdir=os.path.abspath(importsdest))
-        if importsdest != "" and os.path.isdir(os.path.abspath(importsdest)):
-            update_setting("importsdest", importsdest)
+        importsdest_nocheck = filedialog.askdirectory(initialdir=os.path.abspath(importsdest))
+        importsdest_nocheck = importsdest_nocheck.replace('\\','/')
+        if importsdest_nocheck != "" and os.path.isdir(os.path.abspath(importsdest_nocheck)):
+            dummypath = os.path.join(importsdest_nocheck, str(uuid.uuid4()))
+            try:
+                with open(dummypath, 'w'):
+                    pass
+                os.remove(dummypath)
+                importsdest = importsdest_nocheck
+            except IOError:
+                importsdest = os.path.abspath(importsdest)
+            update_setting("importsdest", f"'{importsdest}'")
             settings()
             return None
         else:
+            importsdest = os.path.abspath(importsdest)
             return None
     except:
+        importsdest = os.path.abspath(importsdest)
         return None
 
 
 def update_setting(setting, value):
+    global autoplay
+    global rpc
+    global preprocess_method
+    global dark_theme
+    global light_theme
+    global hover_color_light
+    global hover_color_dark
+    if setting == "autoplay":
+        autoplay = value
+    elif setting == "rpc":
+        rpc = value
+    elif setting == "preprocess_method":
+        preprocess_method = value
+    elif setting == "dark_theme":
+        dark_theme = value.replace("'","")
+    elif setting == "light_theme":
+        light_theme = value.replace("'","")
+    elif setting == "hover_color_light":
+        hover_color_light = value.replace("'","")
+    elif setting == "hover_color_dark":
+        hover_color_dark = value.replace("'","")
     settings = open('./Assets/clientsecrets.py').readlines()
     lines = []
     for line in settings:
@@ -806,7 +876,7 @@ def spot_dl(url, status_label):
     else:
         os.mkdir("./dl-songs")
     try:
-        spotdl = os.path.abspath("./spotdl.exe")
+        spotdl = os.path.abspath("./binaries/spotdl.exe")
         cmd = subprocess.call(
             f"{spotdl} download {url} --output ./dl-songs",
             creationflags=CREATE_NO_WINDOW,
@@ -839,7 +909,7 @@ def spot_dl_playlist(url, status_label):
     else:
         os.mkdir("./dl-songs")
     try:
-        spotdl = os.path.abspath("./spotdl.exe")
+        spotdl = os.path.abspath("./binaries/spotdl.exe")
         cmd = subprocess.call(
             f"{spotdl} download {url} --output ./dl-songs",
             creationflags=CREATE_NO_WINDOW,
@@ -1065,22 +1135,33 @@ def get_album_art(abspathsong, songname):
     return im
 
 
+def misst_listdir(path):
+    try:
+        os_list = os.listdir(path)
+        misst_list = []
+        for _ in os_list:
+            if os.path.isfile(f"{path}/{_}/info.json"):
+                misst_list.append(_)
+        return misst_list
+    except:
+        return []
+
+
 def global_checks(search_entry, lyric_box):
     entry_val = None
     num = 0
     songs = []
-    for _ in os.listdir(importsdest):
+    for _ in misst_listdir(importsdest):
         num += 1
         songs.append(f"{num}. {_}")
     while True:
         time.sleep(0.5)
-        if len(os.listdir(importsdest)) != num:
+        if len(misst_listdir(importsdest)) != num:
             num = 0
             songs = []
-            for _ in os.listdir(importsdest):
+            for _ in misst_listdir(importsdest):
                 num += 1
                 songs.append(f"{num}. {_}")
-
             lyric_box.configure(state="normal")
             lyric_box.delete("1.0", tkinter.END)
             lyric_box.insert(tkinter.END, "\n\n".join(songs))
@@ -1209,7 +1290,7 @@ def next_song(song):
         return None
     inprogress = True
     loop = False
-    songs = os.listdir(importsdest)
+    songs = misst_listdir(importsdest)
     index = songs.index(song)
     try:
         nc_checkbox.deselect()
@@ -1228,7 +1309,7 @@ def last_song(song):
         return None
     inprogress = True
     loop = False
-    songs = os.listdir(importsdest)
+    songs = misst_listdir(importsdest)
     index = songs.index(song)
     if index == 0:
         inprogress = False
@@ -1251,7 +1332,7 @@ def shuffle():
         return None
     inprogress = True
     try:
-        songs = os.listdir(importsdest)
+        songs = misst_listdir(importsdest)
         random.shuffle(songs)
         nc_checkbox.deselect()
         play_song(f"{importsdest}/{songs[0]}")
@@ -1377,6 +1458,53 @@ def refresh():
     return None
 
 
+def lighten_color(color, amount=0.5):
+    try:
+        c = mc.cnames[color]
+    except:
+        c = color
+    c = colorsys.rgb_to_hls(*mc.to_rgb(c))
+    string = colorsys.hls_to_rgb(c[0], 1 - amount * (1 - c[1]), c[2])
+    hex_string = '#%02x%02x%02x' % (int(string[0] * 255), int(string[1] * 255), int(string[2] * 255))
+    return hex_string.replace('-', '')
+
+
+def change_color_light(button_light):
+    color1 = askcolor(title="Choose color for (Light)", initialcolor=button_light.fg_color)[1]
+    if color1 is not None:
+        button_light.configure(fg_color=color1)
+        accent_theme = lighten_color(color1, 1.5)
+        theme = str(json_data).replace("defaultLight", color1).replace("defaultDark", dark_theme).replace("LightHover", hover_color_light).replace("DarkHover", hover_color_dark)
+        update_setting("hover_color_light", f"'{accent_theme}'")
+        update_setting("light_theme", f"'{color1}'")
+        with open("./Assets/Themes/MISST.json", "w") as f:
+            f.write(theme)
+
+                
+def change_color_dark(button_dark):
+    color2 = askcolor(title="Choose color for (Dark)", initialcolor=button_dark.fg_color)[1]
+    if color2 is not None:
+        button_dark.configure(fg_color=color2)
+        accent_theme = lighten_color(color2, 1.6)
+        theme = str(json_data).replace("defaultDark", color2).replace("defaultLight", light_theme).replace("LightHover", hover_color_light).replace("DarkHover", hover_color_dark)
+        update_setting("hover_color_dark", f"'{accent_theme}'")
+        update_setting("dark_theme", f"'{color2}'")
+        with open("./Assets/Themes/MISST.json", "w") as f:
+            f.write(theme)
+
+
+def reset_theme(button_light, button_dark):
+    theme = str(json_data).replace("defaultLight", DefaultLight_Theme).replace("defaultDark", DefaultDark_Theme).replace("LightHover", DefaultHover_ThemeLight).replace("DarkHover", DefaultHover_ThemeDark)
+    update_setting("light_theme", f"'{DefaultLight_Theme}'")
+    update_setting("dark_theme", f"'{DefaultDark_Theme}'")
+    update_setting("hover_color_light", f"'{DefaultHover_ThemeLight}'")
+    update_setting("hover_color_dark", f"'{DefaultHover_ThemeDark}'")
+    button_light.configure(fg_color=DefaultLight_Theme)
+    button_dark.configure(fg_color=DefaultDark_Theme)
+    with open("./Assets/Themes/MISST.json", "w") as f:
+        f.write(theme)
+
+
 settings_window = None
 
 
@@ -1394,14 +1522,14 @@ def settings():
         master=app
     )
     settings_window.title('Settings')
-    settings_window.geometry('400x400')
+    settings_window.geometry('755x400')
     settings_window.resizable(False, False)
-    settings_window.iconbitmap('./icon.ico')
+    settings_window.iconbitmap('./Assets/icon.ico')
 
     settings_frame = customtkinter.CTkFrame(
         master=settings_window, width=350, height=350
     )
-    settings_frame.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
+    settings_frame.place(relx=0.25, rely=0.5, anchor=tkinter.CENTER)
 
     setting_header = customtkinter.CTkLabel(
         master=settings_frame, text='Settings', text_font=(FONT, -18)
@@ -1440,7 +1568,7 @@ def settings():
         master=general_frame, text='Preprocess on Server?', text_font=(FONT, -12), command=lambda: update_setting('preprocess_method', "'server'" if preprocess_method_box.get() == 1 else "'client'")
     )
     preprocess_method_box.place(relx=0.4, rely=0.85, anchor=tkinter.CENTER)
-    if preprocess_method == 'server':
+    if preprocess_method == "'server'" or preprocess_method == "server":
         preprocess_method_box.select()
     else:
         pass
@@ -1473,7 +1601,7 @@ def settings():
     downloads_subheader.place(relx=0.29, rely=0.55, anchor=tkinter.CENTER)
 
     clear_downloads_button = customtkinter.CTkButton(
-        master=storage_frame, text='Clear Downloads', text_font=(FONT, -12), width=15, height=2, command=lambda: clear_downloads(importsdest)
+        master=storage_frame, text='Clear Downloads', text_font=(FONT, -12), width=15, height=2, command=lambda: clear_downloads_window(importsdest)
     )
     clear_downloads_button.place(relx=0.75, rely=0.475, anchor=tkinter.CENTER)
 
@@ -1483,9 +1611,9 @@ def settings():
     storage_location_header.place(relx=0.305, rely=0.7, anchor=tkinter.CENTER)
 
     dir = os.path.abspath(importsdest)
-    n = 23
-    chunks = [dir[i:i+n] for i in range(0, len(dir), n)]
-    location_text = dir if len(dir) < 25 else f'{chunks[0]}..'
+    dirlen = len(dir)
+    n = 20
+    location_text = dir if dirlen <= n else '...' + dir[-(n-dirlen):]
 
     storage_location_info = customtkinter.CTkLabel(
         master=storage_frame, text=location_text, text_font=(FONT, -11), width=25, state=tkinter.DISABLED
@@ -1497,6 +1625,31 @@ def settings():
     )
     change_location_button.place(relx=0.75, rely=0.775, anchor=tkinter.CENTER)
 
+    theme_frame = customtkinter.CTkFrame(
+        master=settings_window, width=350, height=350
+    )
+    theme_frame.place(relx=0.75, rely=0.5, anchor=tkinter.CENTER)
+
+    theme_header = customtkinter.CTkLabel(
+        master=theme_frame, text='Theme', text_font=(FONT, -18)
+    )
+    theme_header.place(relx=0.5, rely=0.1, anchor=tkinter.CENTER)
+
+    button_light = customtkinter.CTkButton(master=theme_frame, height=100, width=200, corner_radius=10, border_color="white", fg_color=light_theme, border_width=2, text="Light", hover_color=None, command=lambda: change_color_light(button_light))
+    button_light.place(relx=0.5, rely=0.35, anchor=tkinter.CENTER)
+
+    button_dark = customtkinter.CTkButton(master=theme_frame, height=100, width=200, corner_radius=10, border_color="white", fg_color=dark_theme, border_width=2, text="Dark", hover_color=None, command=lambda: change_color_dark(button_dark))
+    button_dark.place(relx=0.5, rely=0.75, anchor=tkinter.CENTER)
+
+    info_label = customtkinter.CTkLabel(
+        master=theme_frame, text='Note: You must restart the app for changes to take effect.', text_font=(FONT, -12), state=tkinter.DISABLED
+    )
+    info_label.place(relx=0.5, rely=0.95, anchor=tkinter.CENTER)
+
+    reset_button = customtkinter.CTkButton(
+        master=theme_frame, text='Reset', text_font=(FONT, -12), width=15, height=2, command=lambda: reset_theme(button_light, button_dark)
+    )
+    reset_button.place(relx=0.5, rely=0.95, anchor=tkinter.CENTER)
 
 ## USER INTERFACE ----------------------------------------------------------------------------------------------------
 
