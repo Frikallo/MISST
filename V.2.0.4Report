@@ -1,0 +1,39 @@
+MISST V.2.0.4 Report
+
+Notes: 
+
+Preformed on Windows 10 System, so some bugs may be operating system exclusive
+
+Preformed when the server was down, so some bugs may be server related
+
+Bugs Found:
+
+When opening the settings menu, opening the storage location, then pressing cancel and closing the settings menu makes it inaccesible until you restart the program.
+
+Suggestions:
+
+(Many, if not all of these gripes are down to personal preference, so do with them as you may.)
+
+Github links near the top seem wildly unnessecary, they seem better fit for a credits menu. (Mini-Suggestion: Putting your credit into a start-up animation may be a cute way to save space on the left side of the screen.) The MISST logo also seems very lacking in the program itself. I'm not saying plaster it everywhere but it just seems odd to not include anywhere else? Perhaps the real estate used by the GitHub links could be used for a logo, that maybe brings you back to the GitHub page? I don't know.
+
+The import songs button is still way too large, and putting it at the bottom middle seems odd to me. Seems like a better fit would be on the right side at the bottom, smaller but still visible. The bottom middle seems a better fit for the play, pause, fast forward and shuffle controls, or an equalizer.
+
+The pull request button is an odd and confusing feature for non-tech users, as the symbol likely doesn't make sense to them. I think a text box that could appear when you hover over buttons could alleviate this problem.
+
+Buttons are too dark on dark mode to properly see, a slightly bright black or darker gray could help to increase visibility of the overall menu.
+
+Requests:
+
+A feature to help testing and overall usuability would be the addition of playing songs straight off of the computer, which would help with the longevity and would not kill usage of the program when the server is down.
+
+A little bit of customizability would go a long way, like changing the colors of the blues to any color.
+
+Last.fm support. If you're unaware, Last.fm is a service and website which tracks your listening data across all music platforms which support it. Last.fm support could really help bring a MISST community together and make it a more viable music player.
+
+Here's a thought, a MISST Discord server. A server to showcase custom themes, music you're listening to, and give feedback to the developer. A feedback button could be implemented into MISST itself.
+
+Compliments:
+
+The nightcore feature is a very nice addition, and I think could be added upon with a "Effects" menu.
+
+I enjoy how small and compact the menu has remained, although I think if you are to add more features it could be expanded upon. Maybe a folder-like interface at the top seperating each menu.
