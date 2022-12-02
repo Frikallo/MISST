@@ -11,14 +11,12 @@ Packed/*
 src/Assets/clientsecrets.py
 
 ## Other
-
+src/Assets/Themes/MISST.json
 src/Assets/__pycache__/*
 venv/*
 separated/*
 server/separated/*
 src/MISST.log
-src/ffmpeg.exe
-src/ffprobe.exe
 server/ffmpeg.exe
 server/ffplay.exe
 server/ffprobe.exe

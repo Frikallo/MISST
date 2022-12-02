@@ -55,6 +55,10 @@ from Assets.clientsecrets import (
     hover_color_dark,
     DefaultHover_ThemeLight,
     DefaultHover_ThemeDark,
+    DarkerHover_ThemeDark,
+    DarkerHover_ThemeLight,
+    color_darker_light,
+    color_darker_dark
 )
 import lyricsgenius as lg
 from pypresence import Presence
@@ -645,11 +649,12 @@ def clear_downloads(dir, frame):
         pass
 
 
-def clear_downloads_window(dir):
+def clear_downloads_window(dir, settings_window):
     confirmation_frame = customtkinter.CTkFrame(
-        master=settings_window, width=350, height=350
+        master=settings_window, width=350, height=350, corner_radius=10
     )
-    confirmation_frame.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
+    confirmation_frame.place(relx=0.25, rely=0.5, anchor=tkinter.CENTER)
+
     confirmation_header = customtkinter.CTkLabel(
         master=confirmation_frame, text="Are you sure?", text_font=(FONT, -16)
     )
@@ -697,6 +702,8 @@ def update_setting(setting, value):
     global light_theme
     global hover_color_light
     global hover_color_dark
+    global color_darker_light
+    global color_darker_dark
     if setting == "autoplay":
         autoplay = value
     elif setting == "rpc":
@@ -711,6 +718,10 @@ def update_setting(setting, value):
         hover_color_light = value.replace("'","")
     elif setting == "hover_color_dark":
         hover_color_dark = value.replace("'","")
+    elif setting == "color_darker_light":
+        color_darker_light = value.replace("'","")
+    elif setting == "color_darker_dark":
+        color_darker_dark = value.replace("'","")
     settings = open('./Assets/clientsecrets.py').readlines()
     lines = []
     for line in settings:
@@ -1444,17 +1455,20 @@ def refresh():
         import_window.destroy()
     except:
         pass
-    server_connection = server_status()
-    delay = int(ping(server_base[7:-6]) * 1000)
-    if server_connection == True:
-        refresh_button.configure(image=None, text=f'{delay}ms', width=25, height=25)
-        time.sleep(1.5)
-        refresh_button.configure(text='', image=PhotoImage(file=f'./Assets/reload.png'), width=25, height=25)
-    else:
-        refresh_button.configure(text='', image=PhotoImage(file=f'./Assets/no-connection.png'), width=25, height=25)
-        time.sleep(1.5)
-        refresh_button.configure(text='', image=PhotoImage(file=f'./Assets/reload.png'), width=25, height=25)
-    inprogress = False
+    try:
+        server_connection = server_status()
+        delay = int(ping(server_base[7:-6]) * 1000)
+        if server_connection == True:
+            refresh_button.configure(image=None, text=f'{delay}ms', width=25, height=25)
+            time.sleep(1.5)
+            refresh_button.configure(text='', image=PhotoImage(file=f'./Assets/reload.png'), width=25, height=25)
+        else:
+            refresh_button.configure(text='', image=PhotoImage(file=f'./Assets/no-connection.png'), width=25, height=25)
+            time.sleep(1.5)
+            refresh_button.configure(text='', image=PhotoImage(file=f'./Assets/reload.png'), width=25, height=25)
+        inprogress = False
+    except:
+        return None
     return None
 
 
@@ -1474,7 +1488,9 @@ def change_color_light(button_light):
     if color1 is not None:
         button_light.configure(fg_color=color1)
         accent_theme = lighten_color(color1, 1.5)
-        theme = str(json_data).replace("defaultLight", color1).replace("defaultDark", dark_theme).replace("LightHover", hover_color_light).replace("DarkHover", hover_color_dark)
+        hover_color_darker = lighten_color(accent_theme, 1.5)
+        theme = str(json_data).replace("defaultLight", color1).replace("defaultDark", dark_theme).replace("LightHover", accent_theme).replace("DarkHover", hover_color_dark).replace("DarkerHoverLight", hover_color_darker).replace("DarkerHoverDark", color_darker_dark)
+        update_setting("color_darker_light", f"'{hover_color_darker}'")
         update_setting("hover_color_light", f"'{accent_theme}'")
         update_setting("light_theme", f"'{color1}'")
         with open("./Assets/Themes/MISST.json", "w") as f:
@@ -1485,8 +1501,10 @@ def change_color_dark(button_dark):
     color2 = askcolor(title="Choose color for (Dark)", initialcolor=button_dark.fg_color)[1]
     if color2 is not None:
         button_dark.configure(fg_color=color2)
-        accent_theme = lighten_color(color2, 1.6)
-        theme = str(json_data).replace("defaultDark", color2).replace("defaultLight", light_theme).replace("LightHover", hover_color_light).replace("DarkHover", hover_color_dark)
+        accent_theme = lighten_color(color2, 1.5)
+        hover_color_darker = lighten_color(accent_theme, 1.5)
+        theme = str(json_data).replace("defaultDark", color2).replace("defaultLight", light_theme).replace("LightHover", hover_color_light).replace("DarkHover", accent_theme).replace("DarkerHoverDark", hover_color_darker).replace("DarkerHoverLight", color_darker_light)
+        update_setting("color_darker_dark", f"'{hover_color_darker}'")
         update_setting("hover_color_dark", f"'{accent_theme}'")
         update_setting("dark_theme", f"'{color2}'")
         with open("./Assets/Themes/MISST.json", "w") as f:
@@ -1494,42 +1512,32 @@ def change_color_dark(button_dark):
 
 
 def reset_theme(button_light, button_dark):
-    theme = str(json_data).replace("defaultLight", DefaultLight_Theme).replace("defaultDark", DefaultDark_Theme).replace("LightHover", DefaultHover_ThemeLight).replace("DarkHover", DefaultHover_ThemeDark)
+    theme = str(json_data).replace("defaultLight", DefaultLight_Theme).replace("defaultDark", DefaultDark_Theme).replace("LightHover", DefaultHover_ThemeLight).replace("DarkHover", DefaultHover_ThemeDark).replace("DarkerHoverLight", DarkerHover_ThemeLight).replace("DarkerHoverDark", DarkerHover_ThemeDark)
     update_setting("light_theme", f"'{DefaultLight_Theme}'")
     update_setting("dark_theme", f"'{DefaultDark_Theme}'")
     update_setting("hover_color_light", f"'{DefaultHover_ThemeLight}'")
     update_setting("hover_color_dark", f"'{DefaultHover_ThemeDark}'")
+    update_setting("color_darker_light", f"'{DarkerHover_ThemeLight}'")
+    update_setting("color_darker_dark", f"'{DarkerHover_ThemeDark}'")
     button_light.configure(fg_color=DefaultLight_Theme)
     button_dark.configure(fg_color=DefaultDark_Theme)
     with open("./Assets/Themes/MISST.json", "w") as f:
         f.write(theme)
 
 
-settings_window = None
-
-
 def settings():
-    global settings_window
-    try: 
-        settings_window.destroy()
-    except:
-        pass
-    
     if os.path.isdir(importsdest) == False:
         os.mkdir(importsdest)
 
-    settings_window = customtkinter.CTkToplevel(
-        master=app
+    settings_window = customtkinter.CTkFrame(
+        master=app, width=755, height=435, fg_color=app.fg_color
     )
-    settings_window.title('Settings')
-    settings_window.geometry('755x400')
-    settings_window.resizable(False, False)
-    settings_window.iconbitmap('./Assets/icon.ico')
+    settings_window.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
 
     settings_frame = customtkinter.CTkFrame(
-        master=settings_window, width=350, height=350
+        master=settings_window, width=350, height=380
     )
-    settings_frame.place(relx=0.25, rely=0.5, anchor=tkinter.CENTER)
+    settings_frame.place(relx=0.25, rely=0.47, anchor=tkinter.CENTER)
 
     setting_header = customtkinter.CTkLabel(
         master=settings_frame, text='Settings', text_font=(FONT, -18)
@@ -1601,7 +1609,7 @@ def settings():
     downloads_subheader.place(relx=0.29, rely=0.55, anchor=tkinter.CENTER)
 
     clear_downloads_button = customtkinter.CTkButton(
-        master=storage_frame, text='Clear Downloads', text_font=(FONT, -12), width=15, height=2, command=lambda: clear_downloads_window(importsdest)
+        master=storage_frame, text='Clear Downloads', text_font=(FONT, -12), width=15, height=2, command=lambda: clear_downloads_window(importsdest, settings_window)
     )
     clear_downloads_button.place(relx=0.75, rely=0.475, anchor=tkinter.CENTER)
 
@@ -1626,30 +1634,40 @@ def settings():
     change_location_button.place(relx=0.75, rely=0.775, anchor=tkinter.CENTER)
 
     theme_frame = customtkinter.CTkFrame(
-        master=settings_window, width=350, height=350
+        master=settings_window, width=350, height=380
     )
-    theme_frame.place(relx=0.75, rely=0.5, anchor=tkinter.CENTER)
+    theme_frame.place(relx=0.75, rely=0.47, anchor=tkinter.CENTER)
 
     theme_header = customtkinter.CTkLabel(
         master=theme_frame, text='Theme', text_font=(FONT, -18)
     )
     theme_header.place(relx=0.5, rely=0.1, anchor=tkinter.CENTER)
 
-    button_light = customtkinter.CTkButton(master=theme_frame, height=100, width=200, corner_radius=10, border_color="white", fg_color=light_theme, border_width=2, text="Light", hover_color=None, command=lambda: change_color_light(button_light))
-    button_light.place(relx=0.5, rely=0.35, anchor=tkinter.CENTER)
+    theme_frame_mini = customtkinter.CTkFrame(
+        master=theme_frame, width=300, height=275
+    )
+    theme_frame_mini.place(relx=0.5, rely=0.55, anchor=tkinter.CENTER)
 
-    button_dark = customtkinter.CTkButton(master=theme_frame, height=100, width=200, corner_radius=10, border_color="white", fg_color=dark_theme, border_width=2, text="Dark", hover_color=None, command=lambda: change_color_dark(button_dark))
+    button_light = customtkinter.CTkButton(master=theme_frame_mini, height=100, width=200, corner_radius=10, border_color="white", fg_color=light_theme, border_width=2, text="Light", hover_color=None, command=lambda: change_color_light(button_light))
+    button_light.place(relx=0.5, rely=0.25, anchor=tkinter.CENTER)
+
+    button_dark = customtkinter.CTkButton(master=theme_frame_mini, height=100, width=200, corner_radius=10, border_color="white", fg_color=dark_theme, border_width=2, text="Dark", hover_color=None, command=lambda: change_color_dark(button_dark))
     button_dark.place(relx=0.5, rely=0.75, anchor=tkinter.CENTER)
 
     info_label = customtkinter.CTkLabel(
-        master=theme_frame, text='Note: You must restart the app for changes to take effect.', text_font=(FONT, -12), state=tkinter.DISABLED
+        master=settings_window, text='Note: You must restart the app for changes to take effect.', text_font=(FONT, -12), state=tkinter.DISABLED, height=10
     )
     info_label.place(relx=0.5, rely=0.95, anchor=tkinter.CENTER)
 
     reset_button = customtkinter.CTkButton(
-        master=theme_frame, text='Reset', text_font=(FONT, -12), width=15, height=2, command=lambda: reset_theme(button_light, button_dark)
+        master=settings_window, text='Reset', text_font=(FONT, -12, 'underline'), command=lambda: reset_theme(button_light, button_dark), fg_color=settings_window.fg_color, hover_color=theme_frame.fg_color, width=15
     )
-    reset_button.place(relx=0.5, rely=0.95, anchor=tkinter.CENTER)
+    reset_button.place(relx=0.75, rely=0.95, anchor=tkinter.CENTER)
+
+    goback_button = customtkinter.CTkButton(
+        master=settings_window, text='', image=PhotoImage(file='./Assets/goback.png'), text_font=(FONT, -12), command=lambda: settings_window.destroy(), fg_color=settings_window.fg_color, hover_color=theme_frame.fg_color, width=15
+    )
+    goback_button.place(relx=0.25, rely=0.95, anchor=tkinter.CENTER)
 
 ## USER INTERFACE ----------------------------------------------------------------------------------------------------
 
@@ -1859,10 +1877,10 @@ refresh_button = customtkinter.CTkButton(
 )
 refresh_button.place(relx=0.5, rely=0.9, anchor=tkinter.CENTER)
 
-pull_req = customtkinter.CTkButton(
-    master=west_frame, text_font=(FONT, -12), text='', image=PhotoImage(file=f'./Assets/git-pull-request.png'), bg_color=west_frame.fg_color, fg_color=west_frame.fg_color, hover_color=app.fg_color, width=25, height=25, corner_radius=16, command=lambda: webbrowser.open("https://github.com/Frikallo/MISST/pulls")
+lyrics = customtkinter.CTkButton(
+    master=west_frame, text_font=(FONT, -12), text='', image=PhotoImage(file=f'./Assets/lyrics.png'), bg_color=west_frame.fg_color, fg_color=west_frame.fg_color, hover_color=app.fg_color, width=25, height=25, corner_radius=16, command = lambda: threading.Thread(target=get_lyrics, daemon=True).start(),
 )
-pull_req.place(relx=0.7, rely=0.9, anchor=tkinter.CENTER)
+lyrics.place(relx=0.7, rely=0.9, anchor=tkinter.CENTER)
 
 ## NORTH FRAME ----------------------------------------------------------------------------------------------------
 
