@@ -19,7 +19,7 @@
   },
   {
    "optionDest": "icon_file",
-   "value": "C:/Users/noahs/Desktop/Repos/MISST/src/icon.ico"
+   "value": "C:/Users/noahs/Desktop/Repos/MISST/src/Assets/icon.ico"
   },
   {
    "optionDest": "ascii",
@@ -79,19 +79,7 @@
   },
   {
    "optionDest": "datas",
-   "value": "C:/Users/noahs/Desktop/Repos/MISST/src/icon.ico;."
-  },
-  {
-   "optionDest": "datas",
-   "value": "C:/Users/noahs/Desktop/Repos/MISST/src/spotdl.exe;."
-  },
-  {
-   "optionDest": "datas",
-   "value": "C:/Users/noahs/Desktop/Repos/MISST/src/ffmpeg.exe;."
-  },
-  {
-   "optionDest": "datas",
-   "value": "C:/Users/noahs/Desktop/Repos/MISST/src/ffprobe.exe;."
+   "value": "C:/Users/noahs/Desktop/Repos/MISST/src/binaries;."
   }
  ],
  "nonPyinstallerOptions": {

@@ -849,7 +849,8 @@ def update_songUI(song):
     while True:
         if songlabel.text == "":
 
-            if loop == True:
+            if loop == True and not song.endswith("_nc.wav"):
+                print("looping")
                 nc_checkbox.deselect()
                 play_song(song_dir)
                 break
@@ -989,8 +990,8 @@ def preprocess(abspath_song, status_label):
             check=True,
         )
         logger.info("downloaded")
-        songname = urllib.parse.unquote(songname)
-        savename = songname.replace(".mp3", "")
+        songname = songname.replace("%20", " ")
+        savename = urllib.parse.unquote(songname.replace(".mp3", ""))
         ns = []
         for _ in os.listdir(importsdest):
             if savename in _:
@@ -1025,12 +1026,12 @@ def preprocess(abspath_song, status_label):
 
     try:
         lyrics = get_lyrics(metadata["title"].first, metadata["albumartist"].first)
-        with open(f"{importsdest}/{savename}/.misst", "w") as f:
+        with open(f"{importsdest}/{savename}/.misst", "w", encoding="utf-8") as f:
             f.write(lyrics)
         logger.info("Lyrics saved")
     except:
         logger.error("No lyrics found")
-        with open(f"{importsdest}/{savename}/.misst", "w") as f:
+        with open(f"{importsdest}/{savename}/.misst", "w", encoding="utf-8") as f:
             f.write("No lyrics found")
         pass
 
@@ -1068,8 +1069,8 @@ def preprocessmultiple(abspath_song, status_label):
             check=True,
         )
         logger.info("downloaded")
-        songname = urllib.parse.unquote(songname)
-        savename = songname.replace(".mp3", "")
+        songname = songname.replace("%20", " ")
+        savename = urllib.parse.unquote(songname.replace(".mp3", ""))
         ns = []
         for _ in os.listdir(importsdest):
             if savename in _:
@@ -1107,12 +1108,12 @@ def preprocessmultiple(abspath_song, status_label):
         pass
     try:
         lyrics = get_lyrics(metadata["title"].first, metadata["albumartist"].first)
-        with open(f"{importsdest}/{savename}/.misst", "w") as f:
+        with open(f"{importsdest}/{savename}/.misst", "w", encoding="utf-8") as f:
             f.write(lyrics)
         logger.info("Lyrics saved")
     except:
         logger.error("No lyrics found")
-        with open(f"{importsdest}/{savename}/.misst", "w") as f:
+        with open(f"{importsdest}/{savename}/.misst", "w", encoding="utf-8") as f:
             f.write("No lyrics found")
         pass
     return
