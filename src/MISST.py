@@ -22,7 +22,6 @@ import os
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 import sys
-
 sys.path.append(os.path.abspath("./binaries"))
 sys.path.append(os.path.abspath("./binaries/ffmpeg.exe"))
 sys.path.append(os.path.abspath("./binaries/ffmprobe.exe"))
@@ -255,7 +254,7 @@ window = None
 lyric_box = None
 
 
-def get_lyrics():
+def lyrics_window():
     global window
     global lyric_box
     try:
@@ -272,14 +271,10 @@ def get_lyrics():
         frame_fg = "black"
 
     try:
-        if GENIUS == True:
-            songartist = songlabel.text.split(" - ")
-            song = songartist[1]
-            artist = songartist[0]
-            song = genius_object.search_song(title=song, artist=artist)
-            lyrics = song.lyrics
-        else:
-            lyrics = "Internet connection is not available"
+        file = os.path.join(importsdest + "/" + songlabel.text + "/.misst")
+        if os.path.isfile(file):
+            with open(file, "r") as f:
+                lyrics = f.read()
         window = customtkinter.CTkToplevel(app)
         window.geometry("580x435")
         window.title("MISST")
@@ -304,6 +299,19 @@ def get_lyrics():
     except Exception as e:
         logger.error(e)
         return
+
+
+def get_lyrics(song, artist):
+    try:
+        if GENIUS == True:
+            audio = genius_object.search_song(title=song, artist=artist)
+            lyrics = audio.lyrics
+        else:
+            lyrics = "Internet connection is not available"
+        return lyrics
+    except Exception as e:
+        logger.error(f"MISST Encountered an error, ({e})")
+        return "Could not find lyrics."
 
 
 import_window = None
@@ -421,7 +429,7 @@ def import_():
     )
     spot_Playlistimport.place(relx=0.77, rely=0.85, anchor=tkinter.CENTER)
 
-    if server_connection == True:
+    if server_connection == True or preprocess_method.replace("'", "") != "server":
         status_update(status_label, "Awaiting Instructions")
     else:
         mask_frame = customtkinter.CTkFrame(import_window, width=375, height=175)
@@ -645,7 +653,7 @@ def clear_downloads(dir, frame):
     try:
         for file in os.listdir(dir):
             file = os.path.join(dir, file).replace("\\", "/")
-            if os.path.isdir(file) and os.path.isfile(file + "/info.json"):
+            if os.path.isdir(file) and os.path.isfile(file + "/.misst"):
                 shutil.rmtree(file)
         frame.destroy()
         settings()
@@ -909,8 +917,9 @@ def spot_dl(url, status_label):
         os.mkdir("./dl-songs")
     try:
         spotdl = os.path.abspath("./binaries/spotdl.exe")
+        ffmpeg = os.path.abspath("./binaries/ffmpeg.exe")
         cmd = subprocess.call(
-            f"{spotdl} download {url} --output ./dl-songs",
+            f"{spotdl} download {url} --output ./dl-songs --ffmpeg {ffmpeg}",
             creationflags=CREATE_NO_WINDOW,
         )
         if cmd != 0:
@@ -923,7 +932,8 @@ def spot_dl(url, status_label):
         )
         pp_thread.daemon = True
         pp_thread.start()
-    except:
+    except Exception as e:
+        logger.error(e)
         logger.error("Download failed")
         error_label = customtkinter.CTkLabel(
             status_label.master,
@@ -942,8 +952,9 @@ def spot_dl_playlist(url, status_label):
         os.mkdir("./dl-songs")
     try:
         spotdl = os.path.abspath("./binaries/spotdl.exe")
+        ffmpeg = os.path.abspath("./binaries/ffmpeg.exe")
         cmd = subprocess.call(
-            f"{spotdl} download {url} --output ./dl-songs",
+            f"{spotdl} download {url} --output ./dl-songs --ffmpeg {ffmpeg}",
             creationflags=CREATE_NO_WINDOW,
         )
         if cmd != 0:
@@ -963,8 +974,7 @@ def spot_dl_playlist(url, status_label):
 
 def preprocess(abspath_song, status_label):
     start = time.time()
-    songname = os.path.basename(abspath_song).replace(" ", "%20")
-
+    songname = urllib.parse.quote(os.path.basename(abspath_song))
     try:
         status_update(status_label, "In Queue")
         queue = requests.post(demucs_queue)
@@ -979,7 +989,7 @@ def preprocess(abspath_song, status_label):
             check=True,
         )
         logger.info("downloaded")
-        songname = songname.replace("%20", " ")
+        songname = urllib.parse.unquote(songname)
         savename = songname.replace(".mp3", "")
         ns = []
         for _ in os.listdir(importsdest):
@@ -1014,6 +1024,17 @@ def preprocess(abspath_song, status_label):
         pass
 
     try:
+        lyrics = get_lyrics(metadata["title"].first, metadata["albumartist"].first)
+        with open(f"{importsdest}/{savename}/.misst", "w") as f:
+            f.write(lyrics)
+        logger.info("Lyrics saved")
+    except:
+        logger.error("No lyrics found")
+        with open(f"{importsdest}/{savename}/.misst", "w") as f:
+            f.write("No lyrics found")
+        pass
+
+    try:
         for i in os.listdir("./dl-songs"):
             os.remove(os.path.join("./dl-songs", i))
         os.rmdir("./dl-songs")
@@ -1036,7 +1057,7 @@ def preprocess(abspath_song, status_label):
 
 
 def preprocessmultiple(abspath_song, status_label):
-    songname = os.path.basename(abspath_song).replace(" ", "%20")
+    songname = urllib.parse.quote(os.path.basename(abspath_song))
     try:
         requests.post(demucs_queue)
         requests.post(demucs_post, files={"file": open(abspath_song, "rb")})
@@ -1047,7 +1068,7 @@ def preprocessmultiple(abspath_song, status_label):
             check=True,
         )
         logger.info("downloaded")
-        songname = songname.replace("%20", " ")
+        songname = urllib.parse.unquote(songname)
         savename = songname.replace(".mp3", "")
         ns = []
         for _ in os.listdir(importsdest):
@@ -1083,6 +1104,16 @@ def preprocessmultiple(abspath_song, status_label):
             )
         except:
             pass
+        pass
+    try:
+        lyrics = get_lyrics(metadata["title"].first, metadata["albumartist"].first)
+        with open(f"{importsdest}/{savename}/.misst", "w") as f:
+            f.write(lyrics)
+        logger.info("Lyrics saved")
+    except:
+        logger.error("No lyrics found")
+        with open(f"{importsdest}/{savename}/.misst", "w") as f:
+            f.write("No lyrics found")
         pass
     return
 
@@ -1161,7 +1192,7 @@ def get_album_art(abspathsong, songname):
                 json={"name": web_name},
                 timeout=0.5,
             )
-            logger.info(f"Cover art uploaded to server: {req.status_code}")
+            logger.info(f"Cover art uploaded to server: {req.status_code} ({songname})")
         except Exception as e:
             logger.error(f"Error uploading cover art: {e}")
             pass
@@ -1174,14 +1205,14 @@ def misst_listdir(path):
         os_list = os.listdir(path)
         misst_list = []
         for _ in os_list:
-            if os.path.isfile(f"{path}/{_}/info.json"):
+            if os.path.isfile(f"{path}/{_}/.misst"):
                 misst_list.append(_)
         return misst_list
     except:
         return []
 
 
-def global_checks(search_entry, lyric_box):
+def global_checks(search_entry, songs_box):
     entry_val = None
     num = 0
     songs = []
@@ -1196,22 +1227,32 @@ def global_checks(search_entry, lyric_box):
             for _ in misst_listdir(importsdest):
                 num += 1
                 songs.append(f"{num}. {_}")
-            lyric_box.configure(state="normal")
-            lyric_box.delete("1.0", tkinter.END)
-            lyric_box.insert(tkinter.END, "\n\n".join(songs))
-            lyric_box.configure(state=tkinter.DISABLED)
+            songs_box.configure(state="normal")
+            songs_box.delete("1.0", tkinter.END)
+            songs_box.insert(tkinter.END, "\n\n".join(songs))
+            songs_box.configure(state=tkinter.DISABLED)
 
-        lyric_box.configure(
-            bg=lyric_box.master.fg_color[
+        songs_box.configure(
+            bg=songs_box.master.fg_color[
                 1 if customtkinter.get_appearance_mode() == "Dark" else 0
             ],
             fg="white" if customtkinter.get_appearance_mode() == "Dark" else "black",
         )
+        try:
+            lyric_box.configure(
+                bg=lyric_box.master.fg_color[
+                    1 if customtkinter.get_appearance_mode() == "Dark" else 0
+                ],
+                fg="white" if customtkinter.get_appearance_mode() == "Dark" else "black",
+            )
+        except:
+            # Lyrics box not created yet
+            pass
         if len(songs) == 0:
-            lyric_box.configure(state="normal")
-            lyric_box.delete("1.0", tkinter.END)
-            lyric_box.insert(tkinter.END, "No songs Imported!")
-            lyric_box.configure(state=tkinter.DISABLED)
+            songs_box.configure(state="normal")
+            songs_box.delete("1.0", tkinter.END)
+            songs_box.insert(tkinter.END, "No songs Imported!")
+            songs_box.configure(state=tkinter.DISABLED)
         search = search_entry.get()
         found_songs = []
         for _ in songs:
@@ -1220,10 +1261,10 @@ def global_checks(search_entry, lyric_box):
         if entry_val == search_entry.get():
             pass
         else:
-            lyric_box.configure(state="normal")
-            lyric_box.delete("1.0", tkinter.END)
-            lyric_box.insert(tkinter.END, "\n\n".join(found_songs))
-            lyric_box.configure(state=tkinter.DISABLED)
+            songs_box.configure(state="normal")
+            songs_box.delete("1.0", tkinter.END)
+            songs_box.insert(tkinter.END, "\n\n".join(found_songs))
+            songs_box.configure(state=tkinter.DISABLED)
             entry_val = search_entry.get()
 
 
@@ -1573,7 +1614,7 @@ def change_color_dark(button_dark):
             f.write(theme)
 
 
-def reset_theme(button_light, button_dark):
+def reset_settings(button_light, button_dark, rpc_button, autoplay_button, preprocess_button):
     theme = (
         str(json_data)
         .replace("defaultLight", DefaultLight_Theme)
@@ -1589,6 +1630,9 @@ def reset_theme(button_light, button_dark):
     update_setting("hover_color_dark", f"'{DefaultHover_ThemeDark}'")
     update_setting("color_darker_light", f"'{DarkerHover_ThemeLight}'")
     update_setting("color_darker_dark", f"'{DarkerHover_ThemeDark}'")
+    rpc_button.select()
+    autoplay_button.select()
+    preprocess_button.select()
     button_light.configure(fg_color=DefaultLight_Theme)
     button_dark.configure(fg_color=DefaultDark_Theme)
     with open("./Assets/Themes/MISST.json", "w") as f:
@@ -1786,7 +1830,7 @@ def settings():
         master=settings_window,
         text="Reset",
         text_font=(FONT, -12, "underline"),
-        command=lambda: reset_theme(button_light, button_dark),
+        command=lambda: reset_settings(button_light, button_dark, rpc_box, autoplay_box, preprocess_method_box),
         fg_color=settings_window.fg_color,
         hover_color=theme_frame.fg_color,
         width=15,
@@ -1796,7 +1840,7 @@ def settings():
     goback_button = customtkinter.CTkButton(
         master=settings_window,
         text="",
-        image=PhotoImage(file="./Assets/goback.png"),
+        image=PhotoImage(file="./Assets/goback.png" if customtkinter.get_appearance_mode() == "Light" else "./Assets/goback_dark.png"),
         text_font=(FONT, -12),
         command=lambda: settings_window.destroy(),
         fg_color=settings_window.fg_color,
@@ -1929,7 +1973,7 @@ listframe = customtkinter.CTkFrame(
 )
 listframe.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
 
-lyric_box = tkinter.Text(
+songs_box = tkinter.Text(
     bd=0,
     bg=listframe.fg_color[1],
     fg="white",
@@ -1940,8 +1984,8 @@ lyric_box = tkinter.Text(
     height=11,
     font=(FONT, -12),
 )
-lyric_box.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
-lyric_box.configure(state=tkinter.DISABLED)
+songs_box.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
+songs_box.configure(state=tkinter.DISABLED)
 
 index_entry = customtkinter.CTkEntry(
     master=east_frame,
@@ -1960,7 +2004,7 @@ playbutton = customtkinter.CTkButton(
 )
 playbutton.place(relx=0.5, rely=0.93, anchor=tkinter.CENTER)
 
-east_checks = threading.Thread(target=global_checks, args=(search_entry, lyric_box))
+east_checks = threading.Thread(target=global_checks, args=(search_entry, songs_box))
 east_checks.daemon = True
 east_checks.start()
 
@@ -2044,7 +2088,7 @@ lyrics = customtkinter.CTkButton(
     width=25,
     height=25,
     corner_radius=16,
-    command=lambda: threading.Thread(target=get_lyrics, daemon=True).start(),
+    command=lambda: threading.Thread(target=lyrics_window, daemon=True).start(),
 )
 lyrics.place(relx=0.7, rely=0.9, anchor=tkinter.CENTER)
 
@@ -2056,7 +2100,7 @@ songlabel = customtkinter.CTkButton(
     width=240,
     height=50,
     text_font=(FONT, -14),
-    command=lambda: threading.Thread(target=get_lyrics, daemon=True).start(),
+    command=lambda: threading.Thread(target=lyrics_window, daemon=True).start(),
     fg_color=north_frame.fg_color,
     hover_color=app.fg_color,
 )
