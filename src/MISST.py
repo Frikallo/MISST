@@ -274,7 +274,7 @@ def lyrics_window():
     try:
         file = os.path.join(importsdest + "/" + songlabel.text + "/.misst")
         if os.path.isfile(file):
-            with open(file, "r") as f:
+            with open(file, "rb") as f:
                 lyrics = f.read()
         else:
             raise Exception("No lyrics found")
@@ -1291,6 +1291,7 @@ inprogress = None
 
 
 def nightcore(song, tones=3):
+    nc_checkbox.configure(state=tkinter.DISABLED)
     value = nc_var.get()
     if value == "on":
         parentdir = os.path.abspath(os.path.join(importsdest, song.text))
@@ -1301,16 +1302,14 @@ def nightcore(song, tones=3):
                 _name = _.replace(".wav", "_nc.wav")
                 nc_audio.export(f"{parentdir}/{_name}", format="wav")
         play_song(parentdir, nightcore=True)
+        nc_checkbox.configure(state=tkinter.NORMAL)
         return None
     if value == "off":
         if song.text == "":
             return None
         play_song(os.path.abspath(os.path.join(importsdest, song.text)))
+        nc_checkbox.configure(state=tkinter.NORMAL)
         return None
-
-
-def slowreverb(song, speed=80, reverb=50, hfqd=50, scale=100):
-    return
 
 
 playing = None
