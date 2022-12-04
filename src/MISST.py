@@ -121,6 +121,7 @@ demucs_coverart = f"{server_base}/coverart"
 
 nest_asyncio.apply()
 gc.enable()
+pygame.init()
 pygame.mixer.init()
 pygame.mixer.set_num_channels(10)
 
@@ -275,6 +276,8 @@ def lyrics_window():
         if os.path.isfile(file):
             with open(file, "r") as f:
                 lyrics = f.read()
+        else:
+            raise Exception("No lyrics found")
         window = customtkinter.CTkToplevel(app)
         window.geometry("580x435")
         window.title("MISST")
@@ -902,7 +905,7 @@ def update_songUI(song):
             text=f"{str(datetime.timedelta(seconds=duration-t)).split('.')[0][2:]}"
         )
         time.sleep(1)
-    if autoplay == True and percent >= 0.99 and loop == False:
+    if autoplay == True and percent >= 0.99 and loop != True:
         try:
             next_song(song_name)
             return
@@ -1306,15 +1309,15 @@ def nightcore(song, tones=3):
         return None
 
 
+def slowreverb(song, speed=80, reverb=50, hfqd=50, scale=100):
+    return
+
+
 playing = None
 
 
 def playpause():
     global playing
-    global inprogress
-    if inprogress == True:
-        return None
-    inprogress = True
     if playing == False:
 
         other.unpause()
@@ -1334,7 +1337,6 @@ def playpause():
         )
         playpause_button.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
         playing = True
-        inprogress = False
         return None
 
     if other.get_busy() or vocals.get_busy() or bass.get_busy() or drums.get_busy():
@@ -1355,67 +1357,50 @@ def playpause():
         )
         playpause_button.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
         playing = False
-        inprogress = False
         return None
 
 
 def next_song(song):
     global loop
-    global inprogress
-    if inprogress == True:
-        return None
-    inprogress = True
     loop = False
     songs = misst_listdir(importsdest)
     index = songs.index(song)
     try:
         nc_checkbox.deselect()
         play_song(f"{importsdest}/{songs[index + 1]}")
-        inprogress = False
         return None
-    except:
-        inprogress = False
+    except Exception as e:
+        print(e)
         return None
 
 
 def last_song(song):
     global loop
-    global inprogress
-    if inprogress == True:
-        return None
-    inprogress = True
     loop = False
     songs = misst_listdir(importsdest)
     index = songs.index(song)
     if index == 0:
-        inprogress = False
         return None
     try:
         nc_checkbox.deselect()
         play_song(f"{importsdest}/{songs[index - 1]}")
-        inprogress = False
         return None
-    except:
-        inprogress = False
+    except Exception as e:
+        print(e)
         return None
 
 
 def shuffle():
     global loop
     loop = False
-    global inprogress
-    if inprogress == True:
-        return None
-    inprogress = True
     try:
         songs = misst_listdir(importsdest)
         random.shuffle(songs)
         nc_checkbox.deselect()
         play_song(f"{importsdest}/{songs[0]}")
-        inprogress = False
-    except:
+    except Exception as e:
+        print(e)
         logger.warning("No songs to shuffle!")
-        inprogress = False
         pass
 
 
@@ -1424,10 +1409,6 @@ loop = None
 
 def loop_song():
     global loop
-    global inprogress
-    if inprogress == True:
-        return None
-    inprogress = True
 
     if loop != True:
         loop = True
@@ -1442,7 +1423,6 @@ def loop_song():
             hover_color=app.fg_color,
         )
         repeat_button.place(relx=0.88, rely=0.5, anchor=tkinter.CENTER)
-        inprogress = False
         return None
     else:
         loop = False
@@ -1457,7 +1437,6 @@ def loop_song():
             hover_color=app.fg_color,
         )
         repeat_button.place(relx=0.88, rely=0.5, anchor=tkinter.CENTER)
-        inprogress = False
         return None
 
 
@@ -2011,10 +1990,15 @@ east_checks.start()
 
 ## WEST FRAME ----------------------------------------------------------------------------------------------------
 
+logo = customtkinter.CTkButton(
+    master=west_frame, text="", image=PhotoImage(file="./Assets/logo.png"), width=150, height=150, fg_color=None, hover_color=None, command=lambda: webbrowser.open_new_tab("https://www.github.com/Frikallo/MISST")
+)
+logo.place(relx=0.5, rely=0.1, anchor=tkinter.CENTER)
+
 logolabel = customtkinter.CTkLabel(
     master=west_frame, text=f"MISST {version}", text_font=(FONT, -16)
 )
-logolabel.place(relx=0.5, rely=0.1, anchor=tkinter.CENTER)
+logolabel.place(relx=0.5, rely=0.2, anchor=tkinter.CENTER)
 
 themelabel = customtkinter.CTkLabel(master=west_frame, text="Appearance Mode:")
 themelabel.place(relx=0.5, rely=0.7, anchor=tkinter.CENTER)
@@ -2025,30 +2009,6 @@ thememenu = customtkinter.CTkOptionMenu(
     command=change_theme,
 )
 thememenu.place(relx=0.5, rely=0.8, anchor=tkinter.CENTER)
-
-github_button = customtkinter.CTkButton(
-    master=west_frame,
-    image=PhotoImage(file="./Assets/github.png"),
-    command=lambda: webbrowser.open("https://github.com/Frikallo/MISST", new=2),
-    text="",
-    width=25,
-    height=25,
-    fg_color=west_frame.fg_color,
-    hover_color=west_frame.fg_color,
-)
-profile_button = customtkinter.CTkButton(
-    master=west_frame,
-    image=PhotoImage(file="./Assets/profile.png"),
-    command=lambda: webbrowser.open("https://github.com/Frikallo", new=2),
-    text="",
-    width=25,
-    height=25,
-    fg_color=west_frame.fg_color,
-    hover_color=west_frame.fg_color,
-)
-
-profile_button.place(relx=0.6, rely=0.17, anchor=tkinter.CENTER)
-github_button.place(relx=0.4, rely=0.17, anchor=tkinter.CENTER)
 
 settings_button = customtkinter.CTkButton(
     master=west_frame,
