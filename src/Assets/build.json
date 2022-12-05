@@ -79,7 +79,7 @@
   },
   {
    "optionDest": "datas",
-   "value": "C:/Users/noahs/Desktop/Repos/MISST/src/binaries;."
+   "value": "C:/Users/noahs/Desktop/Repos/MISST/src/binaries;binaries/"
   }
  ],
  "nonPyinstallerOptions": {
