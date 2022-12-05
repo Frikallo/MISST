@@ -1989,15 +1989,10 @@ east_checks.start()
 
 ## WEST FRAME ----------------------------------------------------------------------------------------------------
 
-logo = customtkinter.CTkButton(
-    master=west_frame, text="", image=PhotoImage(file="./Assets/logo.png"), width=150, height=150, fg_color=None, hover_color=None, command=lambda: webbrowser.open_new_tab("https://www.github.com/Frikallo/MISST")
-)
-logo.place(relx=0.5, rely=0.1, anchor=tkinter.CENTER)
-
 logolabel = customtkinter.CTkLabel(
     master=west_frame, text=f"MISST {version}", text_font=(FONT, -16)
 )
-logolabel.place(relx=0.5, rely=0.2, anchor=tkinter.CENTER)
+logolabel.place(relx=0.5, rely=0.12, anchor=tkinter.CENTER)
 
 themelabel = customtkinter.CTkLabel(master=west_frame, text="Appearance Mode:")
 themelabel.place(relx=0.5, rely=0.7, anchor=tkinter.CENTER)
