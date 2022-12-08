@@ -22,6 +22,7 @@ import os
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 import sys
+
 sys.path.append(os.path.abspath("./binaries"))
 sys.path.append(os.path.abspath("./binaries/ffmpeg.exe"))
 sys.path.append(os.path.abspath("./binaries/ffmprobe.exe"))
@@ -34,7 +35,6 @@ import tkinter
 from tkinter.colorchooser import askcolor
 from tkinter import PhotoImage, filedialog
 import nightcore as nc
-import webbrowser
 import logging
 import os
 import time
@@ -127,7 +127,7 @@ pygame.mixer.set_num_channels(10)
 
 try:
     genius_object = lg.Genius(genius_access_token)
-except:
+except Exception as e:
     GENIUS = False
     logger.error("connection failed")
 
@@ -137,7 +137,8 @@ if rpc == True:
         RPC.connect()
         logger.info("Connected to Discord")
         RPC_CONNECTED = True
-    except:
+    except Exception as e:
+        logger.error(e)
         RPC_CONNECTED = False
         logger.error("RPC connection failed")
 else:
@@ -172,7 +173,8 @@ def server_status(url=server_base):
         else:
             server_connection = False
             return False
-    except:
+    except Exception as e:
+        logger.error(e)
         server_connection = False
         return False
 
@@ -223,7 +225,8 @@ def play_thread(sound, channel):
             pygame.mixer.Channel(channel).play(thread)
             del thread
             gc.collect()
-        except:
+        except Exception as e:
+            logger.error(e)
             songlabel.configure(text="")
             return
         while pygame.mixer.get_busy():
@@ -260,7 +263,8 @@ def lyrics_window():
     global lyric_box
     try:
         window.destroy()
-    except:
+    except Exception as e:
+        logger.error(e)
         pass
 
     theme = customtkinter.get_appearance_mode()
@@ -324,7 +328,8 @@ def import_():
     global import_window
     try:
         import_window.destroy()
-    except:
+    except Exception as e:
+        logger.error(e)
         pass
     WIDTH = 400
     HEIGHT = 275
@@ -571,7 +576,8 @@ def import_fun3(status_label):
         for i in os.listdir("./dl-songs"):
             os.remove(os.path.join("./dl-songs", i))
         os.rmdir("./dl-songs")
-    except:
+    except Exception as e:
+        logger.error(e)
         pass
 
 
@@ -626,7 +632,8 @@ def import_fun4(url, status_label):
             for i in os.listdir("./dl-songs"):
                 os.remove(os.path.join("./dl-songs", i))
             os.rmdir("./dl-songs")
-        except:
+        except Exception as e:
+            logger.error(e)
             pass
         return
 
@@ -660,7 +667,8 @@ def clear_downloads(dir, frame):
                 shutil.rmtree(file)
         frame.destroy()
         settings()
-    except:
+    except Exception as e:
+        logger.error(e)
         pass
 
 
@@ -716,7 +724,8 @@ def change_location():
         else:
             importsdest = os.path.abspath(importsdest)
             return None
-    except:
+    except Exception as e:
+        logger.error(e)
         importsdest = os.path.abspath(importsdest)
         return None
 
@@ -773,7 +782,8 @@ def count(label, text):
             periods = ["", ".", "..", "..."]
             label.configure(text=f"{text}{periods[t]}")
             t += 1
-    except:
+    except Exception as e:
+        logger.error(e)
         pass
     return
 
@@ -798,7 +808,8 @@ def update_rpc(
                 state=Ltext,
                 details=Dtext,
             )
-        except:
+        except Exception as e:
+            logger.error(e)
             return
     return
 
@@ -809,7 +820,8 @@ def update_songUI(song):
     song_dir = os.path.dirname(song)
     try:
         cover_art = ImageTk.PhotoImage(get_album_art(song_dir, song_name))
-    except:
+    except Exception as e:
+        logger.error(e)
         cover_art = ImageTk.PhotoImage(Image.open("./assets/default.png"))
     songlabel.configure(text=song_name, image=cover_art)
     web_name = song_name.replace(" ", "")
@@ -909,7 +921,8 @@ def update_songUI(song):
         try:
             next_song(song_name)
             return
-        except:
+        except Exception as e:
+            logger.error(e)
             pass
     return
 
@@ -922,10 +935,14 @@ def spot_dl(url, status_label):
     try:
         spotdl = os.path.abspath("./binaries/spotdl.exe")
         ffmpeg = os.path.abspath("./binaries/ffmpeg.exe")
-        cmd = subprocess.call(
-            f"{spotdl} download {url} --output ./dl-songs --ffmpeg {ffmpeg}",
-            creationflags=CREATE_NO_WINDOW,
-        )
+        try:
+            cmd = subprocess.call(
+                f"{spotdl} download {url} --output ./dl-songs --ffmpeg {ffmpeg}",
+                creationflags=CREATE_NO_WINDOW,
+                stdout=subprocess.PIPE,
+            )
+        except Exception as e:
+            logger.error(e)
         if cmd != 0:
             raise Exception
         logger.info("Download complete")
@@ -938,6 +955,7 @@ def spot_dl(url, status_label):
         pp_thread.start()
     except Exception as e:
         logger.error(e)
+        logger.error(cmd.stdout.decode())
         logger.error("Download failed")
         error_label = customtkinter.CTkLabel(
             status_label.master,
@@ -964,7 +982,8 @@ def spot_dl_playlist(url, status_label):
         if cmd != 0:
             raise Exception
         logger.info("Download complete")
-    except:
+    except Exception as e:
+        logger.error(e)
         logger.error("Download failed")
         error_label = customtkinter.CTkLabel(
             status_label.master,
@@ -1022,7 +1041,8 @@ def preprocess(abspath_song, status_label):
         metaart = metadata["artwork"]
         metaimg = Image.open(io.BytesIO(metaart.first.data))
         metaimg.save(f"{importsdest}/{savename}/cover.png")
-    except:
+    except Exception as e:
+        logger.error(e)
         logger.error("No metadata found")
         shutil.copyfile("./Assets/default.png", f"{importsdest}/{savename}/cover.png")
         pass
@@ -1032,7 +1052,8 @@ def preprocess(abspath_song, status_label):
         with open(f"{importsdest}/{savename}/.misst", "w", encoding="utf-8") as f:
             f.write(lyrics)
         logger.info("Lyrics saved")
-    except:
+    except Exception as e:
+        logger.error(e)
         logger.error("No lyrics found")
         with open(f"{importsdest}/{savename}/.misst", "w", encoding="utf-8") as f:
             f.write("No lyrics found")
@@ -1042,7 +1063,8 @@ def preprocess(abspath_song, status_label):
         for i in os.listdir("./dl-songs"):
             os.remove(os.path.join("./dl-songs", i))
         os.rmdir("./dl-songs")
-    except:
+    except Exception as e:
+        logger.error(e)
         pass
 
     end = int(time.time() - start)
@@ -1100,13 +1122,15 @@ def preprocessmultiple(abspath_song, status_label):
         metaart = metadata["artwork"]
         metaimg = Image.open(io.BytesIO(metaart.first.data))
         metaimg.save(f"{importsdest}/{savename}/cover.png")
-    except:
+    except Exception as e:
+        logger.error(e)
         logger.error("No metadata found")
         try:
             shutil.copyfile(
                 "./Assets/default.png", f"{importsdest}/{savename}/cover.png"
             )
-        except:
+        except Exception as e:
+            logger.error(e)
             pass
         pass
     try:
@@ -1114,7 +1138,8 @@ def preprocessmultiple(abspath_song, status_label):
         with open(f"{importsdest}/{savename}/.misst", "w", encoding="utf-8") as f:
             f.write(lyrics)
         logger.info("Lyrics saved")
-    except:
+    except Exception as e:
+        logger.error(e)
         logger.error("No lyrics found")
         with open(f"{importsdest}/{savename}/.misst", "w", encoding="utf-8") as f:
             f.write("No lyrics found")
@@ -1178,7 +1203,8 @@ def get_album_art(abspathsong, songname):
         im.save(f"{abspathsong}/{web_name}.png")
         im = im.resize((40, 40))
         os.remove(f"{abspathsong}/cover.png")
-    except:
+    except Exception as e:
+        logger.error(e)
         pass
 
     try:
@@ -1212,7 +1238,8 @@ def misst_listdir(path):
             if os.path.isfile(f"{path}/{_}/.misst"):
                 misst_list.append(_)
         return misst_list
-    except:
+    except Exception as e:
+        logger.error(e)
         return []
 
 
@@ -1247,7 +1274,9 @@ def global_checks(search_entry, songs_box):
                 bg=lyric_box.master.fg_color[
                     1 if customtkinter.get_appearance_mode() == "Dark" else 0
                 ],
-                fg="white" if customtkinter.get_appearance_mode() == "Dark" else "black",
+                fg="white"
+                if customtkinter.get_appearance_mode() == "Dark"
+                else "black",
             )
         except:
             # Lyrics box not created yet
@@ -1278,7 +1307,8 @@ def play_search(index_label, songs):
         song = songs[index - 1]
         nc_checkbox.deselect()
         play_song(f"{importsdest}/{song}")
-    except:
+    except Exception as e:
+        logger.error(e)
         pass
 
 
@@ -1369,7 +1399,7 @@ def next_song(song):
         play_song(f"{importsdest}/{songs[index + 1]}")
         return None
     except Exception as e:
-        print(e)
+        logger.error(e)
         return None
 
 
@@ -1385,7 +1415,7 @@ def last_song(song):
         play_song(f"{importsdest}/{songs[index - 1]}")
         return None
     except Exception as e:
-        print(e)
+        logger.error(e)
         return None
 
 
@@ -1398,7 +1428,7 @@ def shuffle():
         nc_checkbox.deselect()
         play_song(f"{importsdest}/{songs[0]}")
     except Exception as e:
-        print(e)
+        logger.error(e)
         logger.warning("No songs to shuffle!")
         pass
 
@@ -1496,7 +1526,8 @@ def refresh():
     inprogress = True
     try:
         import_window.destroy()
-    except:
+    except Exception as e:
+        logger.error(e)
         pass
     try:
         server_connection = server_status()
@@ -1525,7 +1556,8 @@ def refresh():
                 height=25,
             )
         inprogress = False
-    except:
+    except Exception as e:
+        logger.error(e)
         return None
     return None
 
@@ -1533,7 +1565,8 @@ def refresh():
 def lighten_color(color, amount=0.5):
     try:
         c = mc.cnames[color]
-    except:
+    except Exception as e:
+        logger.error(e)
         c = color
     c = colorsys.rgb_to_hls(*mc.to_rgb(c))
     string = colorsys.hls_to_rgb(c[0], 1 - amount * (1 - c[1]), c[2])
@@ -1593,7 +1626,9 @@ def change_color_dark(button_dark):
             f.write(theme)
 
 
-def reset_settings(button_light, button_dark, rpc_button, autoplay_button, preprocess_button):
+def reset_settings(
+    button_light, button_dark, rpc_button, autoplay_button, preprocess_button
+):
     theme = (
         str(json_data)
         .replace("defaultLight", DefaultLight_Theme)
@@ -1809,7 +1844,9 @@ def settings():
         master=settings_window,
         text="Reset",
         text_font=(FONT, -12, "underline"),
-        command=lambda: reset_settings(button_light, button_dark, rpc_box, autoplay_box, preprocess_method_box),
+        command=lambda: reset_settings(
+            button_light, button_dark, rpc_box, autoplay_box, preprocess_method_box
+        ),
         fg_color=settings_window.fg_color,
         hover_color=theme_frame.fg_color,
         width=15,
@@ -1819,7 +1856,11 @@ def settings():
     goback_button = customtkinter.CTkButton(
         master=settings_window,
         text="",
-        image=PhotoImage(file="./Assets/goback.png" if customtkinter.get_appearance_mode() == "Light" else "./Assets/goback_dark.png"),
+        image=PhotoImage(
+            file="./Assets/goback.png"
+            if customtkinter.get_appearance_mode() == "Light"
+            else "./Assets/goback_dark.png"
+        ),
         text_font=(FONT, -12),
         command=lambda: settings_window.destroy(),
         fg_color=settings_window.fg_color,
