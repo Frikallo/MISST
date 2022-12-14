@@ -42,7 +42,7 @@ This project is OpenSource, feel free to use, study and/or send pull request.
 
 
 ## Installation
-as of version 2.0.5, MISST is not available for any platform with guaranteed compatibility. Until a later version, please refer to [Manual Installation](https://github.com/Frikallo/MISST/#manual-installation-for-developers) .
+as of version 2.0.6, MISST is not available for any platform with guaranteed compatibility. Until a later version, please refer to [Manual Installation](https://github.com/Frikallo/MISST/#manual-installation-for-developers) .
 
 
 ### Issue Reporting
