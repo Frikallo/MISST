@@ -127,7 +127,7 @@ pygame.mixer.set_num_channels(10)
 
 try:
     genius_object = lg.Genius(genius_access_token)
-except Exception as e:
+except:
     GENIUS = False
     logger.error("connection failed")
 
@@ -137,8 +137,7 @@ if rpc == True:
         RPC.connect()
         logger.info("Connected to Discord")
         RPC_CONNECTED = True
-    except Exception as e:
-        logger.error(e)
+    except:
         RPC_CONNECTED = False
         logger.error("RPC connection failed")
 else:
@@ -173,8 +172,7 @@ def server_status(url=server_base):
         else:
             server_connection = False
             return False
-    except Exception as e:
-        logger.error(e)
+    except:
         server_connection = False
         return False
 
@@ -225,8 +223,7 @@ def play_thread(sound, channel):
             pygame.mixer.Channel(channel).play(thread)
             del thread
             gc.collect()
-        except Exception as e:
-            logger.error(e)
+        except:
             songlabel.configure(text="")
             return
         while pygame.mixer.get_busy():
@@ -263,8 +260,7 @@ def lyrics_window():
     global lyric_box
     try:
         window.destroy()
-    except Exception as e:
-        logger.error(e)
+    except:
         pass
 
     theme = customtkinter.get_appearance_mode()
@@ -328,8 +324,7 @@ def import_():
     global import_window
     try:
         import_window.destroy()
-    except Exception as e:
-        logger.error(e)
+    except:
         pass
     WIDTH = 400
     HEIGHT = 275
@@ -576,8 +571,7 @@ def import_fun3(status_label):
         for i in os.listdir("./dl-songs"):
             os.remove(os.path.join("./dl-songs", i))
         os.rmdir("./dl-songs")
-    except Exception as e:
-        logger.error(e)
+    except:
         pass
 
 
@@ -632,8 +626,7 @@ def import_fun4(url, status_label):
             for i in os.listdir("./dl-songs"):
                 os.remove(os.path.join("./dl-songs", i))
             os.rmdir("./dl-songs")
-        except Exception as e:
-            logger.error(e)
+        except:
             pass
         return
 
@@ -667,8 +660,7 @@ def clear_downloads(dir, frame):
                 shutil.rmtree(file)
         frame.destroy()
         settings()
-    except Exception as e:
-        logger.error(e)
+    except:
         pass
 
 
@@ -724,8 +716,7 @@ def change_location():
         else:
             importsdest = os.path.abspath(importsdest)
             return None
-    except Exception as e:
-        logger.error(e)
+    except:
         importsdest = os.path.abspath(importsdest)
         return None
 
@@ -782,8 +773,7 @@ def count(label, text):
             periods = ["", ".", "..", "..."]
             label.configure(text=f"{text}{periods[t]}")
             t += 1
-    except Exception as e:
-        logger.error(e)
+    except:
         pass
     return
 
@@ -808,8 +798,7 @@ def update_rpc(
                 state=Ltext,
                 details=Dtext,
             )
-        except Exception as e:
-            logger.error(e)
+        except:
             return
     return
 
@@ -820,8 +809,7 @@ def update_songUI(song):
     song_dir = os.path.dirname(song)
     try:
         cover_art = ImageTk.PhotoImage(get_album_art(song_dir, song_name))
-    except Exception as e:
-        logger.error(e)
+    except:
         cover_art = ImageTk.PhotoImage(Image.open("./assets/default.png"))
     songlabel.configure(text=song_name, image=cover_art)
     web_name = song_name.replace(" ", "")
@@ -921,8 +909,7 @@ def update_songUI(song):
         try:
             next_song(song_name)
             return
-        except Exception as e:
-            logger.error(e)
+        except:
             pass
     return
 
@@ -982,8 +969,7 @@ def spot_dl_playlist(url, status_label):
         if cmd != 0:
             raise Exception
         logger.info("Download complete")
-    except Exception as e:
-        logger.error(e)
+    except:
         logger.error("Download failed")
         error_label = customtkinter.CTkLabel(
             status_label.master,
@@ -1041,8 +1027,7 @@ def preprocess(abspath_song, status_label):
         metaart = metadata["artwork"]
         metaimg = Image.open(io.BytesIO(metaart.first.data))
         metaimg.save(f"{importsdest}/{savename}/cover.png")
-    except Exception as e:
-        logger.error(e)
+    except:
         logger.error("No metadata found")
         shutil.copyfile("./Assets/default.png", f"{importsdest}/{savename}/cover.png")
         pass
@@ -1052,8 +1037,7 @@ def preprocess(abspath_song, status_label):
         with open(f"{importsdest}/{savename}/.misst", "w", encoding="utf-8") as f:
             f.write(lyrics)
         logger.info("Lyrics saved")
-    except Exception as e:
-        logger.error(e)
+    except:
         logger.error("No lyrics found")
         with open(f"{importsdest}/{savename}/.misst", "w", encoding="utf-8") as f:
             f.write("No lyrics found")
@@ -1063,8 +1047,7 @@ def preprocess(abspath_song, status_label):
         for i in os.listdir("./dl-songs"):
             os.remove(os.path.join("./dl-songs", i))
         os.rmdir("./dl-songs")
-    except Exception as e:
-        logger.error(e)
+    except:
         pass
 
     end = int(time.time() - start)
@@ -1122,15 +1105,13 @@ def preprocessmultiple(abspath_song, status_label):
         metaart = metadata["artwork"]
         metaimg = Image.open(io.BytesIO(metaart.first.data))
         metaimg.save(f"{importsdest}/{savename}/cover.png")
-    except Exception as e:
-        logger.error(e)
+    except:
         logger.error("No metadata found")
         try:
             shutil.copyfile(
                 "./Assets/default.png", f"{importsdest}/{savename}/cover.png"
             )
-        except Exception as e:
-            logger.error(e)
+        except:
             pass
         pass
     try:
@@ -1138,8 +1119,7 @@ def preprocessmultiple(abspath_song, status_label):
         with open(f"{importsdest}/{savename}/.misst", "w", encoding="utf-8") as f:
             f.write(lyrics)
         logger.info("Lyrics saved")
-    except Exception as e:
-        logger.error(e)
+    except:
         logger.error("No lyrics found")
         with open(f"{importsdest}/{savename}/.misst", "w", encoding="utf-8") as f:
             f.write("No lyrics found")
@@ -1203,8 +1183,7 @@ def get_album_art(abspathsong, songname):
         im.save(f"{abspathsong}/{web_name}.png")
         im = im.resize((40, 40))
         os.remove(f"{abspathsong}/cover.png")
-    except Exception as e:
-        logger.error(e)
+    except:
         pass
 
     try:
@@ -1238,8 +1217,7 @@ def misst_listdir(path):
             if os.path.isfile(f"{path}/{_}/.misst"):
                 misst_list.append(_)
         return misst_list
-    except Exception as e:
-        logger.error(e)
+    except:
         return []
 
 
@@ -1307,8 +1285,7 @@ def play_search(index_label, songs):
         song = songs[index - 1]
         nc_checkbox.deselect()
         play_song(f"{importsdest}/{song}")
-    except Exception as e:
-        logger.error(e)
+    except:
         pass
 
 
@@ -1526,8 +1503,7 @@ def refresh():
     inprogress = True
     try:
         import_window.destroy()
-    except Exception as e:
-        logger.error(e)
+    except:
         pass
     try:
         server_connection = server_status()
@@ -1556,8 +1532,7 @@ def refresh():
                 height=25,
             )
         inprogress = False
-    except Exception as e:
-        logger.error(e)
+    except:
         return None
     return None
 
@@ -1565,8 +1540,7 @@ def refresh():
 def lighten_color(color, amount=0.5):
     try:
         c = mc.cnames[color]
-    except Exception as e:
-        logger.error(e)
+    except:
         c = color
     c = colorsys.rgb_to_hls(*mc.to_rgb(c))
     string = colorsys.hls_to_rgb(c[0], 1 - amount * (1 - c[1]), c[2])
