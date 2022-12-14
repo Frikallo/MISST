@@ -8,10 +8,9 @@ Packed/*
 
 #Tokens & Secrets
 
-src/Assets/clientsecrets.py
+src/Assets/config.txt
 
 ## Other
-src/Assets/Themes/MISST.json
 src/Assets/__pycache__/*
 venv/*
 separated/*

@@ -20,6 +20,7 @@
 import os
 
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
+os.chmod(os.getcwd(), 0o777)
 
 import sys
 
@@ -38,28 +39,34 @@ import nightcore as nc
 import logging
 import os
 import time
-from Assets.clientsecrets import (
-    client_id,
-    genius_access_token,
-    server_base,
-    importsdest,
-    rpc,
-    autoplay,
-    preprocess_method,
-    dark_theme,
-    light_theme,
-    DefaultDark_Theme,
-    DefaultLight_Theme,
-    json_data,
-    hover_color_light,
-    hover_color_dark,
-    DefaultHover_ThemeLight,
-    DefaultHover_ThemeDark,
-    DarkerHover_ThemeDark,
-    DarkerHover_ThemeLight,
-    color_darker_light,
-    color_darker_dark,
-)
+config = open("./Assets/config.txt", "r").readlines()
+
+def getVal(val):
+    for line in config:
+        if val in line:
+            return line.split("=")[1].strip().replace("'", "")
+
+client_id = getVal("client_id")
+genius_access_token = getVal("genius_access_token")
+server_base = getVal("server_base")
+importsdest = getVal("importsdest")
+rpc = bool(getVal("rpc"))
+autoplay = bool(getVal("autoplay"))
+preprocess_method = getVal("preprocess_method")
+dark_theme = getVal("dark_theme")
+light_theme = getVal("light_theme")
+DefaultDark_Theme = getVal("DefaultDark_Theme")
+DefaultLight_Theme = getVal("DefaultLight_Theme")
+json_data = getVal("json_data")
+hover_color_light = getVal("hover_color_light")
+hover_color_dark = getVal("hover_color_dark")
+DefaultHover_ThemeLight = getVal("DefaultHover_ThemeLight")
+DefaultHover_ThemeDark = getVal("DefaultHover_ThemeDark")
+DarkerHover_ThemeDark = getVal("DarkerHover_ThemeDark")
+DarkerHover_ThemeLight = getVal("DarkerHover_ThemeLight")
+color_darker_light = getVal("color_darker_light")
+color_darker_dark = getVal("color_darker_dark")
+
 import lyricsgenius as lg
 from pypresence import Presence
 import nest_asyncio
@@ -749,7 +756,7 @@ def update_setting(setting, value):
         color_darker_light = value.replace("'", "")
     elif setting == "color_darker_dark":
         color_darker_dark = value.replace("'", "")
-    settings = open("./Assets/clientsecrets.py").readlines()
+    settings = open("./Assets/config.txt").readlines()
     lines = []
     for line in settings:
         if setting in line:
@@ -757,7 +764,7 @@ def update_setting(setting, value):
             lines.append(line)
         else:
             lines.append(line)
-    with open("./Assets/clientsecrets.py", "w") as f:
+    with open("./Assets/config.txt", "w") as f:
         f.writelines(lines)
 
 
@@ -1597,7 +1604,7 @@ def change_color_dark(button_dark):
         update_setting("hover_color_dark", f"'{accent_theme}'")
         update_setting("dark_theme", f"'{color2}'")
         with open("./Assets/Themes/MISST.json", "w") as f:
-            f.write(theme)
+            f.write(theme.replace('"""', ""))
 
 
 def reset_settings(
@@ -1624,7 +1631,7 @@ def reset_settings(
     button_light.configure(fg_color=DefaultLight_Theme)
     button_dark.configure(fg_color=DefaultDark_Theme)
     with open("./Assets/Themes/MISST.json", "w") as f:
-        f.write(theme)
+        f.write(theme.replace('"""', ""))
 
 
 def settings():

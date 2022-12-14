@@ -38,7 +38,7 @@ This project is OpenSource, feel free to use, study and/or send pull request.
 - [ ] Docker image (WIP)
 - [ ] Make it as fast as possible (Preprocessing, Model loading, etc.) (Not a priority)
 - [ ] Stable on Windows, Linux and MacOS (Not a priority)
-- [ ] Proper installer/updater (Not a priority)
+- [x] Proper installer/updater
 
 
 ## Installation
