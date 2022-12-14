@@ -2,8 +2,8 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "MISST"
-#define MyAppVersion "2.0.5"
-#define MyAppPublisher "Frikallo"
+#define MyAppVersion "2.0.6"
+#define MyAppPublisher "@Frikallo"
 #define MyAppURL "https://github.com/Frikallo/MISST"
 #define MyAppExeName "MISST.exe"
 #define MyAppAssocName MyAppName + " File"
@@ -13,7 +13,7 @@
 [Setup]
 ; NOTE: The value of AppId uniquely identifies this application. Do not use the same AppId value in installers for other applications.
 ; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
-AppId={{9482401E-2812-4023-812E-766269D631F2}
+AppId={{6491D451-081E-414D-B70F-C0F3BE1A8147}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
 ;AppVerName={#MyAppName} {#MyAppVersion}
@@ -24,10 +24,11 @@ AppUpdatesURL={#MyAppURL}
 DefaultDirName={autopf}\{#MyAppName}
 ChangesAssociations=yes
 DisableProgramGroupPage=yes
-; Uncomment the following line to run in non administrative install mode (install for current user only.)
-;PrivilegesRequired=lowest
+LicenseFile=C:\Users\noahs\Desktop\Repos\MISST\LICENSE
+; Remove the following line to run in administrative install mode (install for all users.)
+PrivilegesRequired=lowest
 OutputDir=C:\Users\noahs\Desktop\Repos\MISST\output
-OutputBaseFilename=MISST
+OutputBaseFilename=MISSTinstaller
 SetupIconFile=C:\Users\noahs\Desktop\Repos\MISST\src\Assets\icon.ico
 Compression=lzma
 SolidCompression=yes
@@ -40,8 +41,8 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-Source: "C:\Users\noahs\Desktop\Repos\MISST\Packed\MISST\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\Users\noahs\Desktop\Repos\MISST\Packed\MISST\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "C:\Users\noahs\Desktop\Repos\MISST\output\MISST\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\Users\noahs\Desktop\Repos\MISST\output\MISST\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Registry]
