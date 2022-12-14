@@ -1,7 +1,7 @@
 <div align="center">
 
 ![](./src/Assets/banner.png)
-[![GitHub release](https://img.shields.io/github/release/frikallo/misst.svg)](https://GitHub.com/frikallo/misst/releastemes/) ![Github All Releases](https://img.shields.io/github/downloads/frikallo/misst/total?color=blue) ![License](https://img.shields.io/github/license/frikallo/misst?color=blue) ![Hits-of-Code](https://hitsofcode.com/github/frikallo/MISST?branch=main) [![Better Uptime Badge](https://betteruptime.com/status-badges/v1/monitor/i55r.svg)](https://betteruptime.com/?utm_source=status_badge)
+[![GitHub release](https://img.shields.io/github/release/frikallo/misst.svg)](https://github.com/Frikallo/MISST/releases/latest) ![Github All Releases](https://img.shields.io/github/downloads/frikallo/misst/total?color=blue) ![License](https://img.shields.io/github/license/frikallo/misst?color=blue) ![Hits-of-Code](https://hitsofcode.com/github/frikallo/MISST?branch=main) [![Better Uptime Badge](https://betteruptime.com/status-badges/v1/monitor/i55r.svg)](https://betteruptime.com/?utm_source=status_badge)
 
 </div>
 
