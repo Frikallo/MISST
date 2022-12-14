@@ -7,8 +7,6 @@
 
 ---
 
-# MISST v2.0.5
-
 ![](./src/Assets/showcaseimage1.png)
 | _`MISST` on Windows 11 with Dark mode and 'Blue' theme with 'Kanye West's All of The Lights' playing_
 
