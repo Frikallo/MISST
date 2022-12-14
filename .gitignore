@@ -21,3 +21,4 @@ server/ffmpeg.exe
 server/ffplay.exe
 server/ffprobe.exe
 output/*
+server/.env

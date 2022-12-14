@@ -3,6 +3,10 @@ import os
 import shutil
 from waitress import serve
 import datetime
+import linode_api4 as linode
+from dotenv import load_dotenv
+
+load_dotenv()
 import logging
 import logging.config
 logging.config.dictConfig({
@@ -10,6 +14,10 @@ logging.config.dictConfig({
     'disable_existing_loggers': True,
 })
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
+
+token = os.getenv('LINODE_TOKEN')
+client = linode.LinodeClient(token)
+linodes = client.linode.instances()
 
 loggerName = 'MISST Server'
 logger = logging.getLogger(loggerName)
@@ -22,8 +30,11 @@ host = '127.0.0.1'
 port = 5000
 
 logger.info(f'Logger initialized ({str(datetime.datetime.now()).split(".")[0]})')
-logger.info(f'Host: {host}')
-logger.info(f'Port: {port}')
+logger.info(f'Serving on {host}:{port}')
+
+for current_linode in linodes:
+    logger.info(f'Linode: {current_linode.label} {current_linode.id} {current_linode.ipv4}')
+    logger.info(f'Accrued Charges: ${client.account.alldata()["balance_uninvoiced"]}')
 
 # Create the application.
 APP = flask.Flask(__name__)
