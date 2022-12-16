@@ -73,23 +73,35 @@ def check_alive():
     return "OK"
 
 
+@APP.route("/user/<path:userid>", methods=['GET', 'POST'])
+def user(userid):
+    ip = str(flask.request.data.decode("utf-8"))
+    logger.info(f"User {userid} is online! ({str(datetime.datetime.now()).split('.')[0]}) ip: {ip}")
+    return f"User {userid}"
+
+ALLOWED_EXTENSIONS = {".mp3", ".wav", ".flac", ".ogg", ".m4a"}
+
+def allowed_file(filename):
+    return os.path.splitext(filename)[1] in ALLOWED_EXTENSIONS
+
 @APP.route("/demucs-upload", methods=["POST"])
 def upload():
     logger.info("==================== STARTING JOB ====================")
-    f = flask.request.files["file"]
-    f_extension = flask.request.files["file"].filename.split(".")[-1]
+    file = flask.request.files["file"]
+    filename = allowed_file(file.filename)
+    file_ext = os.path.splitext(filename)[1]
     if os.path.exists("./tmp"):
         pass
     else:
         os.mkdir("./tmp")
-    f.save(f"./tmp/{f.filename}.{f_extension}")
-    logger.info(f.filename)
-    logger.info(f_extension)
-    file_path = os.path.abspath(f"./tmp/{f.filename}.{f_extension}")
+    file.save(f"./tmp/{filename}.{file_ext}")
+    logger.info("fname", filename)
+    logger.info("fext", file_ext)
+    file_path = os.path.abspath(f"./tmp/{filename}.{file_ext}")
     cmd = os.system(f'python -m demucs -d cuda "{file_path}"')
     logger.info(f"Exited with status code {cmd}")
     if cmd == 0:
-        logger.info(f"Preprocessed {f.filename} Successfully")
+        logger.info(f"Preprocessed {filename} Successfully")
         pass
     else:
         return flask.jsonify({"error": "Something went wrong"})
@@ -99,14 +111,14 @@ def upload():
     os.rmdir("./tmp")
     logger.info("Temp Folder Removed")
     shutil.make_archive(
-        f"./separated/mdx_extra_q/{f.filename}",
+        f"./separated/mdx_extra_q/{filename}",
         "zip",
-        f"./separated/mdx_extra_q/{f.filename}",
+        f"./separated/mdx_extra_q/{filename}",
     )
     logger.info("Archive Created")
-    for i in os.listdir(f"./separated/mdx_extra_q/{f.filename}"):
-        os.remove(f"./separated/mdx_extra_q/{f.filename}/{i}")
-    os.rmdir(f"./separated/mdx_extra_q/{f.filename}")
+    for i in os.listdir(f"./separated/mdx_extra_q/{filename}"):
+        os.remove(f"./separated/mdx_extra_q/{filename}/{i}")
+    os.rmdir(f"./separated/mdx_extra_q/{filename}")
     logger.info("Temp Folder Removed")
     logger.info("Done")
     logger.info("==================== FINISHED JOB ====================")

@@ -66,6 +66,7 @@ DarkerHover_ThemeDark = getVal("DarkerHover_ThemeDark")
 DarkerHover_ThemeLight = getVal("DarkerHover_ThemeLight")
 color_darker_light = getVal("color_darker_light")
 color_darker_dark = getVal("color_darker_dark")
+uid = getVal("uid")
 
 import lyricsgenius as lg
 from pypresence import Presence
@@ -81,6 +82,7 @@ import music_tag
 import random
 from ping3 import ping
 import uuid
+import socket
 import matplotlib.colors as mc
 import colorsys
 
@@ -766,6 +768,16 @@ def update_setting(setting, value):
             lines.append(line)
     with open("./Assets/config.txt", "w") as f:
         f.writelines(lines)
+
+
+if server_connection == True:
+    try:
+        uid = str(uuid.uuid4()) if uid == '"None"' else uid
+        requests.post(f"{server_base}/user/{uid}", data=str(socket.gethostbyname(socket.gethostname())))
+        update_setting("uid", uid)
+    except Exception as e:
+        logger.error("Failed to generate new UID ({})".format(e))
+        pass
 
 
 def count(label, text):
