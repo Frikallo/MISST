@@ -98,7 +98,7 @@ def upload():
         os.mkdir("./tmp")
     file.save(f"./tmp/{filename}")
     file_path = os.path.abspath(f"./tmp/{filename}")
-    cmd = os.system(f'python -m demucs -d cuda "{quote(file_path)}"')
+    cmd = os.system(f'python -m demucs -d cuda {quote(file_path)}')
     logger.info(f"Exited with status code {cmd}")
     if cmd == 0:
         logger.info(f"Preprocessed {filename} Successfully")
