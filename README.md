@@ -1,7 +1,7 @@
 <div align="center">
 
-![](./src/Assets/banner.png)
-[![GitHub release](https://img.shields.io/github/release/frikallo/misst.svg)](https://GitHub.com/frikallo/misst/releastemes/) ![Github All Releases](https://img.shields.io/github/downloads/frikallo/misst/total?color=blue) ![License](https://img.shields.io/github/license/frikallo/misst?color=blue) ![Hits-of-Code](https://hitsofcode.com/github/frikallo/MISST?branch=main) [![Better Uptime Badge](https://betteruptime.com/status-badges/v1/monitor/i55r.svg)](https://betteruptime.com/?utm_source=status_badge)
+[![](./src/Assets/banner.png)](https://github.com/Frikallo/MISST)
+[![GitHub release](https://img.shields.io/github/release/frikallo/misst.svg)](https://github.com/Frikallo/MISST/releases/latest) [![Github All Releases](https://img.shields.io/github/downloads/frikallo/misst/total?color=blue)](https://github.com/Frikallo/MISST/releases/latest) [![License](https://img.shields.io/github/license/frikallo/misst?color=blue)](https://github.com/Frikallo/MISST/blob/main/LICENSE) [![Hits-of-Code](https://hitsofcode.com/github/frikallo/MISST?branch=main)](https://github.com/Frikallo/MISST/graphs/contributors) [![Better Uptime Badge](https://betteruptime.com/status-badges/v1/monitor/i55r.svg)](https://betteruptime.com/?utm_source=status_badge)
 
 </div>
 
@@ -42,14 +42,14 @@ This project is OpenSource, feel free to use, study and/or send pull request.
 
 
 ## Installation
-as of version 2.0.6, MISST is not available for any platform with guaranteed compatibility. Until a later version, please refer to [Manual Installation](https://github.com/Frikallo/MISST/#manual-installation-for-developers) .
+as of version 2.0.6, MISST is not available for any platform with guaranteed compatibility. Until a later version, please refer to [Manual Installation](https://github.com/Frikallo/MISST/#manual-installation-for-developers). 
 
 
 ### Issue Reporting
 
 Please be as detailed as possible when posting a new issue. 
 
-If possible, check the "log.log" file in your install directory for detailed error information that can be provided to me.
+If possible, check the "MISST.log" file in your install directory for detailed error information that can be provided to me.
 
 ## License
 
