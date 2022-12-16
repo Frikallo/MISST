@@ -68,6 +68,7 @@ color_darker_light = getVal("color_darker_light")
 color_darker_dark = getVal("color_darker_dark")
 uid = getVal("uid")
 
+from werkzeug.utils import secure_filename
 import lyricsgenius as lg
 from pypresence import Presence
 import nest_asyncio
@@ -1002,7 +1003,7 @@ def spot_dl_playlist(url, status_label):
 
 def preprocess(abspath_song, status_label):
     start = time.time()
-    songname = urllib.parse.quote(os.path.basename(abspath_song))
+    songname = urllib.parse.quote(secure_filename(os.path.splitext(os.path.basename(abspath_song))[0]))
     try:
         status_update(status_label, "In Queue")
         queue = requests.post(demucs_queue)
@@ -1012,12 +1013,12 @@ def preprocess(abspath_song, status_label):
         requests.post(demucs_post, files={"file": open(abspath_song, "rb")})
         logger.info("preprocessed")
         subprocess.run(
-            f'curl "{demucs_get}/{songname}.zip" -o "{songname.replace("%20", " ")}.zip"',
+            f'curl "{demucs_get}/{songname}.zip" -o "{songname.replace("_", " ")}.zip"',
             creationflags=CREATE_NO_WINDOW,
             check=True,
         )
         logger.info("downloaded")
-        songname = songname.replace("%20", " ")
+        songname = songname.replace("_", " ")
         savename = urllib.parse.unquote(songname.replace(".mp3", ""))
         ns = []
         for _ in os.listdir(importsdest):
@@ -1085,18 +1086,18 @@ def preprocess(abspath_song, status_label):
 
 
 def preprocessmultiple(abspath_song, status_label):
-    songname = urllib.parse.quote(os.path.basename(abspath_song))
+    songname = urllib.parse.quote(secure_filename(os.path.splitext(os.path.basename(abspath_song))[0]))
     try:
         requests.post(demucs_queue)
         requests.post(demucs_post, files={"file": open(abspath_song, "rb")})
         logger.info("preprocessed")
         subprocess.run(
-            f'curl "{demucs_get}/{songname}.zip" -o "{songname.replace("%20", " ")}.zip"',
+            f'curl "{demucs_get}/{songname}.zip" -o "{songname.replace("_", " ")}.zip"',
             creationflags=CREATE_NO_WINDOW,
             check=True,
         )
         logger.info("downloaded")
-        songname = songname.replace("%20", " ")
+        songname = songname.replace("_", " ")
         savename = urllib.parse.unquote(songname.replace(".mp3", ""))
         ns = []
         for _ in os.listdir(importsdest):

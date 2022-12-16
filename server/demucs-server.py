@@ -2,6 +2,7 @@ import flask
 import os
 import shutil
 from waitress import serve
+from werkzeug.utils import secure_filename
 import datetime
 import linode_api4 as linode
 from dotenv import load_dotenv
@@ -77,39 +78,39 @@ def check_alive():
 def user(userid):
     ip = str(flask.request.data.decode("utf-8"))
     logger.info(f"User {userid} is online! ({str(datetime.datetime.now()).split('.')[0]}) ip: {ip}")
-    return f"User {userid}"
+    return "OK"
 
-ALLOWED_EXTENSIONS = {".mp3", ".wav", ".flac", ".ogg", ".m4a"}
+ALLOWED_EXTENSIONS = {".mp3", ".wav", ".flac", ".ogg", ".m4a", ".zip"}
 
 def allowed_file(filename):
-    return os.path.splitext(filename)[1] in ALLOWED_EXTENSIONS
+    if os.path.splitext(filename)[1] in ALLOWED_EXTENSIONS:
+        return secure_filename(filename)
 
 @APP.route("/demucs-upload", methods=["POST"])
 def upload():
     logger.info("==================== STARTING JOB ====================")
     file = flask.request.files["file"]
     filename = allowed_file(file.filename)
-    file_ext = os.path.splitext(filename)[1]
     if os.path.exists("./tmp"):
         pass
     else:
         os.mkdir("./tmp")
-    file.save(f"./tmp/{filename}.{file_ext}")
-    logger.info("fname", filename)
-    logger.info("fext", file_ext)
-    file_path = os.path.abspath(f"./tmp/{filename}.{file_ext}")
+    file.save(f"./tmp/{filename}")
+    file_path = os.path.abspath(f"./tmp/{filename}")
     cmd = os.system(f'python -m demucs -d cuda "{file_path}"')
     logger.info(f"Exited with status code {cmd}")
     if cmd == 0:
         logger.info(f"Preprocessed {filename} Successfully")
         pass
     else:
+        logger.info(f"Preprocessing {filename} Failed")
         return flask.jsonify({"error": "Something went wrong"})
     logger.info("File Processed")
     for i in os.listdir("./tmp"):
         os.remove(f"./tmp/{i}")
     os.rmdir("./tmp")
     logger.info("Temp Folder Removed")
+    filename = os.path.splitext(filename)[0]
     shutil.make_archive(
         f"./separated/mdx_extra_q/{filename}",
         "zip",
@@ -128,7 +129,7 @@ def upload():
 @APP.route("/download/<path:filename>", methods=["GET", "POST"])
 def download(filename):
     dir = os.path.abspath("./separated/mdx_extra_q/")
-    return flask.send_from_directory(directory=dir, path=filename)
+    return flask.send_from_directory(directory=dir, path=allowed_file(filename))
 
 
 if __name__ == "__main__":
