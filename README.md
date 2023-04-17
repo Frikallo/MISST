@@ -1,19 +1,19 @@
 <div align="center">
 
-[![](./src/Assets/banner.png)](https://github.com/Frikallo/MISST)
+[![](./MISST/Assets/showcase/banner.png)](https://github.com/Frikallo/MISST)
 [![GitHub release](https://img.shields.io/github/release/frikallo/misst.svg)](https://github.com/Frikallo/MISST/releases/latest) [![Github All Releases](https://img.shields.io/github/downloads/frikallo/misst/total?color=blue)](https://github.com/Frikallo/MISST/releases/latest) [![License](https://img.shields.io/github/license/frikallo/misst?color=blue)](https://github.com/Frikallo/MISST/blob/main/LICENSE) [![Hits-of-Code](https://hitsofcode.com/github/frikallo/MISST?branch=main)](https://github.com/Frikallo/MISST/graphs/contributors) [![Better Uptime Badge](https://betteruptime.com/status-badges/v1/monitor/i55r.svg)](https://betteruptime.com/?utm_source=status_badge)
 
 </div>
 
 ---
 
-![](./src/Assets/showcaseimage1.png)
+![](./MISST/Assets/showcase/showcaseimage1.png)
 | _`MISST` on Windows 11 with Dark mode and 'Blue' theme with 'Kanye West's All of The Lights' playing_
 
-![](./src/Assets/showcaseimage2.png)
+![](./MISST/Assets/showcase/showcaseimage2.png)
 | _`MISST` on Windows 11 with Light mode and 'Blue' theme with 'Beabadoobee's Cologne' playing_
 
-![](./src/Assets/showcaseimage3.png)
+![](./MISST/Assets/showcase/showcaseimage3.png)
 | _`MISST` on Windows 11 Showcasing how versatile and personal you can be with MISST!_
 
 ###
