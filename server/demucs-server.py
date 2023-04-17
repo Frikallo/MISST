@@ -1,12 +1,14 @@
 import flask
 import os
 import shutil
-from shlex import quote
+import shlex
 from waitress import serve
 from werkzeug.utils import secure_filename
 import datetime
-import linode_api4 as linode
+from linode_api4 import LinodeClient
 from dotenv import load_dotenv
+import subprocess
+import time
 
 load_dotenv()
 import logging
@@ -21,7 +23,7 @@ logging.config.dictConfig(
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 token = os.getenv("LINODE_TOKEN")
-client = linode.LinodeClient(token)
+client = LinodeClient(token)
 linodes = client.linode.instances()
 
 loggerName = "MISST Server"
@@ -33,7 +35,7 @@ logging.basicConfig(
 )
 
 host = "127.0.0.1"
-port = 5000
+port = 5001
 
 logger.info(f'Logger initialized ({str(datetime.datetime.now()).split(".")[0]})')
 
@@ -51,7 +53,7 @@ APP = flask.Flask(__name__)
 # Create a URL route in our application for "/"
 @APP.route("/")
 def home():
-    return "demucs-server V0.1"
+    return "demucs-server V1.0"
 
 
 queue_list = 0
@@ -69,26 +71,19 @@ def queue():
     return "OK"
 
 
-@APP.route("/check")
-def check_alive():
-    logger.info("Alive")
-    return "OK"
-
-
-@APP.route("/user/<path:userid>", methods=['GET', 'POST'])
-def user(userid):
-    ip = str(flask.request.data.decode("utf-8"))
-    logger.info(f"User {userid} is online! ({str(datetime.datetime.now()).split('.')[0]}) ip: {ip}")
-    return "OK"
-
 ALLOWED_EXTENSIONS = {".mp3", ".wav", ".flac", ".ogg", ".m4a", ".zip"}
+
 
 def allowed_file(filename):
     if os.path.splitext(filename)[1] in ALLOWED_EXTENSIONS:
         return secure_filename(filename)
 
+average_time = 0
+
 @APP.route("/demucs-upload", methods=["POST"])
 def upload():
+    global average_time
+    start_time = time.time()
     logger.info("==================== STARTING JOB ====================")
     file = flask.request.files["file"]
     filename = allowed_file(file.filename)
@@ -97,10 +92,11 @@ def upload():
     else:
         os.mkdir("./tmp")
     file.save(f"./tmp/{filename}")
-    file_path = os.path.abspath(f"./tmp/{filename}")
-    cmd = os.system(f'python -m demucs -d cuda {quote(file_path)}')
-    logger.info(f"Exited with status code {cmd}")
-    if cmd == 0:
+    file_path = shlex.quote(os.path.abspath(f"./tmp/{filename}"))
+    cmd = shlex.split(f"python -m demucs -d cuda {file_path}")
+    retcode = subprocess.call(cmd, shell=False)
+    logger.info(f"Exited with status code {retcode}")
+    if retcode == 0:
         logger.info(f"Preprocessed {filename} Successfully")
         pass
     else:
@@ -124,6 +120,25 @@ def upload():
     logger.info("Temp Folder Removed")
     logger.info("Done")
     logger.info("==================== FINISHED JOB ====================")
+    end_time = time.time()
+    average_time = (average_time + (end_time - start_time)) / 2
+    return "OK"
+
+@APP.route("/getaverage", methods=["GET"])
+def getaverage():
+    return str(int(average_time))
+
+@APP.route("/getcoverart/<path:filename>", methods=["GET"])
+def getcoverart(filename):
+    dir = os.path.abspath("./coverarts/")
+    return flask.send_file(f"{dir}/{filename}")
+
+
+@APP.route("/postcoverart", methods=["POST"])
+def postcoverart():
+    file = flask.request.files["file"]
+    filename = secure_filename(file.filename)
+    file.save(f"./coverarts/{filename}")
     return "OK"
 
 

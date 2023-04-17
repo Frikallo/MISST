@@ -1,23 +1,7 @@
-#Seperated tracks
-
-src/separated/*
-
-#Install libs
-
-Packed/*
-
-#Tokens & Secrets
-
-src/Assets/config.txt
-
-## Other
-src/Assets/__pycache__/*
 venv/*
-separated/*
 server/separated/*
-src/MISST.log
-server/ffmpeg.exe
-server/ffplay.exe
-server/ffprobe.exe
+server/coverarts/*
+MISST/__pycache__/*
+MISST/separated/*
 output/*
-server/.env
+build/MISSTwin32.exe
