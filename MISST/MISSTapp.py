@@ -71,7 +71,10 @@ class MISSTapp(customtkinter.CTk):
         self.HEIGHT = int(self.winfo_screenheight() * 0.3981481481481481)
         self.geometry(f"{self.WIDTH}x{self.HEIGHT}")
         self.minsize(self.WIDTH, self.HEIGHT)
-        self.maxsize(self.WIDTH, self.HEIGHT)
+        self.maxsize(755, 430)
+
+        customtkinter.set_widget_scaling(((self.WIDTH / 755) + (self.HEIGHT / 430)) / 2)  # widget dimensions and text size
+        #customtkinter.set_window_scaling(((self.WIDTH / 755) + (self.HEIGHT / 430)) / 2)  # window geometry dimensions
 
         self.check_var1 = tkinter.StringVar(value="on")
         self.check_var2 = tkinter.StringVar(value="on")
@@ -106,7 +109,7 @@ class MISSTapp(customtkinter.CTk):
         # Interface Frame
         self.shuffle_button = customtkinter.CTkButton(
             master=self.interface_frame,
-            image=PhotoImage(file="./Assets/Images/player-shuffle.png"),
+            image=customtkinter.CTkImage(Image.open("./Assets/Images/player-shuffle.png"), size=(25,25)),
             command=lambda: self.shuffle(),
             text="",
             width=5,
@@ -118,7 +121,7 @@ class MISSTapp(customtkinter.CTk):
 
         self.loop_button = customtkinter.CTkButton(
             master=self.interface_frame,
-            image=PhotoImage(file="./Assets/Images/loop-off.png"),
+            image=customtkinter.CTkImage(Image.open("./Assets/Images/loop-off.png"), size=(25,25)),
             command=lambda: self.loopEvent(),
             text="",
             width=5,
@@ -130,7 +133,7 @@ class MISSTapp(customtkinter.CTk):
 
         self.next_button = customtkinter.CTkButton(
             master=self.interface_frame,
-            image=PhotoImage(file="./Assets/Images/player-skip-forward.png"),
+            image=customtkinter.CTkImage(Image.open("./Assets/Images/player-skip-forward.png"), size=(30,30)),
             command=lambda: print("test"),
             text="",
             width=5,
@@ -143,7 +146,7 @@ class MISSTapp(customtkinter.CTk):
 
         self.previous_button = customtkinter.CTkButton(
             master=self.interface_frame,
-            image=PhotoImage(file="./Assets/Images/player-skip-back.png"),
+            image=customtkinter.CTkImage(Image.open("./Assets/Images/player-skip-back.png"), size=(30,30)),
             command=lambda: print("test"),
             text="",
             width=5,
@@ -156,7 +159,7 @@ class MISSTapp(customtkinter.CTk):
 
         self.playpause_button = customtkinter.CTkButton(
             master=self.interface_frame,
-            image=PhotoImage(file="./Assets/Images/player-pause.png"),
+            image=customtkinter.CTkImage(Image.open("./Assets/Images/player-pause.png"), size=(32,32)),
             command=lambda: self.playpause(),
             text="",
             width=5,
@@ -244,7 +247,7 @@ class MISSTapp(customtkinter.CTk):
             master=self.west_frame,
             font=(self.FONT, -12),
             text="",
-            image=PhotoImage(file=f"./Assets/settings.png"),
+            image=customtkinter.CTkImage(Image.open(f"./Assets/settings.png"), size=(25,25)),
             bg_color='transparent',
             fg_color='transparent',
             hover_color=self.west_frame.cget("bg_color"),
@@ -258,7 +261,7 @@ class MISSTapp(customtkinter.CTk):
             master=self.west_frame,
             font=(self.FONT, -12),
             text="",
-            image=PhotoImage(file=f"./Assets/lyrics.png"),
+            image=customtkinter.CTkImage(Image.open(f"./Assets/lyrics.png"), size=(25,25)),
             bg_color='transparent',
             fg_color='transparent',
             hover_color=self.west_frame.cget("bg_color"),
@@ -273,7 +276,7 @@ class MISSTapp(customtkinter.CTk):
             master=self.west_frame,
             font=(self.FONT, -12),
             text="",
-            image=PhotoImage(file=f"./Assets/reload.png"),
+            image=customtkinter.CTkImage(Image.open(f"./Assets/reload.png"), size=(25,25)),
             bg_color='transparent',
             fg_color='transparent',
             hover_color=self.west_frame.cget("bg_color"),
@@ -406,7 +409,7 @@ class MISSTapp(customtkinter.CTk):
         self.import_button = customtkinter.CTkButton(
             master=self.south_frame,
             command=lambda: self.draw_imports_frame(),
-            image=PhotoImage(file=f"./Assets/import.png"),
+            image=customtkinter.CTkImage(Image.open(f"./Assets/import.png"), size=(30, 30)),
             fg_color='transparent',
             hover_color=self.south_frame.cget("bg_color"),
             text="Import Song(s)",
@@ -429,7 +432,7 @@ class MISSTapp(customtkinter.CTk):
 
     def draw_imports_frame(self):
         self.imports_frame = customtkinter.CTkFrame(
-            master=self, width=self.WIDTH, height=self.HEIGHT
+            master=self, width=self.WIDTH * (755 / self.WIDTH), height=self.HEIGHT * (430 / self.HEIGHT)
         )
         self.imports_frame.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
 
@@ -458,7 +461,7 @@ class MISSTapp(customtkinter.CTk):
 
         self.import_Spotify_button = customtkinter.CTkLabel(
             master=self.left_frame,
-            image=PhotoImage(file=f"./Assets/Sources/Spotify.png"),
+            image=customtkinter.CTkImage(Image.open(f"./Assets/Sources/Spotify.png"), size=(40, 40)),
             fg_color='transparent',
             text="",
             font=(self.FONT, -14),
@@ -481,7 +484,7 @@ class MISSTapp(customtkinter.CTk):
 
         self.import_Youtube_button = customtkinter.CTkLabel(
             master=self.left_frame,
-            image=PhotoImage(file=f"./Assets/Sources/YoutubeMusic.png"),
+            image=customtkinter.CTkImage(Image.open(f"./Assets/Sources/YoutubeMusic.png"), size=(40, 40)),
             fg_color='transparent',
             text="",
             font=(self.FONT, -14),
@@ -503,7 +506,7 @@ class MISSTapp(customtkinter.CTk):
 
         self.import_Deezer_button = customtkinter.CTkLabel(
             master=self.left_frame,
-            image=PhotoImage(file=f"./Assets/Sources/Deezer.png"),
+            image=customtkinter.CTkImage(Image.open(f"./Assets/Sources/Deezer.png"), size=(40, 40)),
             fg_color='transparent',
             text="",
             font=(self.FONT, -14),
@@ -525,7 +528,7 @@ class MISSTapp(customtkinter.CTk):
 
         self.import_Soundcloud_button = customtkinter.CTkLabel(
             master=self.left_frame,
-            image=PhotoImage(file=f"./Assets/Sources/Soundcloud.png"),
+            image=customtkinter.CTkImage(Image.open(f"./Assets/Sources/Soundcloud.png"), size=(40, 40)),
             fg_color='transparent',
             text="",
             font=(self.FONT, -14),
@@ -650,7 +653,7 @@ class MISSTapp(customtkinter.CTk):
             )
             self.server_down_cover.place(relx=0.25, rely=0.47, anchor=tkinter.CENTER)
             self.server_down_cover_label = customtkinter.CTkLabel(
-                image=PhotoImage(file="./Assets/server_off.png"),
+                image=customtkinter.CTkImage(Image.open("./Assets/server_off.png"), size=(100, 100)),
                 text="",
                 master=self.server_down_cover,
                 font=(self.FONT, -20),
@@ -697,7 +700,7 @@ class MISSTapp(customtkinter.CTk):
 
     def draw_settings_frame(self):
         self.settings_window = customtkinter.CTkFrame(
-            master=self, width=self.WIDTH, height=self.HEIGHT
+            master=self, width=self.WIDTH * (755 / self.WIDTH), height=self.HEIGHT * (430 / self.HEIGHT)
         )
         self.settings_window.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
 
@@ -1001,13 +1004,13 @@ class MISSTapp(customtkinter.CTk):
     
     def playpause(self, progressbar):
         if self.playing == True:
-            self.playpause_button.configure(state="normal", image=PhotoImage(file=f"./Assets/images/player-play.png"))
+            self.playpause_button.configure(state="normal", image=customtkinter.CTkImage(Image.open(f"./Assets/images/player-play.png"), size=(32, 32)))
             pygame.mixer.pause()
             self.playing = False
             progressbar.configure(state=tkinter.DISABLED)
             self.nc_checkbox.configure(state=tkinter.DISABLED)
         else:
-            self.playpause_button.configure(state="normal", image=PhotoImage(file=f"./Assets/images/player-pause.png"))
+            self.playpause_button.configure(state="normal", image=customtkinter.CTkImage(Image.open(f"./Assets/images/player-pause.png", size=(32, 32))))
             pygame.mixer.unpause()
             self.playing = True
             progressbar.configure(state="normal")
@@ -1016,10 +1019,10 @@ class MISSTapp(customtkinter.CTk):
     def loopEvent(self):
         if self.loop == True:
             self.loop = False
-            self.loop_button.configure(state="normal", image=PhotoImage(file=f"./Assets/Images/loop-off.png"))
+            self.loop_button.configure(state="normal", image=customtkinter.CTkImage(Image.open(f"./Assets/Images/loop-off.png"), size=(25, 25)))
         else:
             self.loop = True
-            self.loop_button.configure(state="normal", image=PhotoImage(file=f"./Assets/Images/loop.png"))
+            self.loop_button.configure(state="normal", image=customtkinter.CTkImage(Image.open(f"./Assets/Images/loop.png"), size=(25, 25)))
 
     def update_UI(self, audioPath, start_ms):
         pygame.mixer.unpause()
@@ -1034,10 +1037,10 @@ class MISSTapp(customtkinter.CTk):
         self.next_button.configure(command=lambda: self.next(song_name))
         self.previous_button.configure(command=lambda: self.previous(song_name))
         try:
-            cover_art = PhotoImage(file=MISSThelpers.resize_image(self, f"{song_dir}/{web_name}.png", 40))
+            cover_art = customtkinter.CTkImage(Image.open(MISSThelpers.resize_image(self, f"{song_dir}/{web_name}.png", 40), size=(40, 40)))
         except Exception as e:
             print(e)
-            cover_art = PhotoImage(file="./Assets/default.png")
+            cover_art = customtkinter.CTkImage(Image.open("./Assets/default.png"), size=(40, 40))
         self.songlabel = customtkinter.CTkButton(
             master=self.north_frame,
             text=song_name,
