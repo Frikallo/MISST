@@ -7,7 +7,7 @@
   },
   {
    "optionDest": "filenames",
-   "value": "C:/Users/noahs/Desktop/Repos/MISSTcodebase/MISST/MISSTapp.py"
+   "value": "C:/Users/noahs/Desktop/Repos/MISST/MISST/MISSTapp.py"
   },
   {
    "optionDest": "onefile",
@@ -19,7 +19,7 @@
   },
   {
    "optionDest": "icon_file",
-   "value": "C:/Users/noahs/Desktop/Repos/MISSTcodebase/MISST/Assets/icon.ico"
+   "value": "C:/Users/noahs/Desktop/Repos/MISST/MISST/Assets/icon.ico"
   },
   {
    "optionDest": "ascii",
@@ -71,23 +71,23 @@
   },
   {
    "optionDest": "datas",
-   "value": "C:/Users/noahs/Desktop/Repos/MISSTcodebase/MISST/Assets;Assets/"
+   "value": "C:/Users/noahs/Desktop/Repos/MISST/MISST/Assets;Assets/"
   },
   {
    "optionDest": "datas",
-   "value": "C:/Users/noahs/Desktop/Repos/MISSTcodebase/MISST/Binaries;Binaries/"
+   "value": "C:/Users/noahs/Desktop/Repos/MISST/MISST/Binaries;Binaries/"
   },
   {
    "optionDest": "datas",
-   "value": "C:/Users/noahs/Desktop/Repos/MISSTcodebase/venv/Lib/site-packages/customtkinter;customtkinter/"
+   "value": "C:/Users/noahs/Desktop/Repos/MISST/venv/Lib/site-packages/customtkinter;customtkinter/"
   },
   {
    "optionDest": "datas",
-   "value": "C:/Users/noahs/Desktop/Repos/MISSTcodebase/MISST/config.json;."
+   "value": "C:/Users/noahs/Desktop/Repos/MISST/MISST/config.json;."
   },
   {
    "optionDest": "datas",
-   "value": "C:/Users/noahs/Desktop/Repos/MISSTcodebase/MISST/ffmpeg.exe;."
+   "value": "C:/Users/noahs/Desktop/Repos/MISST/MISST/ffmpeg.exe;."
   }
  ],
  "nonPyinstallerOptions": {

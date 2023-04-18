@@ -3,6 +3,7 @@ import gc
 import threading
 import os
 from pydub import AudioSegment
+from MISSThelpers import MISSThelpers
 
 class MISSTplayer():
     def __init__(self):
@@ -41,7 +42,13 @@ class MISSTplayer():
         for thread in threadPool:
             thread.start()
 
-        threading.Thread(target=self.update_UI, args=(f"{audiosPath}/other.wav", start_ms), daemon=True).start()
+        try:
+            MISSThelpers.terminate_thread(self.uiThread)
+        except:
+            pass
+
+        self.uiThread = threading.Thread(target=self.update_UI, args=(f"{audiosPath}/other.wav", start_ms), daemon=True)
+        self.uiThread.start()
         self.cur_sound_datas = sound_datas
 
     def change_pos(self, audiosPath, start_ms):
@@ -58,7 +65,13 @@ class MISSTplayer():
         for thread in threadPool:
             thread.start()
 
-        threading.Thread(target=self.update_UI, args=(f"{audiosPath}/other.wav", start_ms), daemon=True).start()
+        try:
+            MISSThelpers.terminate_thread(self.uiThread)
+        except:
+            pass
+
+        self.uiThread = threading.Thread(target=self.update_UI, args=(f"{audiosPath}/other.wav", start_ms), daemon=True)
+        self.uiThread.start()
 
     def nightcore(self):
         return

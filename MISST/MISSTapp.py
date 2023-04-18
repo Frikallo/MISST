@@ -63,6 +63,7 @@ class MISSTapp(customtkinter.CTk):
         self.playing = False
 
         self.cur_sound_datas = {}
+        self.uiThread = None
 
         # configure window
         self.title("MISST")
@@ -1010,7 +1011,7 @@ class MISSTapp(customtkinter.CTk):
             progressbar.configure(state=tkinter.DISABLED)
             self.nc_checkbox.configure(state=tkinter.DISABLED)
         else:
-            self.playpause_button.configure(state="normal", image=customtkinter.CTkImage(Image.open(f"./Assets/images/player-pause.png", size=(32, 32))))
+            self.playpause_button.configure(state="normal", image=customtkinter.CTkImage(Image.open(f"./Assets/images/player-pause.png"), size=(32, 32)))
             pygame.mixer.unpause()
             self.playing = True
             progressbar.configure(state="normal")
@@ -1037,7 +1038,7 @@ class MISSTapp(customtkinter.CTk):
         self.next_button.configure(command=lambda: self.next(song_name))
         self.previous_button.configure(command=lambda: self.previous(song_name))
         try:
-            cover_art = customtkinter.CTkImage(Image.open(MISSThelpers.resize_image(self, f"{song_dir}/{web_name}.png", 40), size=(40, 40)))
+            cover_art = customtkinter.CTkImage(Image.open(MISSThelpers.resize_image(self, f"{song_dir}/{web_name}.png", 40)), size=(40, 40))
         except Exception as e:
             print(e)
             cover_art = customtkinter.CTkImage(Image.open("./Assets/default.png"), size=(40, 40))

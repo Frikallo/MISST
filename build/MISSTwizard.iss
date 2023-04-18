@@ -24,7 +24,7 @@ LicenseFile=C:\Users\noahs\Desktop\Repos\MISST\LICENSE
 ; Remove the following line to run in administrative install mode (install for all users.)
 PrivilegesRequired=lowest
 OutputBaseFilename=MISST
-SetupIconFile=C:\Users\noahs\Desktop\Repos\MISST\src\Assets\icon.ico
+SetupIconFile=C:\Users\noahs\Desktop\Repos\MISST\MISST\Assets\icon.ico
 Compression=lzma
 SolidCompression=yes
 WizardStyle=modern
@@ -36,8 +36,8 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-Source: "C:\Users\noahs\Desktop\Repos\MISSTcodebase\output\MISST\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\Users\noahs\Desktop\Repos\MISSTcodebase\output\MISST\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "C:\Users\noahs\Desktop\Repos\MISST\output\MISST\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\Users\noahs\Desktop\Repos\MISST\output\MISST\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]

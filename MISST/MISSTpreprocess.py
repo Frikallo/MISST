@@ -1,17 +1,12 @@
-from pydeezer import Downloader, Deezer
-from pydeezer.constants import track_formats
 import os
 from PIL import Image
 import io
 from werkzeug.utils import secure_filename
 import music_tag
-from MISSTserver import MISSTserver
-from MISSThelpers import MISSThelpers
 import threading
 import shutil
 import time
 import tkinter
-import ctypes
 
 class MISSTpreprocess():
     def __init__(self, server):
@@ -159,25 +154,6 @@ class MISSTconsole():
         self.curThread = threading.Thread(target=self.updateThread, args=(text,), daemon=True)
         self.curThread.start()
 
-    def terminate_thread(self, thread):
-        """Terminates a python thread from another thread.
-
-        :param thread: a threading.Thread instance
-        """
-        if not thread.is_alive():
-            return
-
-        exc = ctypes.py_object(SystemExit)
-        res = ctypes.pythonapi.PyThreadState_SetAsyncExc(
-            ctypes.c_long(thread.ident), exc)
-        if res == 0:
-            raise ValueError("nonexistent thread id")
-        elif res > 1:
-            # """if it returns a number greater than one, you're in trouble,
-            # and you should call it again with exc=NULL to revert the effect"""
-            ctypes.pythonapi.PyThreadState_SetAsyncExc(thread.ident, None)
-            raise SystemError("PyThreadState_SetAsyncExc failed")
-
     def endUpdate(self):
         print(self.curThread)
         self.terminate_thread(self.curThread)
@@ -196,8 +172,3 @@ class MISSTconsole():
 
 if __name__ == '__main__':
     pass
-    #server = MISSTserver('http://66.175.221.76:5001')
-    #preprocess = MISSTpreprocess(server)
-    #preprocess.preprocess('C:\\Users\\noahs\\Desktop\\Repos\\MISSTcodebase\\Barenaked Ladies - Brian Wilson.mp3', "./z")
-    #os.chdir("./MISST")
-    #preprocess.importSpotify('https://open.spotify.com/track/6HJszgJO19tAKff7X40ggp?si=1d9ad4d979ef4589', "./z")
