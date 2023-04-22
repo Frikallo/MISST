@@ -3,11 +3,9 @@ from scipy.signal import butter, sosfilt
 import pygame
 import threading
 import multiprocessing as mp
-import json
 
 class MISSTeq():
-    def __init__(self, files, gains, chunk_size=1024, bands=9, freqs=[60, 170, 310, 600, 1000, 3000, 6000, 12000, 14000], filter_order=2):
-        pygame.mixer.init()
+    def __init__(self, files, gains, chunk_size=2048, bands=9, freqs=[60, 170, 310, 600, 1000, 3000, 6000, 12000, 14000], filter_order=2):
         self.FILES = files
         self.GAINS = gains
         self.CHUNK = chunk_size
@@ -16,9 +14,7 @@ class MISSTeq():
         self.BANDS = bands
         self.FREQS = freqs  # center frequencies for each band
         self.FILTER_ORDER = filter_order  # filter order for each band
-        
-        self.queue = mp.Queue()
-        self.datas = {0:[], 1:[], 2:[], 3:[]}
+        self.dict = mp.Manager().dict({0: [], 1: [], 2: [], 3: []})
 
     def stereo_to_ms(self, audio_segment):
         channel = audio_segment.split_to_mono()
@@ -137,15 +133,17 @@ class MISSTeq():
             return self.ms_to_stereo(seg)
         
     def play(self, channel):
+        pygame.mixer.init()
         while True:
-            datas = self.queue.get()
-            print(len(datas[0]), len(datas[1]), len(datas[2]), len(datas[3]))
-            if len(datas[channel]) > 0:
-                pygame.mixer.Channel(channel).play(pygame.mixer.Sound(buffer=datas[channel].pop(0)))
+            print(len(self.dict[0]), len(self.dict[1]), len(self.dict[2]), len(self.dict[3]))
+            if len(self.dict[0]) > 0 and len(self.dict[1]) > 0 and len(self.dict[2]) > 0 and len(self.dict[3]) > 0:
+                pygame.mixer.Channel(channel).play(pygame.mixer.Sound(buffer=self.datas.pop(0)))
                 while pygame.mixer.Channel(channel).get_busy():                    
                     pass
 
     def apply_eq(self, audio_seg, pygame_channel, gains):
+        pygame.mixer.init()
+        self.datas = []
         threading.Thread(target=self.play, args=(pygame_channel,), daemon=True).start()
         for i in range(0, len(audio_seg), self.CHUNK):
             # Extract chunk from audio file
@@ -153,26 +151,20 @@ class MISSTeq():
             # Apply equalizer
             for j in range(0, self.BANDS):
                 chunk = self.eq(chunk, self.FREQS[j], bandwidth=audio_seg.sample_width, channel_mode="L+R", filter_mode="peak", gain_dB=gains[j], order=self.FILTER_ORDER)
-            datas = self.queue.get()
-            datas[pygame_channel].append(chunk._data)
-            self.queue.put(datas)
+            self.datas.append(chunk._data)
+            self.dict[pygame_channel] = [None]*len(self.datas)
 
-        while len(self.datas[pygame_channel]) > 0:
+        while len(self.dict[pygame_channel]) > 0:
             pass
 
-    def run(self):
-        self.queue.put(self.datas)
-        processes = []
-        for file in self.FILES:
-            p = mp.Process(target=self.apply_eq, args=(AudioSegment.from_file(file), self.FILES.index(file), self.GAINS))
-            processes.append(p)
-            p.start()
-
-def run_eq(args):
-    MISSTeq().apply_eq(args[0], args[1], args[2])
+    def run(self, file):
+        self.apply_eq(AudioSegment.from_file(file), self.FILES.index(file), self.GAINS)
 
 if __name__ == "__main__":
     files = ["./MISST/separated/z_test/bass.wav", "./MISST/separated/z_test/drums.wav", "./MISST/separated/z_test/other.wav", "./MISST/separated/z_test/vocals.wav"]
 
-    eq = MISSTeq(files, [0, 0, 0, 0, 0, 0, 0, 0, 0])
-    eq.run()
+    with mp.Manager() as manager:
+        eq = MISSTeq(files, [0, 0, 0, 0, 0, 0, 0, 0, 0])
+        args = [file for file in files]
+        with mp.Pool(processes=4) as pool:
+            pool.map(eq.run, args)
