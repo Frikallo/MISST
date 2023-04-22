@@ -1,9 +1,9 @@
 import pygame
 import gc
 import threading
-import os
 from pydub import AudioSegment
 from MISSThelpers import MISSThelpers
+from MISSTeq import MISSTeq
 
 class MISSTplayer():
     def __init__(self):
@@ -19,6 +19,7 @@ class MISSTplayer():
         while True:
             try:
                 pygame.mixer.Channel(channel).play(sound)
+                MISSTeq().run()
                 gc.collect()
             except:
                 self.songlabel.configure(text="")
@@ -43,7 +44,7 @@ class MISSTplayer():
             thread.start()
 
         try:
-            MISSThelpers.terminate_thread(self.uiThread)
+            MISSThelpers.terminate_thread(self, self.uiThread)
         except:
             pass
 
@@ -66,21 +67,12 @@ class MISSTplayer():
             thread.start()
 
         try:
-            MISSThelpers.terminate_thread(self.uiThread)
+            MISSThelpers.terminate_thread(self, self.uiThread)
         except:
             pass
 
         self.uiThread = threading.Thread(target=self.update_UI, args=(f"{audiosPath}/other.wav", start_ms), daemon=True)
         self.uiThread.start()
-
-    def nightcore(self):
-        return
-    
-    def next(self):
-        return
-    
-    def previous(self):
-        return
 
 if __name__ == "__main__":
     player = MISSTplayer()

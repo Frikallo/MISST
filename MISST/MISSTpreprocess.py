@@ -7,6 +7,7 @@ import threading
 import shutil
 import time
 import tkinter
+from MISSThelpers import MISSThelpers
 
 class MISSTpreprocess():
     def __init__(self, server):
@@ -156,7 +157,7 @@ class MISSTconsole():
 
     def endUpdate(self):
         print(self.curThread)
-        self.terminate_thread(self.curThread)
+        MISSThelpers.terminate_thread(self, self.curThread)
         self.terminal.configure(state="normal")
         self.terminal.delete("0.0", "end")
         self.terminal.insert("0.0", self.consoleText)

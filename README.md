@@ -33,7 +33,7 @@ This project is OpenSource, feel free to use, study and/or send pull request.
 - [x] Minimal memory usage
 - [x] Customizable themes
 - [x] Additional Efects like nightcore
-- [ ] Easy to use equalizer (WIP)
+- [x] Easy to use equalizer
 - [ ] Preprocessing service available for offline use (WIP)
 - [ ] Docker image (WIP)
 - [ ] Make it as fast as possible (Preprocessing, Model loading, etc.) (Not a priority)

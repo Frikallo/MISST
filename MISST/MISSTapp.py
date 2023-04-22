@@ -2,7 +2,6 @@ import os
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 import tkinter
-from tkinter import PhotoImage
 import customtkinter
 from pypresence import Presence
 import threading
@@ -258,20 +257,20 @@ class MISSTapp(customtkinter.CTk):
         )
         self.settings_button.place(relx=0.3, rely=0.9, anchor=tkinter.CENTER)
 
-        self.lyrics = customtkinter.CTkButton(
+        self.equalizer = customtkinter.CTkButton(
             master=self.west_frame,
             font=(self.FONT, -12),
             text="",
-            image=customtkinter.CTkImage(Image.open(f"./Assets/lyrics.png"), size=(25,25)),
+            image=customtkinter.CTkImage(Image.open(f"./Assets/equalizer.png"), size=(25,25)),
             bg_color='transparent',
             fg_color='transparent',
             hover_color=self.west_frame.cget("bg_color"),
             width=5,
             height=5,
             corner_radius=16,
-            command=lambda: print("test"),
+            command=lambda: self.draw_eq_frame(),
         )
-        self.lyrics.place(relx=0.7, rely=0.9, anchor=tkinter.CENTER)
+        self.equalizer.place(relx=0.7, rely=0.9, anchor=tkinter.CENTER)
 
         self.refresh_button = customtkinter.CTkButton(
             master=self.west_frame,
@@ -907,6 +906,149 @@ class MISSTapp(customtkinter.CTk):
         )
         self.reset_button.place(relx=0.75, rely=0.95, anchor=tkinter.CENTER)
 
+    def eq_sliders_event(self, curVal, curSlider, sliders):
+        self.settings.setSetting(f"eq_{curSlider+1}", str(curVal))
+        if self.move_sliders_together.get() == 0:
+            return
+        slider = sliders[curSlider]
+        for slider in sliders:
+            index = sliders.index(slider)
+            distance = abs(index - curSlider)
+            if curVal < 0:
+                multiplier = 1 * distance
+                set = curVal + multiplier
+                slider.set(set if set < 0 else 0)
+                self.settings.setSetting(f"eq_{index+1}", str(slider.get()))
+            else:
+                multiplier = -1 * distance
+                set = curVal + multiplier
+                slider.set(set if set > 0 else 0)
+                self.settings.setSetting(f"eq_{index+1}", str(slider.get()))
+        return
+        
+    def moveSlidersTogether(self):
+        self.settings.setSetting("eq_move_sliders_together", "true" if str(self.move_sliders_together.get()) == "1" else "false")
+        return
+    
+    def eqOnOff(self):
+        self.settings.setSetting("eq", "true" if str(self.eqOnOffButton.get()) == "1" else "false")
+        if self.eqOnOffButton.get() == 0:
+            self.eqOnOffButton.configure(text="Off")
+            for child in self.eq_frame.winfo_children():
+                child.configure(state=tkinter.DISABLED)
+            self.eqOnOffButton.configure(state='normal')
+            self.return_button.configure(state='normal')
+            self.eq_header.configure(state='normal')
+        else:
+            self.eqOnOffButton.configure(text="On")
+            for child in self.eq_frame.winfo_children():
+                child.configure(state='normal')
+        return
+
+    def draw_eq_frame(self):
+        self.eq_window = customtkinter.CTkFrame(
+            master=self, width=self.WIDTH * (755 / self.WIDTH), height=self.HEIGHT * (430 / self.HEIGHT)
+        )
+        self.eq_window.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
+
+        self.eq_frame = customtkinter.CTkFrame(master=self.eq_window, width=450, height=350)
+        self.eq_frame.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
+
+        self.eq_header = customtkinter.CTkLabel(
+            master=self.eq_frame, text="Equalizer", font=(self.FONT, -16)
+        )
+        self.eq_header.place(relx=0.15, rely=0.12, anchor=tkinter.CENTER)
+
+        self.return_button = customtkinter.CTkButton(
+            master=self.eq_frame,
+            command=lambda: self.eq_window.destroy(),
+            image=customtkinter.CTkImage(light_image=Image.open("./Assets/goback.png"), dark_image=Image.open("./Assets/goback_dark.png")),
+            fg_color='transparent',
+            hover_color=self.eq_window.cget("bg_color"),
+            text="",
+            font=(self.FONT, -14),
+            width=5,
+            text_color=self.logolabel.cget("text_color"),
+        )
+        self.return_button.place(relx=0.87, rely=0.9, anchor=tkinter.CENTER)
+
+        val = 0.02
+        frqs = ["62 Hz", "125 Hz", "250 Hz", "500 Hz", "1 KHz", "2.5 KHz", "4 KHz", "8 KHz", "16 KHz"]
+        sliders = [eq_slider1, eq_slider2, eq_slider3, eq_slider4, eq_slider5, eq_slider6, eq_slider7, eq_slider8, eq_slider9, eq_slider10] = [None] * 10
+        for i in range(0, len(sliders)):
+            sliders[i] = customtkinter.CTkSlider(
+                master=self.eq_frame,
+                from_=-12,
+                to=12,
+                number_of_steps=24,
+                orientation="vertical",
+                height=175,
+                command= lambda x, curSlider=i, sliders=sliders: self.eq_sliders_event(x, curSlider, sliders)
+            )
+            sliders[i].set(float(self.settings.getSetting(f"eq_{i+1}")))
+            val += 0.1
+            sliders[i].place(relx=val, rely=0.5, anchor=tkinter.CENTER)
+
+        val = 0.02
+        for frq in frqs:
+            eq_label = customtkinter.CTkLabel(
+                master=self.eq_frame, text=frq, font=(self.FONT, -10), state=tkinter.DISABLED
+            )
+            val += 0.1
+            eq_label.place(relx=val, rely=0.8, anchor=tkinter.CENTER)
+
+        self.eq_12dB_label = customtkinter.CTkLabel(
+            master=self.eq_frame, text="+12dB", font=(self.FONT, -10), state=tkinter.DISABLED
+        )
+        self.eq_12dB_label.place(relx=0.05, rely=0.27, anchor=tkinter.CENTER)
+
+        self.eq_6dB_label = customtkinter.CTkLabel(
+            master=self.eq_frame, text="+6dB", font=(self.FONT, -10), state=tkinter.DISABLED
+        )
+        self.eq_6dB_label.place(relx=0.05, rely=0.395, anchor=tkinter.CENTER)
+
+        self.eq_0dB_label = customtkinter.CTkLabel(
+            master=self.eq_frame, text="0dB", font=(self.FONT, -10), state=tkinter.DISABLED
+        )
+        self.eq_0dB_label.place(relx=0.05, rely=0.5, anchor=tkinter.CENTER)
+
+        self.eq_m6dB_label = customtkinter.CTkLabel(
+            master=self.eq_frame, text="-6dB", font=(self.FONT, -10), state=tkinter.DISABLED
+        )
+        self.eq_m6dB_label.place(relx=0.05, rely=0.615, anchor=tkinter.CENTER)
+
+        self.eq_m12dB_label = customtkinter.CTkLabel(
+            master=self.eq_frame, text="-12dB", font=(self.FONT, -10), state=tkinter.DISABLED
+        )
+        self.eq_m12dB_label.place(relx=0.05, rely=0.73, anchor=tkinter.CENTER)
+
+        self.move_sliders_together = customtkinter.CTkCheckBox(
+            master=self.eq_frame, text="Move nearby sliders together", font=(self.FONT, -12), command=lambda: self.moveSlidersTogether()
+        )
+        self.move_sliders_together.place(relx=0.28, rely=0.9, anchor=tkinter.CENTER)
+        if self.settings.getSetting("eq_move_sliders_together") == "true":
+            self.move_sliders_together.select()
+            self.moveSlidersTogether()
+        else:
+            self.move_sliders_together.deselect()
+            self.moveSlidersTogether()
+
+        self.eqOnOffButton = customtkinter.CTkSwitch(
+            master=self.eq_frame,
+            text="On",
+            width=50,
+            height=50,
+            font=(self.FONT, -14),
+            command=lambda: self.eqOnOff(),
+        )
+        self.eqOnOffButton.place(relx=0.85, rely=0.12, anchor=tkinter.CENTER)
+        if self.settings.getSetting("eq") == "true":
+            self.eqOnOffButton.select()
+            self.eqOnOff()
+        else:
+            self.eqOnOffButton.deselect()
+            self.eqOnOff()
+        
     def global_checks(self, search_entry, songs_box):
         entry_val = None
         num = 0
