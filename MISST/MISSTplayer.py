@@ -2,8 +2,8 @@ import pygame
 import gc
 import threading
 from pydub import AudioSegment
+
 from MISSThelpers import MISSThelpers
-from MISSTeq import MISSTeq
 
 class MISSTplayer():
     def __init__(self):
@@ -19,7 +19,6 @@ class MISSTplayer():
         while True:
             try:
                 pygame.mixer.Channel(channel).play(sound)
-                MISSTeq().run()
                 gc.collect()
             except:
                 self.songlabel.configure(text="")
@@ -76,4 +75,4 @@ class MISSTplayer():
 
 if __name__ == "__main__":
     player = MISSTplayer()
-    player.play("test", 10000)
+    player.play("./MISST/separated/z_test", 10000)

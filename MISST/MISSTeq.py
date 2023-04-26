@@ -1,170 +1,140 @@
+import numpy as np
+import scipy.signal as sg
+import soundfile as sf
 from pydub import AudioSegment
-from scipy.signal import butter, sosfilt
-import pygame
-import threading
 import multiprocessing as mp
+import pyaudio
+import threading
+import gc
 
-class MISSTeq():
-    def __init__(self, files, gains, chunk_size=2048, bands=9, freqs=[60, 170, 310, 600, 1000, 3000, 6000, 12000, 14000], filter_order=2):
-        self.FILES = files
-        self.GAINS = gains
-        self.CHUNK = chunk_size
+class MISSTeq:
+    def __init__(self, sample_rate, volume, paused):
+        self.sample_rate = sample_rate
+        self.bands = np.array([62, 125, 250, 500, 1000, 2500, 4000, 8000, 16000])
+        self.Q = np.array([0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1])
+        self.gain_db = np.array([0, 0, 0, 0, 0, 0, 0, 0, 0])
+        self.chunk_size = 1024
+        self._calculate_coefficients()
 
-        # Define equalizer settings
-        self.BANDS = bands
-        self.FREQS = freqs  # center frequencies for each band
-        self.FILTER_ORDER = filter_order  # filter order for each band
-        self.dict = mp.Manager().dict({0: [], 1: [], 2: [], 3: []})
+        self.dict = mp.Manager().dict({'bass': [], 'drums': [], 'vocals': [], 'other': []})
 
-    def stereo_to_ms(self, audio_segment):
-        channel = audio_segment.split_to_mono()
-        channel = [channel[0].overlay(channel[1]), channel[0].overlay(channel[1].invert_phase())]
-        return AudioSegment.from_mono_audiosegments(channel[0], channel[1])
+        self.volume = volume
+        self.paused = paused
+        self.buffer = np.zeros(self.chunk_size, dtype=np.float32)
 
-    def ms_to_stereo(self, audio_segment):
-        channel = audio_segment.split_to_mono()
-        channel = [channel[0].overlay(channel[1]) - 3, channel[0].overlay(channel[1].invert_phase()) - 3]
-        return AudioSegment.from_mono_audiosegments(channel[0], channel[1])
+    def start_stream(self):
+        self.stream = pyaudio.PyAudio().open(
+                                  format=pyaudio.paFloat32,
+                                  channels=2,
+                                  rate=self.sample_rate,
+                                  frames_per_buffer=self.chunk_size,
+                                  output=True)
 
-    def _mk_butter_filter(self, freq, type, order):
-        def filter_fn(seg):
-            assert seg.channels == 1
-
-            nyq = 0.5 * seg.frame_rate
-            try:
-                freqs = [f / nyq for f in freq]
-            except TypeError:
-                freqs = freq / nyq
-
-            sos = butter(order, freqs, btype=type, output='sos')
-            y = sosfilt(sos, seg.get_array_of_samples())
-
-            return seg._spawn(y.astype(seg.array_type))
-
-        return filter_fn
-
-    def band_pass_filter(self, seg, low_cutoff_freq, high_cutoff_freq, order=2):
-        filter_fn = self._mk_butter_filter([low_cutoff_freq, high_cutoff_freq], 'band', order=order)
-        return seg.apply_mono_filter_to_each_channel(filter_fn)
-
-    def high_pass_filter(self, seg, cutoff_freq, order=2):
-        filter_fn = self._mk_butter_filter(cutoff_freq, 'highpass', order=order)
-        return seg.apply_mono_filter_to_each_channel(filter_fn)
-
-    def low_pass_filter(self, seg, cutoff_freq, order=2):
-        filter_fn = self._mk_butter_filter(cutoff_freq, 'lowpass', order=order)
-        return seg.apply_mono_filter_to_each_channel(filter_fn)
-
-    def _eq(self, seg, focus_freq, bandwidth=100, mode="peak", gain_dB=0, order=2):
-        filt_mode = ["peak", "low_shelf", "high_shelf"]
-        if mode not in filt_mode:
-            raise ValueError("Incorrect Mode Selection")
-            
-        if gain_dB >= 0:
-            if mode == "peak":
-                sec = self.band_pass_filter(seg, focus_freq - bandwidth/2, focus_freq + bandwidth/2, order = order)
-                seg = seg.overlay(sec - (3 - gain_dB))
-                return seg
-            
-            if mode == "low_shelf":
-                sec = self.low_pass_filter(seg, focus_freq, order=order)
-                seg = seg.overlay(sec - (3 - gain_dB))
-                return seg
-            
-            if mode == "high_shelf":
-                sec = self.high_pass_filter(seg, focus_freq, order=order)
-                seg = seg.overlay(sec - (3 - gain_dB))
-                return seg
-            
-        if gain_dB < 0:
-            if mode == "peak":
-                sec = self.high_pass_filter(seg, focus_freq - bandwidth/2, order=order)
-                seg = seg.overlay(sec - (3 + gain_dB)) + gain_dB
-                sec = self.low_pass_filter(seg, focus_freq + bandwidth/2, order=order)
-                seg = seg.overlay(sec - (3 + gain_dB)) + gain_dB
-                return seg
-            
-            if mode == "low_shelf":
-                sec = self.high_pass_filter(seg, focus_freq, order=order)
-                seg = seg.overlay(sec - (3 + gain_dB)) + gain_dB
-                return seg
-            
-            if mode=="high_shelf":
-                sec=self.low_pass_filter(seg, focus_freq, order=order)
-                seg=seg.overlay(sec - (3 + gain_dB)) +gain_dB
-                return seg
-
-    def eq(self, seg, focus_freq, bandwidth=100, channel_mode="L+R", filter_mode="peak", gain_dB=0, order=2):
-        channel_modes = ["L+R", "M+S", "L", "R", "M", "S"]
-        if channel_mode not in channel_modes:
-            raise ValueError("Incorrect Channel Mode Selection")
-            
-        if seg.channels == 1:
-            return self._eq(seg, focus_freq, bandwidth, filter_mode, gain_dB, order)
-            
-        if channel_mode == "L+R":
-            return self._eq(seg, focus_freq, bandwidth, filter_mode, gain_dB, order)
-            
-        if channel_mode == "L":
-            seg = seg.split_to_mono()
-            seg = [self._eq(seg[0], focus_freq, bandwidth, filter_mode, gain_dB, order), seg[1]]
-            return AudioSegment.from_mono_audio_segements(seg[0], seg[1])
-            
-        if channel_mode == "R":
-            seg = seg.split_to_mono()
-            seg = [seg[0], self._eq(seg[1], focus_freq, bandwidth, filter_mode, gain_dB, order)]
-            return AudioSegment.from_mono_audio_segements(seg[0], seg[1])
-            
-        if channel_mode == "M+S":
-            seg = self.stereo_to_ms(seg)
-            seg = self._eq(seg, focus_freq, bandwidth, filter_mode, gain_dB, order)
-            return self.ms_to_stereo(seg)
-            
-        if channel_mode == "M":
-            seg = self.stereo_to_ms(seg).split_to_mono()
-            seg = [self._eq(seg[0], focus_freq, bandwidth, filter_mode, gain_dB, order), seg[1]]
-            seg = AudioSegment.from_mono_audio_segements(seg[0], seg[1])
-            return self.ms_to_stereo(seg)
-            
-        if channel_mode == "S":
-            seg = self.stereo_to_ms(seg).split_to_mono()
-            seg = [seg[0], self._eq(seg[1], focus_freq, bandwidth, filter_mode, gain_dB, order)]
-            seg = AudioSegment.from_mono_audio_segements(seg[0], seg[1])
-            return self.ms_to_stereo(seg)
+    def pause(self):
+        self.paused.value = True
         
-    def play(self, channel):
-        pygame.mixer.init()
-        while True:
-            print(len(self.dict[0]), len(self.dict[1]), len(self.dict[2]), len(self.dict[3]))
-            if len(self.dict[0]) > 0 and len(self.dict[1]) > 0 and len(self.dict[2]) > 0 and len(self.dict[3]) > 0:
-                pygame.mixer.Channel(channel).play(pygame.mixer.Sound(buffer=self.datas.pop(0)))
-                while pygame.mixer.Channel(channel).get_busy():                    
+    def resume(self):
+        self.paused.value = False
+
+    def set_volume(self, volume):
+        self.volume.value = volume
+        
+    def close(self):
+        self.stream.stop_stream()
+        self.stream.close()
+        pyaudio.PyAudio().terminate()
+
+    def _calculate_coefficients(self):
+        self.coeffs = []
+        for i in range(len(self.bands)):
+            w0 = 2 * np.pi * self.bands[i] / self.sample_rate
+            alpha = np.sin(w0) / (2 * self.Q[i])
+            A = 10**(self.gain_db[i] / 40)
+            b0 = 1 + alpha * A
+            b1 = -2 * np.cos(w0)
+            b2 = 1 - alpha * A
+            a0 = 1 + alpha / A
+            a1 = -2 * np.cos(w0)
+            a2 = 1 - alpha / A
+            self.coeffs.append([b0 / a0, b1 / a0, b2 / a0, a1 / a0, a2 / a0])
+    
+    def set_gain(self, gain_db):
+        self.gain_db = gain_db
+        self._calculate_coefficients()
+
+    def process(self, signal):
+        out = np.zeros_like(signal)
+        if signal.ndim == 1:  # mono signal
+            for i in range(len(self.bands)):
+                b0, b1, b2, a1, a2 = self.coeffs[i]
+                b = np.array([b0, b1, b2])
+                a = np.array([1, a1, a2])
+                out += signal * b[0]
+                out = sg.lfilter(b, a, out)
+        elif signal.ndim == 2:  # stereo signal
+            for i in range(len(self.bands)):
+                b0, b1, b2, a1, a2 = self.coeffs[i]
+                b = np.array([b0, b1, b2])
+                a = np.array([1, a1, a2])
+                out[:, 0] += signal[:, 0] * b[0] + signal[:, 1] * b[1]
+                out[:, 1] += signal[:, 0] * b[0] + signal[:, 1] * b[1]
+                out[:, 0], out[:, 1] = sg.lfilter(b, a, out[:, 0]), sg.lfilter(b, a, out[:, 1])
+        else:
+            raise ValueError("Unsupported number of channels: %d" % signal.ndim)
+        return out
+    
+    def prep_for_eq(self, file, start_ms):
+        ### Convert to mono, cut to length, and export as wav
+        sound = AudioSegment.from_wav(file)
+        sound = sound[start_ms:sound.duration_seconds * 1000]
+        sound = sound.set_channels(1)
+        sound.export(file, format="wav")
+        audio, sr = sf.read(file)
+        return audio, sr
+    
+    def apply_eq(self, args):
+        ### Convert to stereo, apply eq, and play
+        file, channel, start_ms = args # Unpack args
+        audio, sr = self.prep_for_eq(file, start_ms) # Prep for eq
+        eq_audio = np.tile(audio, (2, 1)).T # Convert to stereo
+        self.start_stream() # Start stream
+        for i in range(0, eq_audio.shape[0], self.chunk_size): # Apply eq
+            if self.paused.value: # Pause
+                self.stream.write(self.buffer * 0, pyaudio.paContinue) # Write empty buffer
+                while True: # Wait for resume
+                    if not self.paused.value:
+                        break
+                    else:
+                        pass
+            chunk = eq_audio[i:i+self.chunk_size] # Get chunk
+            processed_chunk = self.process(chunk) # Process chunk
+            processed_chunk *= self.volume.value # Apply volume
+            self.dict[channel] = ["ready"] # Set channel to ready
+            while True: # Wait for all channels to be ready
+                if len(self.dict["bass"]) > 0 and len(self.dict["drums"]) > 0 and len(self.dict["vocals"]) > 0 and len(self.dict["other"]) > 0:
+                    break
+                else:
                     pass
+            self.stream.write(processed_chunk.astype(np.float32).tobytes()) # Write chunk
+        self.close() # Close stream
+        del audio, eq_audio, sr, processed_chunk, chunk # Delete variables
+        gc.collect() # Collect garbage
 
-    def apply_eq(self, audio_seg, pygame_channel, gains):
-        pygame.mixer.init()
-        self.datas = []
-        threading.Thread(target=self.play, args=(pygame_channel,), daemon=True).start()
-        for i in range(0, len(audio_seg), self.CHUNK):
-            # Extract chunk from audio file
-            chunk = audio_seg[i:i+self.CHUNK]
-            # Apply equalizer
-            for j in range(0, self.BANDS):
-                chunk = self.eq(chunk, self.FREQS[j], bandwidth=audio_seg.sample_width, channel_mode="L+R", filter_mode="peak", gain_dB=gains[j], order=self.FILTER_ORDER)
-            self.datas.append(chunk._data)
-            self.dict[pygame_channel] = [None]*len(self.datas)
+def run(eq):
+    files = ["MISST/separated/CantinaBand3/bass.wav", "MISST/separated/CantinaBand3/drums.wav", "MISST/separated/CantinaBand3/other.wav", "MISST/separated/CantinaBand3/vocals.wav"]
+    start_ms = 0
 
-        while len(self.dict[pygame_channel]) > 0:
-            pass
+    args = [(file, file.split("/")[-1].replace(".wav", ""), start_ms) for file in files]
 
-    def run(self, file):
-        self.apply_eq(AudioSegment.from_file(file), self.FILES.index(file), self.GAINS)
+    with mp.Pool(processes=4) as pool:
+        pool.map(eq.apply_eq, args)    
 
-if __name__ == "__main__":
-    files = ["./MISST/separated/z_test/bass.wav", "./MISST/separated/z_test/drums.wav", "./MISST/separated/z_test/other.wav", "./MISST/separated/z_test/vocals.wav"]
-
-    with mp.Manager() as manager:
-        eq = MISSTeq(files, [0, 0, 0, 0, 0, 0, 0, 0, 0])
-        args = [file for file in files]
-        with mp.Pool(processes=4) as pool:
-            pool.map(eq.run, args)
+if __name__ == '__main__':
+    volume = mp.Manager().Value('d', 10.0)
+    paused = mp.Manager().Value('b', False)
+    eq = MISSTeq(44100, volume, paused)
+    eq.set_gain(np.array([0,0,0,0,0,0,0,0,0]))
+    threading.Thread(target=run, args=(eq,)).start()
+    while True:
+        paused.value = input("Paused: ") == "True" # Pause
+        pass
