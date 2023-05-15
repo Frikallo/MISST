@@ -1,3 +1,4 @@
+from MISSTsettings import MISSTsettings
 import pyaudio
 import wave
 import threading
@@ -14,6 +15,10 @@ class MISSTplayer:
         self.chunk_size = 1024
         self.fade_duration = 1  # Fade duration in seconds
         self.nightcore = False
+        self.settings = MISSTsettings()
+        self.bands = lambda: [self.settings.getSetting(f"eq_{n}") for n in range(1,10)] # lambda so the player can access the latest information
+        self.eq = lambda: True if self.settings.getSetting("eq") == "true" else False
+        self.center_freqs = [62, 125, 250, 500, 1_000, 2_500, 4_000, 8_000, 16_000] # 62 Hz, 125 Hz, 250 Hz, 500 Hz, 1 KHz, 2.5 KHz, 4 KHz, 8 KHz, 16 KHz
         
         for file in self.files:
             wf = wave.open(file, 'rb')
@@ -47,6 +52,8 @@ class MISSTplayer:
             data = self.adjust_volume(data, self.volumes[stream_index])
             if self.nightcore == True:
                 data = self.apply_nightcore(data)
+            #if self.eq() == True:
+            #    data = self.apply_eq(data) # apply eq last so it can be applied to nightcore data aswell
         wf.close()
         return data
     
@@ -88,6 +95,58 @@ class MISSTplayer:
         samples = np.repeat(samples, 2)
         
         return samples.tobytes()
+
+    def apply_eq(self, data):
+        samples = np.frombuffer(data, dtype=np.int16)
+        samples = samples.astype(np.float32)
+        samples = samples.reshape((len(samples) // 2, 2)).T
+        samples = samples.mean(axis=0)
+
+        bands = self.bands() # 9 bands
+        freqs = self.center_freqs
+        downsampled_length = len(samples) // 2
+        lowpass_cutoff_bin = int(lowpass_cutoff * downsampled_length / self.frame_rate)
+        highpass_cutoff_bin = int(highpass_cutoff * downsampled_length / self.frame_rate)
+
+        eq_samples = np.zeros_like(samples)
+
+        # Apply low-pass filter
+        lowpass_cutoff_bin = int(lowpass_cutoff * len(samples) / self.frame_rate)
+        lowpass_samples = np.fft.rfft(samples)
+        lowpass_samples[lowpass_cutoff_bin:] = 0
+        eq_samples += np.fft.irfft(lowpass_samples)
+
+        # Apply high-pass filter
+        highpass_cutoff_bin = int(highpass_cutoff * len(samples) / self.frame_rate)
+        highpass_samples = np.fft.rfft(samples)
+        highpass_samples[:highpass_cutoff_bin] = 0
+        eq_samples += np.fft.irfft(highpass_samples)
+
+        # Apply notch filter
+        notch_freq = 10_000
+        notch_bw = 100
+        notch_freq_bin = int(notch_freq * len(samples) / self.frame_rate)
+        notch_bw_bins = int(notch_bw * len(samples) / self.frame_rate)
+        notch_samples = np.fft.rfft(samples)
+        notch_samples[notch_freq_bin - notch_bw_bins: notch_freq_bin + notch_bw_bins] = 0
+        eq_samples += np.fft.irfft(notch_samples)
+
+        # Apply shelving filters
+        for band, freq in zip(bands, freqs):
+            gain = 10 ** (band / 20)  # Convert dB gain to linear scale
+            if freq < lowpass_cutoff:
+                low_shelf_samples = np.fft.rfft(samples)
+                low_shelf_samples *= gain
+                eq_samples += np.fft.irfft(low_shelf_samples)
+            elif freq > highpass_cutoff:
+                high_shelf_samples = np.fft.rfft(samples)
+                high_shelf_samples *= gain
+                eq_samples += np.fft.irfft(high_shelf_samples)
+
+        eq_samples = np.clip(eq_samples, -32768, 32767)  # Clip samples to the appropriate range
+        eq_samples = eq_samples.astype(np.int16)
+        eq_samples = eq_samples.flatten()
+        return eq_samples.tobytes()
     
     def set_nightcore(self, nightcore):
         self.nightcore = nightcore
