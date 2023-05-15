@@ -17,20 +17,20 @@ class MISSThelpers():
     def change_theme(theme):
         customtkinter.set_appearance_mode(theme)
 
-    def checkbox_event(checkbox, sound, slider):
+    def checkbox_event(checkbox, sound, player, slider):
         if checkbox.get() == "on":
-            sound.set_volume(slider.get())
+            player.set_volume(sound, slider.get())
         else:
             slider.set(0)
-            sound.set_volume(slider.get())
+            player.set_volume(sound, slider.get())
 
-    def slider_event(value, sound, checkbox):
+    def slider_event(value, sound, player, checkbox):
         if value >= 0.01:
             checkbox.select()
-            sound.set_volume(value)
+            player.set_volume(sound, value)
         else:
             checkbox.deselect()
-            sound.set_volume(value)
+            player.set_volume(sound, value)
 
     def update_rpc(
         self,
@@ -274,10 +274,6 @@ class MISSThelpers():
         return
     
     def terminate_thread(self, thread):
-        """Terminates a python thread from another thread.
-
-        :param thread: a threading.Thread instance
-        """
         if not thread.is_alive():
             return
 

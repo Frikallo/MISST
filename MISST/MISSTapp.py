@@ -6,10 +6,8 @@ import customtkinter
 from pypresence import Presence
 import threading
 import time
-import pygame
 import random
 import datetime
-import nightcore as nc
 from PIL import Image
 from werkzeug.utils import secure_filename
 import shutil
@@ -36,7 +34,7 @@ class MISSTapp(customtkinter.CTk):
         except:
             pass
 
-        self.player = MISSTplayer()
+        self.player = MISSTplayer(["Assets/silent/silence.wav","Assets/silent/silence.wav","Assets/silent/silence.wav","Assets/silent/silence.wav"], [0]*4)
         self.settings = MISSTsettings()
         self.server_base = self.settings.getSetting("server_base")
         self.server = MISSTserver(self.server_base)
@@ -219,7 +217,7 @@ class MISSTapp(customtkinter.CTk):
             text="Play",
             width=150,
             height=25,
-            command=lambda: self.play_search(self.index_entry.get(), MISSThelpers.MISSTlistdir(self.importsDest)),
+            command=lambda: self.play_search(self.index_entry.get(), MISSThelpers.MISSTlistdir(self, self.importsDest)),
         )
         self.playbutton.place(relx=0.5, rely=0.93, anchor=tkinter.CENTER)
 
@@ -297,7 +295,8 @@ class MISSTapp(customtkinter.CTk):
             command=lambda: print("test"),
             fg_color='transparent',
             hover_color=self.north_frame.cget("bg_color"),
-            text_color=self.logolabel.cget("text_color")
+            text_color=self.logolabel.cget("text_color"),
+            image = customtkinter.CTkImage(Image.open(f"./Assets/empty.png"), size=(1,1))
         )
         self.songlabel.place(relx=0.5, rely=0.3, anchor=tkinter.CENTER)
 
@@ -320,7 +319,7 @@ class MISSTapp(customtkinter.CTk):
         self.checkbox1 = customtkinter.CTkCheckBox(
             master=self.center_frame,
             text="bass",
-            command=lambda: MISSThelpers.checkbox_event(self.check_var1, self.player.bass, self.slider1),
+            command=lambda: MISSThelpers.checkbox_event(self.check_var1, 0, self.player, self.slider1),
             variable=self.check_var1,
             onvalue="on",
             offvalue="off",
@@ -330,7 +329,7 @@ class MISSTapp(customtkinter.CTk):
         self.checkbox2 = customtkinter.CTkCheckBox(
             master=self.center_frame,
             text="drums",
-            command=lambda: MISSThelpers.checkbox_event(self.check_var2, self.player.drums, self.slider2),
+            command=lambda: MISSThelpers.checkbox_event(self.check_var2, 1, self.player, self.slider2),
             variable=self.check_var2,
             onvalue="on",
             offvalue="off",
@@ -340,7 +339,7 @@ class MISSTapp(customtkinter.CTk):
         self.checkbox3 = customtkinter.CTkCheckBox(
             master=self.center_frame,
             text="other",
-            command=lambda: MISSThelpers.checkbox_event(self.check_var3, self.player.other, self.slider3),
+            command=lambda: MISSThelpers.checkbox_event(self.check_var3, 2, self.player, self.slider3),
             variable=self.check_var3,
             onvalue="on",
             offvalue="off",
@@ -350,7 +349,7 @@ class MISSTapp(customtkinter.CTk):
         self.checkbox4 = customtkinter.CTkCheckBox(
             master=self.center_frame,
             text="vocals",
-            command=lambda: MISSThelpers.checkbox_event(self.check_var4, self.player.vocals, self.slider4),
+            command=lambda: MISSThelpers.checkbox_event(self.check_var4, 3, self.player, self.slider4),
             variable=self.check_var4,
             onvalue="on",
             offvalue="off",
@@ -361,7 +360,7 @@ class MISSTapp(customtkinter.CTk):
             master=self.center_frame,
             from_=0,
             to=1,
-            command=lambda x: MISSThelpers.slider_event(x,  self.player.bass,  self.checkbox1),
+            command=lambda x: MISSThelpers.slider_event(x, 0, self.player, self.checkbox1),
             number_of_steps=10,
         )
         self.slider1.place(relx=0.6, rely=0.2, anchor=tkinter.CENTER)
@@ -370,7 +369,7 @@ class MISSTapp(customtkinter.CTk):
             master=self.center_frame,
             from_=0,
             to=1,
-            command=lambda x: MISSThelpers.slider_event(x,  self.player.drums,  self.checkbox2),
+            command=lambda x: MISSThelpers.slider_event(x, 1, self.player, self.checkbox2),
             number_of_steps=10,
         )
         self.slider2.place(relx=0.6, rely=0.35, anchor=tkinter.CENTER)
@@ -379,7 +378,7 @@ class MISSTapp(customtkinter.CTk):
             master=self.center_frame,
             from_=0,
             to=1,
-            command=lambda x: MISSThelpers.slider_event(x,  self.player.other,  self.checkbox3),
+            command=lambda x: MISSThelpers.slider_event(x, 2, self.player, self.checkbox3),
             number_of_steps=10,
         )
         self.slider3.place(relx=0.6, rely=0.5, anchor=tkinter.CENTER)
@@ -388,7 +387,7 @@ class MISSTapp(customtkinter.CTk):
             master=self.center_frame,
             from_=0,
             to=1,
-            command=lambda x: MISSThelpers.slider_event(x,  self.player.vocals,  self.checkbox4),
+            command=lambda x: MISSThelpers.slider_event(x, 3, self.player, self.checkbox4),
             number_of_steps=10,
         )
         self.slider4.place(relx=0.6, rely=0.65, anchor=tkinter.CENTER)
@@ -396,7 +395,7 @@ class MISSTapp(customtkinter.CTk):
         self.nc_checkbox = customtkinter.CTkSwitch(
             master=self.center_frame,
             text="nightcore",
-            command=lambda: print("test"),
+            command=self.nightcore,
             variable=self.nc_var,
             onvalue="on",
             offvalue="off",
@@ -1087,76 +1086,84 @@ class MISSTapp(customtkinter.CTk):
                 songs_box.configure(state=tkinter.DISABLED)
                 entry_val = search_entry.get()
 
+    def play(self, dir):    
+        self.UI_thread = threading.Thread(target=self.update_UI, args=(f"{self.importsDest}/{dir}/other.wav", 0), daemon=True)
+        self.UI_thread.start()
+        try:
+            self.player.stop()
+        except:
+            pass
+        self.player = MISSTplayer([f"{self.importsDest}/{dir}/bass.wav", f"{self.importsDest}/{dir}/drums.wav", f"{self.importsDest}/{dir}/other.wav", f"{self.importsDest}/{dir}/vocals.wav"], [self.slider1.get(), self.slider2.get(), self.slider3.get(), self.slider4.get()])
+        threading.Thread(target=self.player.play, daemon=True).start()
+
     def play_search(self, index_label, songs):
+        self.playbutton.configure(state=tkinter.DISABLED)
         try:
             index = int(index_label)
             song = songs[index - 1]
             self.playing = True
             self.nc_checkbox.deselect()
-            MISSTplayer.play(self, f"{self.importsDest}/{song}", 0)
-        except:
+            self.play(song)
+        except Exception as e:
+            print(e)
             pass
+        self.playbutton.configure(state=tkinter.NORMAL)
 
     def shuffle(self):
-        try:
-            songs = MISSThelpers.MISSTlistdir(self, self.importsDest) 
-            random.shuffle(songs)
-            self.playing = True
-            self.nc_checkbox.deselect()
-            MISSTplayer.play(self, f"{self.importsDest}/{songs[0]}", 0)
-        except:
-            pass
+        self.shuffle_button.configure(state=tkinter.DISABLED)
+        songs = MISSThelpers.MISSTlistdir(self, self.importsDest) 
+        random.shuffle(songs)
+        self.playing = True
+        self.nc_checkbox.deselect()
+        self.play(songs[0])
+        self.shuffle_button.configure(state=tkinter.NORMAL)
 
     def next(self, songName):
-        try:
-            songs = MISSThelpers.MISSTlistdir(self, self.importsDest) 
-            index = songs.index(songName)
-            self.playing = True
-            self.nc_checkbox.deselect()
-            MISSTplayer.play(self, f"{self.importsDest}/{songs[index + 1]}", 0)
-        except:
-            pass
+        self.next_button.configure(state=tkinter.DISABLED)
+        songs = MISSThelpers.MISSTlistdir(self, self.importsDest) 
+        index = songs.index(songName)
+        self.playing = True
+        self.nc_checkbox.deselect()
+        self.play(songs[index + 1])
+        self.next_button.configure(state=tkinter.NORMAL)
 
     def previous(self, songName):
-        try:
-            songs = MISSThelpers.MISSTlistdir(self, self.importsDest) 
-            index = songs.index(songName)
-            self.playing = True
-            self.nc_checkbox.deselect()
-            MISSTplayer.play(self, f"{self.importsDest}/{songs[index - 1]}", 0)
-        except:
-            pass
+        self.previous_button.configure(state=tkinter.DISABLED)
+        songs = MISSThelpers.MISSTlistdir(self, self.importsDest) 
+        index = songs.index(songName)
+        self.playing = True
+        self.nc_checkbox.deselect()
+        self.play(songs[index - 1])
+        self.previous_button.configure(state=tkinter.NORMAL)
 
-    def slider_event(self, value, progressbar):
-        progressbar.configure(state=tkinter.DISABLED)
-        MISSTplayer.change_pos(self, f"{self.importsDest}/{self.songlabel._text}", int(value) * 1000)
-        progressbar.configure(state="normal")
-        return
-
-    def nightcore(self, nightcore_check, progressbar):
-        nightcore_check.configure(state=tkinter.DISABLED)
-        if self.nc_var.get() == "on":
-            for sound in self.cur_sound_datas:
-                nc_sound = self.cur_sound_datas[sound] @ nc.Tones(1)
-                self.cur_sound_datas[sound] = nc_sound
-            MISSTplayer.change_pos(self, f"{self.importsDest}/{self.songlabel._text}", progressbar.get() * 1000)
-        else:
-            MISSTplayer.play(self, f"{self.importsDest}/{self.songlabel._text}", progressbar.get() * 1000)
-        nightcore_check.configure(state="normal")
+    def slider_event(self, value):
+        frames_per_millisecond = self.player.frame_rate / 1000
+        ms = value * 1000
+        frame = int(ms * frames_per_millisecond)
+        self.player.set_position(0, frame)
+        self.player.set_position(1, frame)
+        self.player.set_position(2, frame)
+        self.player.set_position(3, frame)
         return
     
-    def playpause(self, progressbar):
+    def nightcore(self):
+        if self.nc_checkbox.get() == 'on':
+            self.player.set_nightcore(True)
+        else:
+            self.player.set_nightcore(False)
+    
+    def playpause(self):
         if self.playing == True:
             self.playpause_button.configure(state="normal", image=customtkinter.CTkImage(Image.open(f"./Assets/images/player-play.png"), size=(32, 32)))
-            pygame.mixer.pause()
+            self.player.pause()
             self.playing = False
-            progressbar.configure(state=tkinter.DISABLED)
+            self.progressbar.configure(state=tkinter.DISABLED)
             self.nc_checkbox.configure(state=tkinter.DISABLED)
         else:
             self.playpause_button.configure(state="normal", image=customtkinter.CTkImage(Image.open(f"./Assets/images/player-pause.png"), size=(32, 32)))
-            pygame.mixer.unpause()
+            self.player.resume()
             self.playing = True
-            progressbar.configure(state="normal")
+            self.progressbar.configure(state="normal")
             self.nc_checkbox.configure(state="normal")
 
     def loopEvent(self):
@@ -1167,10 +1174,25 @@ class MISSTapp(customtkinter.CTk):
             self.loop = True
             self.loop_button.configure(state="normal", image=customtkinter.CTkImage(Image.open(f"./Assets/Images/loop.png"), size=(25, 25)))
 
+    def update_progress_bar(self, current_time, total_duration):
+        progress = current_time / total_duration
+        progress_in_seconds = int(progress * total_duration)
+
+        self.progressbar.set(progress_in_seconds)
+        self.progress_label_left.configure(text=f"{str(datetime.timedelta(seconds=progress_in_seconds))[2:7]}")
+        self.progress_label_right.configure(text=f"{str(datetime.timedelta(seconds=total_duration))[2:7]}")
+        
     def update_UI(self, audioPath, start_ms):
-        pygame.mixer.unpause()
         self.next_button.configure(state="normal")
         self.previous_button.configure(state="normal")
+        self.playpause_button.configure(state="normal")
+        self.nc_checkbox.configure(state="normal")
+        self.nc_checkbox.deselect()
+
+        if self.playing == True:
+            self.playpause_button.configure(image=customtkinter.CTkImage(Image.open(f"./Assets/images/player-pause.png"), size=(32, 32)))
+        else:
+            self.playpause_button.configure(image=customtkinter.CTkImage(Image.open(f"./Assets/images/player-play.png"), size=(32, 32)))
 
         self.songlabel.configure(text="")
         song_name = os.path.basename(os.path.dirname(audioPath))
@@ -1181,31 +1203,18 @@ class MISSTapp(customtkinter.CTk):
         self.previous_button.configure(command=lambda: self.previous(song_name))
         try:
             cover_art = customtkinter.CTkImage(Image.open(MISSThelpers.resize_image(self, f"{song_dir}/{web_name}.png", 40)), size=(40, 40))
-        except Exception as e:
-            print(e)
+        except:
             cover_art = customtkinter.CTkImage(Image.open("./Assets/default.png"), size=(40, 40))
-        self.songlabel = customtkinter.CTkButton(
-            master=self.north_frame,
-            text=song_name,
-            width=240,
-            height=50,
-            font=(self.FONT, -14),
-            command=lambda: print("test"),
-            fg_color='transparent',
-            hover_color=self.north_frame.cget("bg_color"),
-            text_color=self.logolabel.cget("text_color"), 
-            image=cover_art
-        )
-        duration = self.cur_sound_datas['other'].duration_seconds
 
-        progressbar = customtkinter.CTkSlider(master=self.north_frame, width=225, height=15, from_=0, to=int(duration), number_of_steps=int(duration), state="normal", command=lambda x: threading.Thread(target=self.slider_event, args=(x, progressbar), daemon=True).start())
-        progressbar.place(relx=0.5, rely=0.7, anchor=tkinter.CENTER)
-        progressbar.set(int(start_ms / 1000))
+        self.songlabel.configure(text=song_name)
+        self.songlabel.configure(image=cover_art)
 
-        self.playpause_button.configure(state="normal", command=lambda: self.playpause(progressbar))
+        duration = int(self.player.duration)
+        self.progressbar.configure(from_=0, to=duration, state="normal")
+        self.progressbar.set(start_ms // 1000)
 
-        self.songlabel.place(relx=0.5, rely=0.3, anchor=tkinter.CENTER)
-        self.nc_checkbox.configure(state="normal", command=lambda: threading.Thread(target=self.nightcore,args=(self.nc_checkbox, progressbar),daemon=True).start())
+        # Define a variable to track the current time
+        current_time = start_ms // 1000
 
         MISSThelpers.update_rpc(
             self,
@@ -1216,66 +1225,57 @@ class MISSTapp(customtkinter.CTk):
             end_time=time.time() + duration,
             small_image="icon-0",
         )
-        t = start_ms / 1000
 
-        progress_label_left = customtkinter.CTkLabel(
-            master=self.north_frame, text=f"{str(datetime.timedelta(seconds=start_ms/1000)).split('.')[0][2:]}", font=(self.FONT, -12), width=50
-        )
-        progress_label_left.place(relx=0.1, rely=0.7, anchor=tkinter.CENTER)
+        self.progressbar_active = False
 
-        progress_label_right = customtkinter.CTkLabel(
-            master=self.north_frame, text=f"{str(datetime.timedelta(seconds=duration-start_ms/1000)).split('.')[0][2:]}", font=(self.FONT, -12), width=50
-        )
-        progress_label_right.place(relx=0.9, rely=0.7, anchor=tkinter.CENTER)
-
-        for _ in os.listdir(self.importsDest + "/" + song_name):
-            if _.endswith("_nc.wav"):
-                os.remove(self.importsDest + "/" + song_name + "/" + _)
-
-        percent = 0
-
-        while True:
-
-            if self.songlabel._text == "" or progress_label_right._text == "0:00" or MISSTplayer().bass.get_busy() == False or MISSTplayer().drums.get_busy() == False or MISSTplayer().vocals.get_busy() == False or MISSTplayer().other.get_busy() == False:
-
-                if self.loop == True:
-                    self.nc_checkbox.deselect()
-                    MISSTplayer.play(self, song_dir, 0)
-                    break
-                else:
-                    pygame.mixer.pause()
-                    progressbar.set(0)
-                    progressbar.configure(state=tkinter.DISABLED)
-                    self.songlabel = customtkinter.CTkButton(
-                        master=self.north_frame,
-                        text="Play Something!",
-                        width=240,
-                        height=50,
-                        font=(self.FONT, -14),
-                        command=lambda: print("test"),
-                        fg_color='transparent',
-                        hover_color=self.north_frame.cget("bg_color"),
-                        text_color=self.logolabel.cget("text_color"), 
-                    )
-                    self.songlabel.place(relx=0.5, rely=0.3, anchor=tkinter.CENTER)
-                    progress_label_left.configure(text="0:00")
-                    progress_label_right.configure(text="0:00")
+        def on_end():
+            if self.loop == True:
+                self.play(song_name)
+            elif self.autoplay == True:
+                try:
+                    self.next(song_name)
+                except:
+                    self.playpause_button.configure(image=customtkinter.CTkImage(Image.open(f"./Assets/images/player-play.png"), size=(32, 32)), state=tkinter.DISABLED)
+                    self.playing = False
+                    self.progressbar.configure(state=tkinter.DISABLED)
+                    self.nc_checkbox.configure(state=tkinter.DISABLED)
+                    self.progressbar.set(0)
+                    self.progress_label_left.configure(text="00:00")
+                    self.progress_label_right.configure(text="00:00")
+                    self.songlabel.configure(text="Play Something!", image=customtkinter.CTkImage(Image.open("./Assets/empty.png"), size=(1, 1)))
+                    self.next_button.configure(state=tkinter.DISABLED)
+                    self.previous_button.configure(state=tkinter.DISABLED)
                     MISSThelpers.update_rpc(
                         self,
                         Ltext="Idle",
                         Dtext="Nothing is playing",
                         image="icon-0",
                         large_text="MISST",
-                    )
-                    self.nc_checkbox.configure(state=tkinter.DISABLED)
-                    self.playpause_button.configure(state=tkinter.DISABLED)
-                    self.next_button.configure(state=tkinter.DISABLED)
-                    self.previous_button.configure(state=tkinter.DISABLED)
-                    break
+                    )            
+            else:
+                self.playpause_button.configure(image=customtkinter.CTkImage(Image.open(f"./Assets/images/player-play.png"), size=(32, 32)), state=tkinter.DISABLED)
+                self.playing = False
+                self.progressbar.configure(state=tkinter.DISABLED)
+                self.nc_checkbox.configure(state=tkinter.DISABLED)
+                self.progressbar.set(0)
+                self.progress_label_left.configure(text="00:00")
+                self.progress_label_right.configure(text="00:00")
+                self.songlabel.configure(text="Play Something!", image=customtkinter.CTkImage(Image.open("./Assets/empty.png"), size=(1, 1)))
+                self.next_button.configure(state=tkinter.DISABLED)
+                self.previous_button.configure(state=tkinter.DISABLED)
+                MISSThelpers.update_rpc(
+                    self,
+                    Ltext="Idle",
+                    Dtext="Nothing is playing",
+                    image="icon-0",
+                    large_text="MISST",
+                )
 
-            if self.songlabel._text != song_name:
-                break
-
+        def update_progress():
+            nonlocal current_time
+            # Update the progress bar
+            self.update_progress_bar(current_time, duration)
+            # Increment the current time only if the user hasn't interacted with the progress bar
             if self.playing == False:
                 MISSThelpers.update_rpc(
                     self,
@@ -1286,36 +1286,51 @@ class MISSTapp(customtkinter.CTk):
                     end_time=None,
                     small_image="icon-0",
                 )
-                while self.playing == False:
-                    time.sleep(0.1)
-                    if self.playing != False:
-                        MISSThelpers.update_rpc(
-                            self,
-                            Ltext="Listening to seperated audio",
-                            Dtext=song_name,
-                            image=f"{self.server_base}/getcoverart/{web_name}.png",
-                            large_text=song_name,
-                            end_time=time.time() + duration - t,
-                            small_image="icon-0",
-                        )
-                        break
-            t += 1
-            percent = t / duration
-            progressbar.set(int(duration * percent))
-            progress_label_left.configure(
-                text=f"{str(datetime.timedelta(seconds=t)).split('.')[0][2:]}"
-            )
-            progress_label_right.configure(
-                text=f"{str(datetime.timedelta(seconds=duration-t)).split('.')[0][2:]}"
-            )
-            time.sleep(1)
-        if self.settings.getSetting('autoplay') == 'true' and percent >= 0.99 and self.loop != True:
-            try:
-                MISSTplayer.next()
+            if not self.progressbar_active and self.playing == True:
+                current_time += 1
+                MISSThelpers.update_rpc(
+                    self,
+                    Ltext="Listening to seperated audio",
+                    Dtext=song_name,
+                    image=f"{self.server_base}/getcoverart/{web_name}.png",
+                    large_text=song_name,
+                    end_time=time.time() + duration - current_time,
+                    small_image="icon-0",
+                )
+            if current_time >= duration:
+                stop_update_thread()
+                on_end()
                 return
+
+            # Schedule the next update
+            self.update_timer = threading.Timer(1.0, update_progress)
+            self.update_timer.start()
+
+        def stop_update_thread():
+            try:
+                if self.update_timer:
+                    MISSThelpers.terminate_thread(self, self.update_timer)
             except:
                 pass
-        return   
+
+        def on_progressbar_drag_start(event):
+            self.progressbar_active = True
+
+        def on_progressbar_drag_stop(event):
+            nonlocal current_time
+            self.progressbar_active = False
+            # Update the current time based on the user's selection
+            current_time = self.progressbar.get()
+
+        # Bind the drag start and drag stop events to the progress bar
+        self.progressbar.bind("<ButtonPress-1>", on_progressbar_drag_start)
+        self.progressbar.bind("<ButtonRelease-1>", on_progressbar_drag_stop)
+
+        # Stop the previous update thread if it exists
+        stop_update_thread()
+
+        # Start the progress update timer
+        update_progress()
 
 if __name__ == "__main__":
     app = MISSTapp()

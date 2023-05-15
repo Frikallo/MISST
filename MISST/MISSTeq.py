@@ -4,15 +4,14 @@ import soundfile as sf
 from pydub import AudioSegment
 import multiprocessing as mp
 import pyaudio
-import threading
 import gc
 
 class MISSTeq:
-    def __init__(self, sample_rate, volume, paused):
+    def __init__(self, sample_rate, volume, paused, gains):
         self.sample_rate = sample_rate
         self.bands = np.array([62, 125, 250, 500, 1000, 2500, 4000, 8000, 16000])
         self.Q = np.array([0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1])
-        self.gain_db = np.array([0, 0, 0, 0, 0, 0, 0, 0, 0])
+        self.gain_db = np.array(gains)
         self.chunk_size = 1024
         self._calculate_coefficients()
 
@@ -36,8 +35,8 @@ class MISSTeq:
     def resume(self):
         self.paused.value = False
 
-    def set_volume(self, volume):
-        self.volume.value = volume
+    def set_volume(self, channel, volume):
+        self.volume[channel] = volume
         
     def close(self):
         self.stream.stop_stream()
@@ -108,7 +107,7 @@ class MISSTeq:
                         pass
             chunk = eq_audio[i:i+self.chunk_size] # Get chunk
             processed_chunk = self.process(chunk) # Process chunk
-            processed_chunk *= self.volume.value # Apply volume
+            processed_chunk *= self.volume[channel] # Apply volume
             self.dict[channel] = ["ready"] # Set channel to ready
             while True: # Wait for all channels to be ready
                 if len(self.dict["bass"]) > 0 and len(self.dict["drums"]) > 0 and len(self.dict["vocals"]) > 0 and len(self.dict["other"]) > 0:
@@ -119,22 +118,3 @@ class MISSTeq:
         self.close() # Close stream
         del audio, eq_audio, sr, processed_chunk, chunk # Delete variables
         gc.collect() # Collect garbage
-
-def run(eq):
-    files = ["MISST/separated/CantinaBand3/bass.wav", "MISST/separated/CantinaBand3/drums.wav", "MISST/separated/CantinaBand3/other.wav", "MISST/separated/CantinaBand3/vocals.wav"]
-    start_ms = 0
-
-    args = [(file, file.split("/")[-1].replace(".wav", ""), start_ms) for file in files]
-
-    with mp.Pool(processes=4) as pool:
-        pool.map(eq.apply_eq, args)    
-
-if __name__ == '__main__':
-    volume = mp.Manager().Value('d', 10.0)
-    paused = mp.Manager().Value('b', False)
-    eq = MISSTeq(44100, volume, paused)
-    eq.set_gain(np.array([0,0,0,0,0,0,0,0,0]))
-    threading.Thread(target=run, args=(eq,)).start()
-    while True:
-        paused.value = input("Paused: ") == "True" # Pause
-        pass
