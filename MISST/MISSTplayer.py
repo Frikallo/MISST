@@ -104,20 +104,21 @@ class MISSTplayer:
 
         bands = self.bands() # 9 bands
         freqs = self.center_freqs
+        lowpass_cutoff = 15_000
+        highpass_cutoff = 75
+
         downsampled_length = len(samples) // 2
-        lowpass_cutoff_bin = int(lowpass_cutoff * downsampled_length / self.frame_rate)
-        highpass_cutoff_bin = int(highpass_cutoff * downsampled_length / self.frame_rate)
 
         eq_samples = np.zeros_like(samples)
 
         # Apply low-pass filter
-        lowpass_cutoff_bin = int(lowpass_cutoff * len(samples) / self.frame_rate)
+        lowpass_cutoff_bin = int(lowpass_cutoff * downsampled_length / self.frame_rate)
         lowpass_samples = np.fft.rfft(samples)
         lowpass_samples[lowpass_cutoff_bin:] = 0
         eq_samples += np.fft.irfft(lowpass_samples)
 
         # Apply high-pass filter
-        highpass_cutoff_bin = int(highpass_cutoff * len(samples) / self.frame_rate)
+        highpass_cutoff_bin = int(highpass_cutoff * downsampled_length / self.frame_rate)
         highpass_samples = np.fft.rfft(samples)
         highpass_samples[:highpass_cutoff_bin] = 0
         eq_samples += np.fft.irfft(highpass_samples)
