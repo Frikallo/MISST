@@ -973,7 +973,7 @@ class MISSTapp(customtkinter.CTk):
 
         val = 0.02
         frqs = ["62 Hz", "125 Hz", "250 Hz", "500 Hz", "1 KHz", "2.5 KHz", "4 KHz", "8 KHz", "16 KHz"]
-        sliders = [eq_slider1, eq_slider2, eq_slider3, eq_slider4, eq_slider5, eq_slider6, eq_slider7, eq_slider8, eq_slider9, eq_slider10] = [None] * 10
+        sliders = [eq_slider1, eq_slider2, eq_slider3, eq_slider4, eq_slider5, eq_slider6, eq_slider7, eq_slider8, eq_slider9] = [None] * 9
         for i in range(0, len(sliders)):
             sliders[i] = customtkinter.CTkSlider(
                 master=self.eq_frame,
