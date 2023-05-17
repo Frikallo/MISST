@@ -42,14 +42,28 @@ This project is OpenSource, feel free to use, study and/or send pull request.
 
 
 ## Installation
-as of version 2.0.6, MISST is not available for any platform with guaranteed compatibility. Until a later version, please refer to [Manual Installation](https://github.com/Frikallo/MISST/#manual-installation-for-developers). 
+as of version 2.0.6, MISST is only available on windows with guaranteed compatibility. Until a later release, please refer to [Manual Installation](https://github.com/Frikallo/MISST/#manual-installation). 
 
+## Manual Installation
+These instructions are for those installing MISST v3.0.2 **manually** only.
 
-### Issue Reporting
+1. Download & install Python 3.9 or higher (but no lower than 3.9) [here](https://www.python.org/downloads/)
+    - **Note:** Ensure the *"Add Python to PATH"* box is checked
+2. Download the Source code [here](https://github.com/Frikallo/MISST/releases/latest)
+3. Open the command prompt from the src directory and run the following commands, separately - 
 
-Please be as detailed as possible when posting a new issue. 
+```
+$ pip install -r requirements.txt
+$ pip install -r requirements-extras.txt
+$ pip install torch==1.9.0+cu111 torchvision==0.10.0+cu111 torchaudio==0.9.0 -f https://download.pytorch.org/whl/torch_stable.html
+```
+- **Note:** The last two commands are only necessary if you intend to host an instance of the MISST server.
 
-If possible, check the "MISST.log" file in your install directory for detailed error information that can be provided to me.
+From here you should be able to open and run the MISSTapp.py file
+
+- FFmpeg 
+
+    - FFmpeg must be installed and configured for the application to process any track that isn't a *.wav* file. You will need to look up instruction on how to configure it on your operating system.
 
 ## License
 
@@ -57,10 +71,16 @@ The **MISST** code is [GPL-licensed](LICENSE).
 
 - **Please Note:** For all third-party application developers who wish to use our models, please honor the GPL license by providing credit to MISST and its developer.
 
+## Issue Reporting
+
+Please be as detailed as possible when posting a new issue. 
+
+If possible, check the "MISST.log" file in your install directory for detailed error information that can be provided to me.
+
 ## Contributing
 
-- For anyone interested in the ongoing development of **MISST**, please send us a pull request, and we will review it. 
+- For anyone interested in the ongoing development of **MISST**, please send us a pull request, and I will review it. 
 - This project is 100% open-source and free for anyone to use and modify as they wish. 
-- We only maintain the development and support for the **MISST** and the models provided. 
+- I only maintain the development for **MISST** and the models provided. 
 
 ## More documentation to come...

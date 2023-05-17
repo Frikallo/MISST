@@ -17,6 +17,7 @@ from MISSTplayer import MISSTplayer
 from MISSTserver import MISSTserver
 from MISSTsettings import MISSTsettings
 from MISSThelpers import MISSThelpers
+from MISSTlogger import MISSTlogger
 from MISSTpreprocess import MISSTconsole, MISSTpreprocess
 
 from __version__ import __version__ as version
@@ -35,6 +36,7 @@ class MISSTapp(customtkinter.CTk):
             pass
 
         self.player = MISSTplayer(["Assets/silent/silence.wav","Assets/silent/silence.wav","Assets/silent/silence.wav","Assets/silent/silence.wav"], [0]*4)
+        self.logger = MISSTlogger().logger
         self.settings = MISSTsettings()
         self.server_base = self.settings.getSetting("server_base")
         self.server = MISSTserver(self.server_base)
