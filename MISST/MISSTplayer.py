@@ -3,7 +3,6 @@ import pyaudio
 import wave
 import threading
 import numpy as np
-from scipy.signal import butter, sosfilt, resample
 
 class MISSTplayer:
     def __init__(self, files, volumes):

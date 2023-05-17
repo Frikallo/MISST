@@ -1,0 +1,11 @@
+customtkinter==5.1.2
+pypresence==4.2.1
+Pillow==9.4.0
+Werkzeug==2.2.3
+requests==2.28.2
+vcolorpicker==1.4.1
+ping3==4.0.4
+pywin32-ctypes==0.2.0
+PyAudio==0.2.13
+numpy==1.23.5
+music-tag==0.4.3

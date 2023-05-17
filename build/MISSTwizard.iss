@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "MISST"
-#define MyAppVersion "3.0.0"
+#define MyAppVersion "3.0.2"
 #define MyAppPublisher "@Frikallo"
 #define MyAppURL "https://github.com/Frikallo/MISST"
 #define MyAppExeName "MISST.exe"
