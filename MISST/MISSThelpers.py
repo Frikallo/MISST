@@ -7,11 +7,6 @@ from colorsys import rgb_to_hls, hls_to_rgb
 import shutil
 import tkinter
 import uuid
-import ping3
-import time
-import requests
-import ctypes
-from tkinter import PhotoImage
 
 class MISSThelpers():
     def change_theme(theme):
@@ -31,31 +26,6 @@ class MISSThelpers():
         else:
             checkbox.deselect()
             player.set_volume(sound, value)
-
-    def update_rpc(
-        self,
-        Ltext=None,
-        Dtext=None,
-        image="icon-0",
-        large_text="MISST",
-        end_time=None,
-        small_image=None,
-    ):
-        start_time = time.time()
-        if self.RPC_CONNECTED:
-            try:
-                self.RPC.update(
-                    large_image=image,
-                    small_image=small_image,
-                    start=start_time,
-                    end=end_time,
-                    large_text=large_text,
-                    state=Ltext,
-                    details=Dtext,
-                )
-            except:
-                return
-        return
     
     def MISSTlistdir(self, directory):
         try:
@@ -222,42 +192,7 @@ class MISSThelpers():
             self.importsDest = os.path.abspath(self.importsDest)
             return None
 
-    def refreshConnection(self):
-        try:
-            req = requests.get(self.server_base, timeout=3)
-        except:
-            self.refresh_button.configure(image=PhotoImage(file="./Assets/no-connection.png"), state=tkinter.DISABLED)
-            time.sleep(3)
-            self.refresh_button.configure(image=PhotoImage(file="./Assets/reload.png"), state='normal')
-            return            
-        
-        if req.status_code == 200:
-            try:
-                server_address = self.server_base.replace("http://", "").replace(":5001", "")
-                ping = ping3.ping(server_address, unit='s', timeout=3)
-                pinginfo_button = customtkinter.CTkLabel(
-                    master=self.west_frame,
-                    text=f"{int(ping * 100)}ms",
-                    font=(self.FONT, -12),
-                    bg_color='transparent',
-                    fg_color='transparent',
-                    width=35,
-                    height=35,
-                )
-                pinginfo_button.place(relx=0.5, rely=0.9, anchor=tkinter.CENTER)
-                self.server_connected = True
-                time.sleep(3)
-                pinginfo_button.destroy()
-            except:
-                self.refresh_button.configure(image=PhotoImage(file="./Assets/no-connection.png"), state=tkinter.DISABLED)
-                time.sleep(3)
-                self.refresh_button.configure(image=PhotoImage(file="./Assets/reload.png"), state='normal')
-        else:
-            self.refresh_button.configure(image=PhotoImage(file="./Assets/no-connection.png"), state=tkinter.DISABLED)
-            time.sleep(3)
-            self.refresh_button.configure(image=PhotoImage(file="./Assets/reload.png"), state='normal')
-
-    def count(label, text, og_text=""):
+    def loading_label(label, text, og_text=""):
         t = 0
         try:
             while True:
@@ -272,18 +207,3 @@ class MISSThelpers():
         except:
             pass
         return
-    
-    def terminate_thread(self, thread):
-        if not thread.is_alive():
-            return
-
-        exc = ctypes.py_object(SystemExit)
-        res = ctypes.pythonapi.PyThreadState_SetAsyncExc(
-            ctypes.c_long(thread.ident), exc)
-        if res == 0:
-            raise ValueError("nonexistent thread id")
-        elif res > 1:
-            # """if it returns a number greater than one, you're in trouble,
-            # and you should call it again with exc=NULL to revert the effect"""
-            ctypes.pythonapi.PyThreadState_SetAsyncExc(thread.ident, None)
-            raise SystemError("PyThreadState_SetAsyncExc failed")

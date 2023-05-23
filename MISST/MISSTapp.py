@@ -38,22 +38,6 @@ class MISSTapp(customtkinter.CTk):
         self.player = MISSTplayer(["Assets/silent/silence.wav","Assets/silent/silence.wav","Assets/silent/silence.wav","Assets/silent/silence.wav"], [0]*4)
         self.logger = MISSTlogger().logger
         self.settings = MISSTsettings()
-        self.server_base = self.settings.getSetting("server_base")
-        self.server = MISSTserver(self.server_base)
-        self.server_connected = requests.get(self.server_base).status_code == 200
-
-        self.rpc = self.settings.getSetting("rpc")
-        self.discord_client_id = self.settings.getSetting("discord_client_id")
-
-        if self.rpc == "true":
-            try:
-                self.RPC = Presence(self.discord_client_id)
-                self.RPC.connect()
-                self.RPC_CONNECTED = True
-            except:
-                self.RPC_CONNECTED = False
-        else:
-            self.RPC_CONNECTED = False
 
         self.importsDest = os.path.abspath(self.settings.getSetting("importsDest"))
         if not os.path.isdir(self.importsDest):
@@ -61,19 +45,18 @@ class MISSTapp(customtkinter.CTk):
 
         self.playing = False
 
-        self.cur_sound_datas = {}
-        self.uiThread = None
-
         # configure window
         self.title("MISST")
         self.iconbitmap(default=r"./Assets/icon.ico")
-        self.WIDTH = int(self.winfo_screenwidth() * 0.3932291666666667)
-        self.HEIGHT = int(self.winfo_screenheight() * 0.3981481481481481)
+        self.WIDTH = 755
+        self.HEIGHT = 430
+        #self.WIDTH = int(self.winfo_screenwidth() * 0.3932291666666667)
+        #self.HEIGHT = int(self.winfo_screenheight() * 0.3981481481481481)
         self.geometry(f"{self.WIDTH}x{self.HEIGHT}")
         self.minsize(self.WIDTH, self.HEIGHT)
         self.maxsize(755, 430)
 
-        customtkinter.set_widget_scaling(((self.WIDTH / 755) + (self.HEIGHT / 430)) / 2)  # widget dimensions and text size
+        #customtkinter.set_widget_scaling(((self.WIDTH / 755) + (self.HEIGHT / 430)) / 2)  # widget dimensions and text size
         #customtkinter.set_window_scaling(((self.WIDTH / 755) + (self.HEIGHT / 430)) / 2)  # window geometry dimensions
 
         self.check_var1 = tkinter.StringVar(value="on")
@@ -109,7 +92,7 @@ class MISSTapp(customtkinter.CTk):
         # Interface Frame
         self.shuffle_button = customtkinter.CTkButton(
             master=self.interface_frame,
-            image=customtkinter.CTkImage(Image.open("./Assets/Images/player-shuffle.png"), size=(25,25)),
+            image=customtkinter.CTkImage(Image.open("./Assets/Player/player-shuffle.png"), size=(25,25)),
             command=lambda: self.shuffle(),
             text="",
             width=5,
@@ -121,7 +104,7 @@ class MISSTapp(customtkinter.CTk):
 
         self.loop_button = customtkinter.CTkButton(
             master=self.interface_frame,
-            image=customtkinter.CTkImage(Image.open("./Assets/Images/loop-off.png"), size=(25,25)),
+            image=customtkinter.CTkImage(Image.open("./Assets/Player/loop-off.png"), size=(25,25)),
             command=lambda: self.loopEvent(),
             text="",
             width=5,
@@ -133,7 +116,7 @@ class MISSTapp(customtkinter.CTk):
 
         self.next_button = customtkinter.CTkButton(
             master=self.interface_frame,
-            image=customtkinter.CTkImage(Image.open("./Assets/Images/player-skip-forward.png"), size=(30,30)),
+            image=customtkinter.CTkImage(Image.open("./Assets/Player/player-skip-forward.png"), size=(30,30)),
             command=lambda: print("test"),
             text="",
             width=5,
@@ -146,7 +129,7 @@ class MISSTapp(customtkinter.CTk):
 
         self.previous_button = customtkinter.CTkButton(
             master=self.interface_frame,
-            image=customtkinter.CTkImage(Image.open("./Assets/Images/player-skip-back.png"), size=(30,30)),
+            image=customtkinter.CTkImage(Image.open("./Assets/Player/player-skip-back.png"), size=(30,30)),
             command=lambda: print("test"),
             text="",
             width=5,
@@ -159,7 +142,7 @@ class MISSTapp(customtkinter.CTk):
 
         self.playpause_button = customtkinter.CTkButton(
             master=self.interface_frame,
-            image=customtkinter.CTkImage(Image.open("./Assets/Images/player-pause.png"), size=(32,32)),
+            image=customtkinter.CTkImage(Image.open("./Assets/Player/player-pause.png"), size=(32,32)),
             command=lambda: self.playpause(),
             text="",
             width=5,
@@ -247,7 +230,7 @@ class MISSTapp(customtkinter.CTk):
             master=self.west_frame,
             font=(self.FONT, -12),
             text="",
-            image=customtkinter.CTkImage(Image.open(f"./Assets/settings.png"), size=(25,25)),
+            image=customtkinter.CTkImage(Image.open(f"./Assets/UIAssets/settings.png"), size=(25,25)),
             bg_color='transparent',
             fg_color='transparent',
             hover_color=self.west_frame.cget("bg_color"),
@@ -261,7 +244,7 @@ class MISSTapp(customtkinter.CTk):
             master=self.west_frame,
             font=(self.FONT, -12),
             text="",
-            image=customtkinter.CTkImage(Image.open(f"./Assets/equalizer.png"), size=(25,25)),
+            image=customtkinter.CTkImage(Image.open(f"./Assets/UIAssets/equalizer.png"), size=(25,25)),
             bg_color='transparent',
             fg_color='transparent',
             hover_color=self.west_frame.cget("bg_color"),
@@ -276,7 +259,7 @@ class MISSTapp(customtkinter.CTk):
             master=self.west_frame,
             font=(self.FONT, -12),
             text="",
-            image=customtkinter.CTkImage(Image.open(f"./Assets/reload.png"), size=(25,25)),
+            image=customtkinter.CTkImage(Image.open(f"./Assets/UIAssets/reload.png"), size=(25,25)),
             bg_color='transparent',
             fg_color='transparent',
             hover_color=self.west_frame.cget("bg_color"),
@@ -298,7 +281,7 @@ class MISSTapp(customtkinter.CTk):
             fg_color='transparent',
             hover_color=self.north_frame.cget("bg_color"),
             text_color=self.logolabel.cget("text_color"),
-            image = customtkinter.CTkImage(Image.open(f"./Assets/empty.png"), size=(1,1))
+            image = customtkinter.CTkImage(Image.open(f"./Assets/UIAssets/empty.png"), size=(1,1))
         )
         self.songlabel.place(relx=0.5, rely=0.3, anchor=tkinter.CENTER)
 
@@ -410,7 +393,7 @@ class MISSTapp(customtkinter.CTk):
         self.import_button = customtkinter.CTkButton(
             master=self.south_frame,
             command=lambda: self.draw_imports_frame(),
-            image=customtkinter.CTkImage(Image.open(f"./Assets/import.png"), size=(30, 30)),
+            image=customtkinter.CTkImage(Image.open(f"./Assets/UIAssets/import.png"), size=(30, 30)),
             fg_color='transparent',
             hover_color=self.south_frame.cget("bg_color"),
             text="Import Song(s)",
@@ -432,272 +415,7 @@ class MISSTapp(customtkinter.CTk):
         checkboxes[vars.index(current_var)].select()
 
     def draw_imports_frame(self):
-        self.imports_frame = customtkinter.CTkFrame(
-            master=self, width=self.WIDTH * (755 / self.WIDTH), height=self.HEIGHT * (430 / self.HEIGHT)
-        )
-        self.imports_frame.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
-
-        self.left_frame = customtkinter.CTkFrame(
-            master=self.imports_frame, width=350, height=380
-        )
-        self.left_frame.place(relx=0.25, rely=0.47, anchor=tkinter.CENTER)
-
-        self.right_frame = customtkinter.CTkFrame(
-            master=self.imports_frame, width=350, height=380
-        )
-        self.right_frame.place(relx=0.75, rely=0.47, anchor=tkinter.CENTER)
-
-        self.import_title = customtkinter.CTkLabel(
-            master=self.left_frame,
-            text="Choose a source",
-            font=(self.FONT, -20),
-            text_color=self.logolabel.cget("text_color"),
-        )
-        self.import_title.place(relx=0.5, rely=0.1, anchor=tkinter.CENTER)
-
-        self.import_Spotify_var = tkinter.StringVar()   
-        self.import_Youtube_var = tkinter.StringVar()
-        self.import_Deezer_var = tkinter.StringVar()
-        self.import_Soundcloud_var = tkinter.StringVar()
-
-        self.import_Spotify_button = customtkinter.CTkLabel(
-            master=self.left_frame,
-            image=customtkinter.CTkImage(Image.open(f"./Assets/Sources/Spotify.png"), size=(40, 40)),
-            fg_color='transparent',
-            text="",
-            font=(self.FONT, -14),
-            width=50,
-            height=50,
-            text_color=self.logolabel.cget("text_color"),
-        )
-        self.import_Spotify_button.place(relx=0.3, rely=0.2375, anchor=tkinter.CENTER)
-
-        self.import_Spotify_checkbox = customtkinter.CTkCheckBox(
-            master=self.left_frame,
-            text="",
-            command=lambda: self.imports_checkbox_event(self.import_Spotify_var),
-            variable=self.import_Spotify_var,
-            onvalue="on",
-            offvalue="off",
-        )
-        self.import_Spotify_checkbox.place(relx=0.61, rely=0.2375, anchor=tkinter.CENTER)
-
-
-        self.import_Youtube_button = customtkinter.CTkLabel(
-            master=self.left_frame,
-            image=customtkinter.CTkImage(Image.open(f"./Assets/Sources/YoutubeMusic.png"), size=(40, 40)),
-            fg_color='transparent',
-            text="",
-            font=(self.FONT, -14),
-            width=50,
-            height=50,
-            text_color=self.logolabel.cget("text_color"),
-        )
-        self.import_Youtube_button.place(relx=0.3, rely=0.3750, anchor=tkinter.CENTER)
-
-        self.import_Youtube_checkbox = customtkinter.CTkCheckBox(
-            master=self.left_frame,
-            text="",
-            command=lambda: self.imports_checkbox_event(self.import_Youtube_var),
-            variable=self.import_Youtube_var,
-            onvalue="on",
-            offvalue="off",
-        )
-        self.import_Youtube_checkbox.place(relx=0.61, rely=0.3750, anchor=tkinter.CENTER)
-
-        self.import_Deezer_button = customtkinter.CTkLabel(
-            master=self.left_frame,
-            image=customtkinter.CTkImage(Image.open(f"./Assets/Sources/Deezer.png"), size=(40, 40)),
-            fg_color='transparent',
-            text="",
-            font=(self.FONT, -14),
-            width=50,
-            height=50,
-            text_color=self.logolabel.cget("text_color"),
-        )
-        self.import_Deezer_button.place(relx=0.3, rely=0.5125, anchor=tkinter.CENTER)
-
-        self.import_Deezer_checkbox = customtkinter.CTkCheckBox(
-            master=self.left_frame,
-            text="",
-            command=lambda: self.imports_checkbox_event(self.import_Deezer_var),
-            variable=self.import_Deezer_var,
-            onvalue="on",
-            offvalue="off",
-        )
-        self.import_Deezer_checkbox.place(relx=0.61, rely=0.5125, anchor=tkinter.CENTER)
-
-        self.import_Soundcloud_button = customtkinter.CTkLabel(
-            master=self.left_frame,
-            image=customtkinter.CTkImage(Image.open(f"./Assets/Sources/Soundcloud.png"), size=(40, 40)),
-            fg_color='transparent',
-            text="",
-            font=(self.FONT, -14),
-            width=50,
-            height=50,
-            text_color=self.logolabel.cget("text_color"),
-        )
-        self.import_Soundcloud_button.place(relx=0.3, rely=0.6500, anchor=tkinter.CENTER)
-
-        self.import_Soundcloud_checkbox = customtkinter.CTkCheckBox(
-            master=self.left_frame,
-            text="",
-            command=lambda: self.imports_checkbox_event(self.import_Soundcloud_var),
-            variable=self.import_Soundcloud_var,
-            onvalue="on",
-            offvalue="off",
-        )
-        self.import_Soundcloud_checkbox.place(relx=0.61, rely=0.6500, anchor=tkinter.CENTER)
-
-        self.source_entry = customtkinter.CTkEntry(
-            master=self.left_frame,
-            width=200,
-            text_color=self.logolabel.cget("text_color"),
-            placeholder_text="Enter your share URL here",
-        )
-        self.source_entry.place(relx=0.5, rely=0.8, anchor=tkinter.CENTER)
-
-        self.import_button = customtkinter.CTkButton(
-            master=self.left_frame,
-            command=lambda: self.sourcePreprocess(self.source_entry.get()),
-            text="Import",
-            font=(self.FONT, -14),
-            width=75,
-            text_color=self.logolabel.cget("text_color"),
-        )
-        self.import_button.place(relx=0.32, rely=0.9, anchor=tkinter.CENTER)
-
-        self.or_label = customtkinter.CTkLabel(
-            master=self.left_frame,
-            text="OR",
-            font=(self.FONT, -14),
-            text_color=self.logolabel.cget("text_color"),
-        )
-        self.or_label.place(relx=0.5, rely=0.9, anchor=tkinter.CENTER)
-
-        self.import_file_button = customtkinter.CTkButton(
-            master=self.left_frame,
-            command=lambda: self.filePreprocess(),
-            text="From File",
-            font=(self.FONT, -14),
-            width=75,
-            text_color=self.logolabel.cget("text_color"),
-        )
-        self.import_file_button.place(relx=0.68, rely=0.9, anchor=tkinter.CENTER)
-
-        self.preprocess_status_label = customtkinter.CTkLabel(
-            master=self.right_frame,
-            text="Preprocess Status",
-            font=(self.FONT, -20),
-            text_color=self.logolabel.cget("text_color"),
-        )
-        self.preprocess_status_label.place(relx=0.5, rely=0.1, anchor=tkinter.CENTER)
-
-        self.preprocess_terminal = customtkinter.CTkFrame(
-            master=self.right_frame,
-            width=275,
-            height=290,
-            fg_color="#0C0C0C",
-            border_width=1,
-        )
-        self.preprocess_terminal.place(relx=0.5, rely=0.55, anchor=tkinter.CENTER)
-
-        self.preprocess_terminal_text = customtkinter.CTkTextbox(
-            master=self.preprocess_terminal,
-            font=(self.FONT, -14),
-            width=250,
-            height=250,
-            bg_color="transparent",
-            fg_color="transparent",
-            text_color="#CCCCCC",
-        )
-        self.preprocess_terminal_text.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
-
-        self.note_label = customtkinter.CTkLabel(
-            master=self.imports_frame,
-            text="Note: You can only import one source at a time.",
-            font=(self.FONT, -12),
-            state=tkinter.DISABLED,
-        )
-        self.note_label.place(relx=0.5, rely=0.95, anchor=tkinter.CENTER)
-
-        wait_time = str(self.server.getAverageWaitTime())
-
-        self.wait_time_label = customtkinter.CTkLabel(
-            master=self.imports_frame,
-            text=f"Avrg. Wait Time: {wait_time}s",
-            font=(self.FONT, -12),
-            text_color=self.logolabel.cget("text_color"),
-            state=tkinter.DISABLED,
-        )
-        self.wait_time_label.place(relx=0.9, rely=0.95, anchor=tkinter.CENTER)
-
-        self.return_button = customtkinter.CTkButton(
-            master=self.imports_frame,
-            command=lambda: self.imports_frame.destroy(),
-            image=customtkinter.CTkImage(light_image=Image.open("./Assets/goback.png"), dark_image=Image.open("./Assets/goback_dark.png")),
-            fg_color='transparent',
-            hover_color=self.imports_frame.cget("bg_color"),
-            text="Return",
-            font=(self.FONT, -12),
-            width=5,
-            text_color="#6D6D6D",
-        )
-        self.return_button.place(relx=0.1, rely=0.95, anchor=tkinter.CENTER)
-
-        self.console = MISSTconsole(self.preprocess_terminal_text, "MISST Preprocessor\nCopyright (C) @Frikallo Corporation.\n\nMISST>")
-
-        if self.server_connected == False:
-            self.console.update(" Error: Server is not running")
-            self.server_down_cover = customtkinter.CTkFrame(
-                master=self.imports_frame, width=350, height=380
-            )
-            self.server_down_cover.place(relx=0.25, rely=0.47, anchor=tkinter.CENTER)
-            self.server_down_cover_label = customtkinter.CTkLabel(
-                image=customtkinter.CTkImage(Image.open("./Assets/server_off.png"), size=(100, 100)),
-                text="",
-                master=self.server_down_cover,
-                font=(self.FONT, -20),
-                text_color=self.logolabel.cget("text_color"),
-            )
-            self.server_down_cover_label.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
-        else:
-            self.console.update(" waiting")
-
-    def filePreprocess(self):
-        self.import_file_button.configure(state=tkinter.DISABLED)
-        self.import_button.configure(state=tkinter.DISABLED)
-        file = tkinter.filedialog.askopenfilename(initialdir = "/",title = "Select file",filetypes = (("mp3 files","*.mp3"),("wav files", "*.wav"),("all files","*.*")), multiple=False)
-        if file != "":
-            self.console.endUpdate()
-            threading.Thread(target=MISSTpreprocess.preprocess, args=(self, file, self.importsDest), daemon=True).start()
-
-    def sourcePreprocess(self, url):
-        if url != "":
-
-            # Spotify Import
-            if self.import_Spotify_var.get() == "on":
-                self.console.endUpdate()
-                threading.Thread(target=MISSTpreprocess.importSpotify, args=(self, url, self.importsDest), daemon=True).start()
-            
-            # Youtube Import
-            elif self.import_Youtube_var.get() == "on":
-                self.console.endUpdate()
-                threading.Thread(target=MISSTpreprocess.importYoutube, args=(self, url, self.importsDest), daemon=True).start()
-
-            # Deezer Import
-            elif self.import_Deezer_var.get() == "on":
-                self.console.endUpdate()
-                threading.Thread(target=MISSTpreprocess.importDeezer, args=(self, url, self.importsDest), daemon=True).start()
-
-            # Soundcloud Import
-            elif self.import_Soundcloud_var.get() == "on":
-                self.console.endUpdate()
-                threading.Thread(target=MISSTpreprocess.importSoundcloud, args=(self, url, self.importsDest), daemon=True).start()
-
-            else:
-                pass
-        return
+        pass
 
     def draw_settings_frame(self):
         self.settings_window = customtkinter.CTkFrame(
@@ -708,7 +426,7 @@ class MISSTapp(customtkinter.CTk):
         self.return_button = customtkinter.CTkButton(
             master=self.settings_window,
             command=lambda: self.settings_window.destroy(),
-            image=customtkinter.CTkImage(light_image=Image.open("./Assets/goback.png"), dark_image=Image.open("./Assets/goback_dark.png")),
+            image=customtkinter.CTkImage(light_image=Image.open("./Assets/UIAssets/goback.png"), dark_image=Image.open("./Assets/UIAssets/goback_dark.png")),
             fg_color='transparent',
             hover_color=self.settings_window.cget("bg_color"),
             text="",
@@ -760,9 +478,9 @@ class MISSTapp(customtkinter.CTk):
 
         self.preprocess_method_box = customtkinter.CTkSwitch(
             master=self.general_frame,
-            text="Preprocess on Server?",
+            text="Accelerate on GPU?",
             font=(self.FONT, -12),
-            command=lambda: MISSThelpers.preprocess_method_event(self),
+            command=lambda: print("test"),
             width=50,
         )
         self.preprocess_method_box.place(relx=0.4, rely=0.85, anchor=tkinter.CENTER)
@@ -963,7 +681,7 @@ class MISSTapp(customtkinter.CTk):
         self.return_button = customtkinter.CTkButton(
             master=self.eq_frame,
             command=lambda: self.eq_window.destroy(),
-            image=customtkinter.CTkImage(light_image=Image.open("./Assets/goback.png"), dark_image=Image.open("./Assets/goback_dark.png")),
+            image=customtkinter.CTkImage(light_image=Image.open("./Assets/UIAssets/goback.png"), dark_image=Image.open("./Assets/UIAssets/goback_dark.png")),
             fg_color='transparent',
             hover_color=self.eq_window.cget("bg_color"),
             text="",
@@ -1156,13 +874,13 @@ class MISSTapp(customtkinter.CTk):
     
     def playpause(self):
         if self.playing == True:
-            self.playpause_button.configure(state="normal", image=customtkinter.CTkImage(Image.open(f"./Assets/images/player-play.png"), size=(32, 32)))
+            self.playpause_button.configure(state="normal", image=customtkinter.CTkImage(Image.open(f"./Assets/Player/player-play.png"), size=(32, 32)))
             self.player.pause()
             self.playing = False
             self.progressbar.configure(state=tkinter.DISABLED)
             self.nc_checkbox.configure(state=tkinter.DISABLED)
         else:
-            self.playpause_button.configure(state="normal", image=customtkinter.CTkImage(Image.open(f"./Assets/images/player-pause.png"), size=(32, 32)))
+            self.playpause_button.configure(state="normal", image=customtkinter.CTkImage(Image.open(f"./Assets/Player/player-pause.png"), size=(32, 32)))
             self.player.resume()
             self.playing = True
             self.progressbar.configure(state="normal")
@@ -1171,10 +889,10 @@ class MISSTapp(customtkinter.CTk):
     def loopEvent(self):
         if self.loop == True:
             self.loop = False
-            self.loop_button.configure(state="normal", image=customtkinter.CTkImage(Image.open(f"./Assets/Images/loop-off.png"), size=(25, 25)))
+            self.loop_button.configure(state="normal", image=customtkinter.CTkImage(Image.open(f"./Assets/Player/loop-off.png"), size=(25, 25)))
         else:
             self.loop = True
-            self.loop_button.configure(state="normal", image=customtkinter.CTkImage(Image.open(f"./Assets/Images/loop.png"), size=(25, 25)))
+            self.loop_button.configure(state="normal", image=customtkinter.CTkImage(Image.open(f"./Assets/Player/loop.png"), size=(25, 25)))
 
     def update_progress_bar(self, current_time, total_duration):
         progress = current_time / total_duration
@@ -1192,9 +910,9 @@ class MISSTapp(customtkinter.CTk):
         self.nc_checkbox.deselect()
 
         if self.playing == True:
-            self.playpause_button.configure(image=customtkinter.CTkImage(Image.open(f"./Assets/images/player-pause.png"), size=(32, 32)))
+            self.playpause_button.configure(image=customtkinter.CTkImage(Image.open(f"./Assets/Player/player-pause.png"), size=(32, 32)))
         else:
-            self.playpause_button.configure(image=customtkinter.CTkImage(Image.open(f"./Assets/images/player-play.png"), size=(32, 32)))
+            self.playpause_button.configure(image=customtkinter.CTkImage(Image.open(f"./Assets/Player/player-play.png"), size=(32, 32)))
 
         self.songlabel.configure(text="")
         song_name = os.path.basename(os.path.dirname(audioPath))
@@ -1206,7 +924,7 @@ class MISSTapp(customtkinter.CTk):
         try:
             cover_art = customtkinter.CTkImage(Image.open(MISSThelpers.resize_image(self, f"{song_dir}/{web_name}.png", 40)), size=(40, 40))
         except:
-            cover_art = customtkinter.CTkImage(Image.open("./Assets/default.png"), size=(40, 40))
+            cover_art = customtkinter.CTkImage(Image.open("./Assets/UIAssets/default.png"), size=(40, 40))
 
         self.songlabel.configure(text=song_name)
         self.songlabel.configure(image=cover_art)
@@ -1237,14 +955,14 @@ class MISSTapp(customtkinter.CTk):
                 try:
                     self.next(song_name)
                 except:
-                    self.playpause_button.configure(image=customtkinter.CTkImage(Image.open(f"./Assets/images/player-play.png"), size=(32, 32)), state=tkinter.DISABLED)
+                    self.playpause_button.configure(image=customtkinter.CTkImage(Image.open(f"./Assets/Player/player-play.png"), size=(32, 32)), state=tkinter.DISABLED)
                     self.playing = False
                     self.progressbar.configure(state=tkinter.DISABLED)
                     self.nc_checkbox.configure(state=tkinter.DISABLED)
                     self.progressbar.set(0)
                     self.progress_label_left.configure(text="00:00")
                     self.progress_label_right.configure(text="00:00")
-                    self.songlabel.configure(text="Play Something!", image=customtkinter.CTkImage(Image.open("./Assets/empty.png"), size=(1, 1)))
+                    self.songlabel.configure(text="Play Something!", image=customtkinter.CTkImage(Image.open("./Assets/UIAssets/empty.png"), size=(1, 1)))
                     self.next_button.configure(state=tkinter.DISABLED)
                     self.previous_button.configure(state=tkinter.DISABLED)
                     MISSThelpers.update_rpc(
@@ -1255,14 +973,14 @@ class MISSTapp(customtkinter.CTk):
                         large_text="MISST",
                     )            
             else:
-                self.playpause_button.configure(image=customtkinter.CTkImage(Image.open(f"./Assets/images/player-play.png"), size=(32, 32)), state=tkinter.DISABLED)
+                self.playpause_button.configure(image=customtkinter.CTkImage(Image.open(f"./Assets/Player/player-play.png"), size=(32, 32)), state=tkinter.DISABLED)
                 self.playing = False
                 self.progressbar.configure(state=tkinter.DISABLED)
                 self.nc_checkbox.configure(state=tkinter.DISABLED)
                 self.progressbar.set(0)
                 self.progress_label_left.configure(text="00:00")
                 self.progress_label_right.configure(text="00:00")
-                self.songlabel.configure(text="Play Something!", image=customtkinter.CTkImage(Image.open("./Assets/empty.png"), size=(1, 1)))
+                self.songlabel.configure(text="Play Something!", image=customtkinter.CTkImage(Image.open("./Assets/UIAssets/empty.png"), size=(1, 1)))
                 self.next_button.configure(state=tkinter.DISABLED)
                 self.previous_button.configure(state=tkinter.DISABLED)
                 MISSThelpers.update_rpc(

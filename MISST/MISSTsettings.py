@@ -1,4 +1,5 @@
 import json
+import shutil
 
 class MISSTsettings():
     def __init__(self):
@@ -49,6 +50,10 @@ class MISSTsettings():
             data = data.replace(colorway, self.getSetting(colorway))
             with open(themeFile, "w") as f:
                 f.write(data)
+
+    def createSettings(self):
+        # Creates a new config file in the apps directory with all the default settings.
+        shutil.copy("Assets/config_base.json", "config.json")
 
 
 if __name__ == "__main__":
