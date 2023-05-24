@@ -7,8 +7,39 @@ from colorsys import rgb_to_hls, hls_to_rgb
 import shutil
 import tkinter
 import uuid
+import sys
+import platform
+import psutil
+import torch
+import re
+import demucs
 
 class MISSThelpers():
+    def update_rpc(
+        self,
+        Ltext=None,
+        Dtext=None,
+        image="icon-0",
+        large_text="MISST",
+        end_time=None,
+        small_image=None,
+    ):
+        start_time = time.time()
+        if self.RPC_CONNECTED:
+            try:
+                self.RPC.update(
+                    large_image=image,
+                    small_image=small_image,
+                    start=start_time,
+                    end=end_time,
+                    large_text=large_text,
+                    state=Ltext,
+                    details=Dtext,
+                )
+            except:
+                return
+        return
+    
     def change_theme(theme):
         customtkinter.set_appearance_mode(theme)
 
@@ -114,11 +145,19 @@ class MISSThelpers():
         else:
             self.settings.setSetting("rpc", "false")
 
-    def preprocess_method_event(self):
-        if self.preprocess_method_box.get() == 1:
-            self.settings.setSetting("process_on_server", "true")
+    def accelerate_event(self):
+        if self.preprocess_method_box.get() == 1 and torch.cuda.is_available() == True:
+            self.settings.setSetting("accelerate_on_gpu", "true")
+        elif self.preprocess_method_box.get() == 1 and torch.cuda.is_available() == False:
+            self.preprocess_method_box.deselect()
+            self.preprocess_method_box.place(relx=0.39, rely=0.85, anchor=tkinter.CENTER)
+            self.preprocess_method_box.configure(text="CUDA Not Available")
+            self.settings.setSetting("accelerate_on_gpu", "false")
+            time.sleep(1.5)
+            self.preprocess_method_box.place(relx=0.38, rely=0.85, anchor=tkinter.CENTER)
+            self.preprocess_method_box.configure(text="Accelerate on GPU?")
         else:
-            self.settings.setSetting("process_on_server", "false")
+            self.settings.setSetting("accelerate_on_gpu", "false")
 
     def clearDownloads(self):
         self.confirmation_frame = customtkinter.CTkFrame(
@@ -207,3 +246,19 @@ class MISSThelpers():
         except:
             pass
         return
+    
+    def GenerateSystemInfo(self):
+        info = ""
+        info += "Python version:\t%s\n" % sys.version
+        info += "System:\t%s\n" % platform.platform()
+        info += "CPU:\t%s\n" % platform.processor()
+        info += "Memory:\t%.3fMB\n" % (psutil.virtual_memory().total / 1048576)
+        info += "PyTorch version:\t%s\n" % torch.__version__
+        info += "CUDA available:\t%s\n" % torch.cuda.is_available()
+        if torch.cuda.is_available():
+            for i in range(torch.cuda.device_count()):
+                info += "CUDA %d:\t%s\n" % (i, re.findall("\\((.*)\\)", str(torch.cuda.get_device_properties(i)))[0])
+        info += "Demucs version:\t%s\n" % demucs.__version__
+        info += "FFMpeg available:\t%s\n" % self.FFMpegAvailable
+        info += "MISST version:\t%s\n" % self.version
+        return info

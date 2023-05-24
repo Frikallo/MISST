@@ -1,7 +1,4 @@
 venv/*
-server/separated/*
-server/coverarts/*
 MISST/__pycache__/*
-MISST/separated/*
 output/*
 build/MISSTwin32.exe

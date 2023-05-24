@@ -1,8 +1,13 @@
 import json
 import shutil
+import os
 
 class MISSTsettings():
     def __init__(self):
+        # Check if the config file exists, if not create it
+        # Path: MISST\MISSTsettings.py
+        if not os.path.isfile("config.json"):
+            self.createSettings()
         return
     
     def getSetting(self, setting):
@@ -61,4 +66,4 @@ if __name__ == "__main__":
     #print(settings.getSetting("serverBase"))
     #settings.setSetting("serverBase", "http://localhost:5001")
     #print(settings.getSetting("serverBase"))
-    settings.applyThemeSettings("./MISST/Assets/Themes/MISST.json", "./MISST/Assets/Themes/maluableJSON")
+    #settings.applyThemeSettings("./MISST/Assets/Themes/MISST.json", "./MISST/Assets/Themes/maluableJSON")

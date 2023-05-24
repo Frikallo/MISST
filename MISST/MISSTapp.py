@@ -11,14 +11,12 @@ import datetime
 from PIL import Image
 from werkzeug.utils import secure_filename
 import shutil
-import requests
 
 from MISSTplayer import MISSTplayer
-from MISSTserver import MISSTserver
 from MISSTsettings import MISSTsettings
 from MISSThelpers import MISSThelpers
 from MISSTlogger import MISSTlogger
-from MISSTpreprocess import MISSTconsole, MISSTpreprocess
+from MISSTpreprocess import MISSTpreprocess
 
 from __version__ import __version__ as version
 
@@ -38,10 +36,31 @@ class MISSTapp(customtkinter.CTk):
         self.player = MISSTplayer(["Assets/silent/silence.wav","Assets/silent/silence.wav","Assets/silent/silence.wav","Assets/silent/silence.wav"], [0]*4)
         self.logger = MISSTlogger().logger
         self.settings = MISSTsettings()
+        self.preprocess = MISSTpreprocess()
+
+        self.rpc = self.settings.getSetting("rpc")
+        self.discord_client_id = self.settings.getSetting("discord_client_id")
+
+        if self.rpc == "true":
+            try:
+                self.RPC = Presence(self.discord_client_id)
+                self.RPC.connect()
+                self.RPC_CONNECTED = True
+            except:
+                self.RPC_CONNECTED = False
+        else:
+            self.RPC_CONNECTED = False
 
         self.importsDest = os.path.abspath(self.settings.getSetting("importsDest"))
         if not os.path.isdir(self.importsDest):
             os.mkdir(self.importsDest)
+
+        self.FFMpegAvailable = True if shutil.which("ffmpeg") != None else False
+        self.version = version
+
+        for line in MISSThelpers.GenerateSystemInfo(self).split("\n"):
+            if line != "":
+                self.logger.info(line)
 
         self.playing = False
 
@@ -480,11 +499,11 @@ class MISSTapp(customtkinter.CTk):
             master=self.general_frame,
             text="Accelerate on GPU?",
             font=(self.FONT, -12),
-            command=lambda: print("test"),
+            command=lambda: threading.Thread(target=MISSThelpers.accelerate_event, args=(self,), daemon=True).start(),
             width=50,
         )
-        self.preprocess_method_box.place(relx=0.4, rely=0.85, anchor=tkinter.CENTER)
-        if self.settings.getSetting('process_on_server') == 'true':
+        self.preprocess_method_box.place(relx=0.38, rely=0.85, anchor=tkinter.CENTER)
+        if self.settings.getSetting('accelerate_on_gpu') == 'true':
             self.preprocess_method_box.select()
 
         ### General Settings ###
@@ -825,35 +844,47 @@ class MISSTapp(customtkinter.CTk):
             self.nc_checkbox.deselect()
             self.play(song)
         except Exception as e:
-            print(e)
+            self.logger.error(e)
             pass
         self.playbutton.configure(state=tkinter.NORMAL)
 
     def shuffle(self):
         self.shuffle_button.configure(state=tkinter.DISABLED)
-        songs = MISSThelpers.MISSTlistdir(self, self.importsDest) 
-        random.shuffle(songs)
-        self.playing = True
-        self.nc_checkbox.deselect()
-        self.play(songs[0])
+        try:
+            songs = MISSThelpers.MISSTlistdir(self, self.importsDest) 
+            random.shuffle(songs)
+            self.playing = True
+            self.nc_checkbox.deselect()
+            self.play(songs[0])
+        except Exception as e:
+            self.logger.error(e)
+            pass
         self.shuffle_button.configure(state=tkinter.NORMAL)
 
     def next(self, songName):
         self.next_button.configure(state=tkinter.DISABLED)
-        songs = MISSThelpers.MISSTlistdir(self, self.importsDest) 
-        index = songs.index(songName)
-        self.playing = True
-        self.nc_checkbox.deselect()
-        self.play(songs[index + 1])
+        try:
+            songs = MISSThelpers.MISSTlistdir(self, self.importsDest) 
+            index = songs.index(songName)
+            self.playing = True
+            self.nc_checkbox.deselect()
+            self.play(songs[index + 1])
+        except Exception as e:
+            self.logger.error(e)
+            pass
         self.next_button.configure(state=tkinter.NORMAL)
 
     def previous(self, songName):
         self.previous_button.configure(state=tkinter.DISABLED)
-        songs = MISSThelpers.MISSTlistdir(self, self.importsDest) 
-        index = songs.index(songName)
-        self.playing = True
-        self.nc_checkbox.deselect()
-        self.play(songs[index - 1])
+        try:
+            songs = MISSThelpers.MISSTlistdir(self, self.importsDest) 
+            index = songs.index(songName)
+            self.playing = True
+            self.nc_checkbox.deselect()
+            self.play(songs[index - 1])
+        except Exception as e:
+            self.logger.error(e)
+            pass
         self.previous_button.configure(state=tkinter.NORMAL)
 
     def slider_event(self, value):
@@ -940,7 +971,7 @@ class MISSTapp(customtkinter.CTk):
             self,
             Ltext="Listening to seperated audio",
             Dtext=song_name,
-            image=f"{self.server_base}/getcoverart/{web_name}.png",
+            #image=f"{self.server_base}/getcoverart/{web_name}.png",
             large_text=song_name,
             end_time=time.time() + duration,
             small_image="icon-0",
@@ -1001,7 +1032,7 @@ class MISSTapp(customtkinter.CTk):
                     self,
                     Ltext="(Paused)",
                     Dtext=song_name,
-                    image=f"{self.server_base}/getcoverart/{web_name}.png",
+                    #image=f"{self.server_base}/getcoverart/{web_name}.png",
                     large_text=song_name,
                     end_time=None,
                     small_image="icon-0",
@@ -1012,7 +1043,7 @@ class MISSTapp(customtkinter.CTk):
                     self,
                     Ltext="Listening to seperated audio",
                     Dtext=song_name,
-                    image=f"{self.server_base}/getcoverart/{web_name}.png",
+                    #image=f"{self.server_base}/getcoverart/{web_name}.png",
                     large_text=song_name,
                     end_time=time.time() + duration - current_time,
                     small_image="icon-0",

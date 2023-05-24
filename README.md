@@ -54,7 +54,6 @@ These instructions are for those installing MISST v3.0.2 **manually** only.
 
 ```
 $ pip install -r requirements.txt
-$ pip install -r requirements-extras.txt
 $ pip install torch==1.9.0+cu111 torchvision==0.10.0+cu111 torchaudio==0.9.0 -f https://download.pytorch.org/whl/torch_stable.html
 ```
 - **Note:** The last two commands are only necessary if you intend to host an instance of the MISST server.

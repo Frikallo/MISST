@@ -1,0 +1,11 @@
+ MISST :: INFO     :: Logger initialized (2023-05-23 18:40:56)
+ MISST :: INFO     :: Python version:	3.9.13 (tags/v3.9.13:6de2ca5, May 17 2022, 16:36:42) [MSC v.1929 64 bit (AMD64)]
+ MISST :: INFO     :: System:	Windows-10-10.0.22621-SP0
+ MISST :: INFO     :: CPU:	AMD64 Family 23 Model 113 Stepping 0, AuthenticAMD
+ MISST :: INFO     :: Memory:	32701.703MB
+ MISST :: INFO     :: PyTorch version:	1.9.0+cu111
+ MISST :: INFO     :: CUDA available:	True
+ MISST :: INFO     :: CUDA 0:	name='NVIDIA GeForce RTX 2070 SUPER', major=7, minor=5, total_memory=8191MB, multi_processor_count=40
+ MISST :: INFO     :: Demucs version:	3.0.5
+ MISST :: INFO     :: FFMpeg available:	True
+ MISST :: INFO     :: MISST version:	3.0.2
