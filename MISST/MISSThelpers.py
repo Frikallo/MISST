@@ -13,6 +13,56 @@ import psutil
 import torch
 import re
 import demucs
+import threading
+import ctypes
+
+class MISSTconsole():
+    def __init__(self, terminal, ogText):
+        self.consoleText = ogText
+        self.terminal = terminal
+        self.curThread = None
+        self.terminal.delete("0.0", "end")  # delete all text
+        self.terminal.insert("0.0", self.consoleText)
+        self.terminal.configure(state="disabled")
+
+    def updateThread(self, text):
+        t = 0
+        while True:
+            time.sleep(0.5)
+            if t > 3:
+                t -= t
+            periods = ["", ".", "..", "..."]
+            self.terminal.configure(state="normal")
+            self.terminal.delete("0.0", "end")
+            self.terminal.insert("0.0", f"{self.consoleText}{text}{periods[t]}")
+            self.terminal.configure(state="disabled")
+            t += 1
+
+    def update(self, text):
+        self.curThread = threading.Thread(target=self.updateThread, args=(text,), daemon=True)
+        self.curThread.start()
+
+    def endUpdate(self):
+        print(self.curThread)
+        MISSThelpers.terminate_thread(self, self.curThread)
+        self.terminal.configure(state="normal")
+        self.terminal.delete("0.0", "end")
+        self.terminal.insert("0.0", self.consoleText)
+        self.terminal.configure(state="disabled")
+
+    def addLine(self, text):
+        self.consoleText += f"{text}"
+        self.terminal.configure(state="normal")
+        self.terminal.delete("0.0", "end")
+        self.terminal.insert("0.0", self.consoleText)
+        self.terminal.configure(state="disabled")
+
+    def editLine(self, text, line_number):
+        self.consoleText = text
+        self.terminal.configure(state="normal")
+        self.terminal.delete(f"{line_number + 1}.0", f"end")
+        self.terminal.insert(f"{line_number + 1}.0", text)
+        self.terminal.configure(state="disabled")
 
 class MISSThelpers():
     def update_rpc(
@@ -126,7 +176,7 @@ class MISSThelpers():
         self.settings.resetDefaultTheme("./Assets/Themes/MISST.json", "./Assets/Themes/maluableJSON")
         self.settings.setSetting("rpc", "true")
         self.settings.setSetting("autoplay", "true")
-        self.settings.setSetting("process_on_server", "true")
+        self.settings.setSetting("accelerate_on_gpu", "true")
         self.rpc_box.select()
         self.autoplay_box.select()
         self.preprocess_method_box.select()
@@ -262,3 +312,18 @@ class MISSThelpers():
         info += "FFMpeg available:\t%s\n" % self.FFMpegAvailable
         info += "MISST version:\t%s\n" % self.version
         return info
+    
+    def terminate_thread(self, thread):
+        if not thread.is_alive():
+            return
+
+        exc = ctypes.py_object(SystemExit)
+        res = ctypes.pythonapi.PyThreadState_SetAsyncExc(
+            ctypes.c_long(thread.ident), exc)
+        if res == 0:
+            raise ValueError("nonexistent thread id")
+        elif res > 1:
+            # """if it returns a number greater than one, you're in trouble,
+            # and you should call it again with exc=NULL to revert the effect"""
+            ctypes.pythonapi.PyThreadState_SetAsyncExc(thread.ident, None)
+            raise SystemError("PyThreadState_SetAsyncExc failed")

@@ -1,4 +1,5 @@
 venv/*
 MISST/__pycache__/*
+MISST/MISST.log
 output/*
 build/MISSTwin32.exe

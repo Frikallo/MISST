@@ -9,6 +9,8 @@ import logging
 import soundfile
 import julius
 import wave
+from MISSThelpers import MISSTconsole
+import os
 
 class MISSTpreprocess():
     def __init__(self):
@@ -101,6 +103,7 @@ class MISSTpreprocess():
         device: Literal["cpu", "cuda"] = "cuda" if torch.cuda.is_available() else "cpu",
         callback=None,
         logger: logging.Logger = logging.getLogger("MISST"),
+        console: MISSTconsole = None,
     ):
         split = int(split * sample_rate)
         overlap = int(overlap * split)
@@ -118,6 +121,7 @@ class MISSTpreprocess():
         logger.info("Total splits of '%s' : %d" % (str(infile), n))
         for i in range(n):
             logger.info("Separation %d/%d" % (i + 1, n))
+            console.editLine(f"MISST Preprocessor\nCopyright (C) @Frikallo Corporation.\n\nMISST> {((i + 1)/n) * 100:.1f}%", 0)
             l = i * (split - overlap)
             r = l + split
             result = self.Apply(model, torch.from_numpy(audio[:, l:r]).to(device))
@@ -126,6 +130,7 @@ class MISSTpreprocess():
             total[l:r] += 1
         if write:
             logger.info("Writing to file")
+            console.addLine("\nMISST> Writing to file")
             outpath.mkdir(exist_ok=True)
             for i in range(len(stems)):
                 stem = (new_audio[i] / total)[:, :orig_len]
@@ -134,6 +139,26 @@ class MISSTpreprocess():
         else:
             pass
 
-#processor = MISSTpreprocess()
-
-#processor.process(processor.GetModel(name="mdx_extra_q", repo=pathlib.Path("MISST/Pretrained")), infile=pathlib.Path("Showcase - Infrunami.mp3"), outpath=pathlib.Path("test"), device="cuda")
+    def preprocess(self, file, outDir, device="cuda"):
+        self.logger.info(f"Preprocessing {file}...")
+        console = MISSTconsole(self.preprocess_terminal_text, "MISST Preprocessor\nCopyright (C) @Frikallo Corporation.\n")
+        try:
+            savename = os.path.basename(file).replace('.mp3', '').replace('.wav', '').replace('.flac', '')
+            console.update("\nMISST> Loading model")
+            processor = MISSTpreprocess()
+            model = processor.GetModel(name="mdx_extra_q", repo=pathlib.Path("Pretrained"))
+            console.endUpdate()
+            console.addLine("\nMISST> Model loaded.")
+            console.update("\nMISST> Preprocessing")
+            processor.process(model, infile=pathlib.Path(file), outpath=pathlib.Path(f"{outDir}/{savename}"), device=device, console=console)
+            console.endUpdate()
+            console.addLine("\nMISST> Preprocessed.")
+        except Exception as e:
+            self.logger.error(e)
+            console.endUpdate()
+            console.addLine("\nMISST> Error.")
+            pass
+        console.addLine("\nMISST> Done.")
+        self.import_file_button.configure(state='normal')
+        self.import_button.configure(state='normal')
+        return

@@ -11,10 +11,12 @@ import datetime
 from PIL import Image
 from werkzeug.utils import secure_filename
 import shutil
+import psutil
+import GPUtil
 
 from MISSTplayer import MISSTplayer
 from MISSTsettings import MISSTsettings
-from MISSThelpers import MISSThelpers
+from MISSThelpers import MISSThelpers, MISSTconsole
 from MISSTlogger import MISSTlogger
 from MISSTpreprocess import MISSTpreprocess
 
@@ -34,7 +36,7 @@ class MISSTapp(customtkinter.CTk):
             pass
 
         self.player = MISSTplayer(["Assets/silent/silence.wav","Assets/silent/silence.wav","Assets/silent/silence.wav","Assets/silent/silence.wav"], [0]*4)
-        self.logger = MISSTlogger().logger
+        self.logger = MISSTlogger().logger 
         self.settings = MISSTsettings()
         self.preprocess = MISSTpreprocess()
 
@@ -434,7 +436,264 @@ class MISSTapp(customtkinter.CTk):
         checkboxes[vars.index(current_var)].select()
 
     def draw_imports_frame(self):
-        pass
+        self.imports_frame = customtkinter.CTkFrame(
+            master=self, width=self.WIDTH * (755 / self.WIDTH), height=self.HEIGHT * (430 / self.HEIGHT)
+        )
+        self.imports_frame.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
+
+        self.left_frame = customtkinter.CTkFrame(
+            master=self.imports_frame, width=350, height=380
+        )
+        self.left_frame.place(relx=0.25, rely=0.47, anchor=tkinter.CENTER)
+
+        self.right_frame = customtkinter.CTkFrame(
+            master=self.imports_frame, width=350, height=380
+        )
+        self.right_frame.place(relx=0.75, rely=0.47, anchor=tkinter.CENTER)
+
+        self.import_title = customtkinter.CTkLabel(
+            master=self.left_frame,
+            text="Choose a source",
+            font=(self.FONT, -20),
+            text_color=self.logolabel.cget("text_color"),
+        )
+        self.import_title.place(relx=0.5, rely=0.1, anchor=tkinter.CENTER)
+
+        self.import_Spotify_var = tkinter.StringVar()   
+        self.import_Youtube_var = tkinter.StringVar()
+        self.import_Deezer_var = tkinter.StringVar()
+        self.import_Soundcloud_var = tkinter.StringVar()
+
+        self.import_Spotify_button = customtkinter.CTkLabel(
+            master=self.left_frame,
+            image=customtkinter.CTkImage(Image.open(f"./Assets/Sources/Spotify.png"), size=(40, 40)),
+            fg_color='transparent',
+            text="",
+            font=(self.FONT, -14),
+            width=50,
+            height=50,
+            text_color=self.logolabel.cget("text_color"),
+        )
+        self.import_Spotify_button.place(relx=0.3, rely=0.2375, anchor=tkinter.CENTER)
+
+        self.import_Spotify_checkbox = customtkinter.CTkCheckBox(
+            master=self.left_frame,
+            text="",
+            command=lambda: self.imports_checkbox_event(self.import_Spotify_var),
+            variable=self.import_Spotify_var,
+            onvalue="on",
+            offvalue="off",
+        )
+        self.import_Spotify_checkbox.place(relx=0.61, rely=0.2375, anchor=tkinter.CENTER)
+
+
+        self.import_Youtube_button = customtkinter.CTkLabel(
+            master=self.left_frame,
+            image=customtkinter.CTkImage(Image.open(f"./Assets/Sources/YoutubeMusic.png"), size=(40, 40)),
+            fg_color='transparent',
+            text="",
+            font=(self.FONT, -14),
+            width=50,
+            height=50,
+            text_color=self.logolabel.cget("text_color"),
+        )
+        self.import_Youtube_button.place(relx=0.3, rely=0.3750, anchor=tkinter.CENTER)
+
+        self.import_Youtube_checkbox = customtkinter.CTkCheckBox(
+            master=self.left_frame,
+            text="",
+            command=lambda: self.imports_checkbox_event(self.import_Youtube_var),
+            variable=self.import_Youtube_var,
+            onvalue="on",
+            offvalue="off",
+        )
+        self.import_Youtube_checkbox.place(relx=0.61, rely=0.3750, anchor=tkinter.CENTER)
+
+        self.import_Deezer_button = customtkinter.CTkLabel(
+            master=self.left_frame,
+            image=customtkinter.CTkImage(Image.open(f"./Assets/Sources/Deezer.png"), size=(40, 40)),
+            fg_color='transparent',
+            text="",
+            font=(self.FONT, -14),
+            width=50,
+            height=50,
+            text_color=self.logolabel.cget("text_color"),
+        )
+        self.import_Deezer_button.place(relx=0.3, rely=0.5125, anchor=tkinter.CENTER)
+
+        self.import_Deezer_checkbox = customtkinter.CTkCheckBox(
+            master=self.left_frame,
+            text="",
+            command=lambda: self.imports_checkbox_event(self.import_Deezer_var),
+            variable=self.import_Deezer_var,
+            onvalue="on",
+            offvalue="off",
+        )
+        self.import_Deezer_checkbox.place(relx=0.61, rely=0.5125, anchor=tkinter.CENTER)
+
+        self.import_Soundcloud_button = customtkinter.CTkLabel(
+            master=self.left_frame,
+            image=customtkinter.CTkImage(Image.open(f"./Assets/Sources/Soundcloud.png"), size=(40, 40)),
+            fg_color='transparent',
+            text="",
+            font=(self.FONT, -14),
+            width=50,
+            height=50,
+            text_color=self.logolabel.cget("text_color"),
+        )
+        self.import_Soundcloud_button.place(relx=0.3, rely=0.6500, anchor=tkinter.CENTER)
+
+        self.import_Soundcloud_checkbox = customtkinter.CTkCheckBox(
+            master=self.left_frame,
+            text="",
+            command=lambda: self.imports_checkbox_event(self.import_Soundcloud_var),
+            variable=self.import_Soundcloud_var,
+            onvalue="on",
+            offvalue="off",
+        )
+        self.import_Soundcloud_checkbox.place(relx=0.61, rely=0.6500, anchor=tkinter.CENTER)
+
+        self.source_entry = customtkinter.CTkEntry(
+            master=self.left_frame,
+            width=200,
+            text_color=self.logolabel.cget("text_color"),
+            placeholder_text="Enter your share URL here",
+        )
+        self.source_entry.place(relx=0.5, rely=0.8, anchor=tkinter.CENTER)
+
+        self.import_button = customtkinter.CTkButton(
+            master=self.left_frame,
+            command=lambda: self.sourcePreprocess(self.source_entry.get()),
+            text="Import",
+            font=(self.FONT, -14),
+            width=75,
+            text_color=self.logolabel.cget("text_color"),
+        )
+        self.import_button.place(relx=0.32, rely=0.9, anchor=tkinter.CENTER)
+
+        self.or_label = customtkinter.CTkLabel(
+            master=self.left_frame,
+            text="OR",
+            font=(self.FONT, -14),
+            text_color=self.logolabel.cget("text_color"),
+        )
+        self.or_label.place(relx=0.5, rely=0.9, anchor=tkinter.CENTER)
+
+        self.import_file_button = customtkinter.CTkButton(
+            master=self.left_frame,
+            command=lambda: self.filePreprocess(),
+            text="From File",
+            font=(self.FONT, -14),
+            width=75,
+            text_color=self.logolabel.cget("text_color"),
+        )
+        self.import_file_button.place(relx=0.68, rely=0.9, anchor=tkinter.CENTER)
+
+        self.preprocess_status_label = customtkinter.CTkLabel(
+            master=self.right_frame,
+            text="Preprocess Status",
+            font=(self.FONT, -20),
+            text_color=self.logolabel.cget("text_color"),
+        )
+        self.preprocess_status_label.place(relx=0.5, rely=0.1, anchor=tkinter.CENTER)
+
+        self.preprocess_terminal = customtkinter.CTkFrame(
+            master=self.right_frame,
+            width=275,
+            height=290,
+            fg_color="#0C0C0C",
+            border_width=1,
+        )
+        self.preprocess_terminal.place(relx=0.5, rely=0.55, anchor=tkinter.CENTER)
+
+        self.preprocess_terminal_text = customtkinter.CTkTextbox(
+            master=self.preprocess_terminal,
+            font=(self.FONT, -14),
+            width=250,
+            height=250,
+            bg_color="transparent",
+            fg_color="transparent",
+            text_color="#CCCCCC",
+        )
+        self.preprocess_terminal_text.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
+
+        def get_usage_info():
+            while True:
+                cpu_usage = psutil.cpu_percent()
+                mem_usage = psutil.virtual_memory().percent
+                try:
+                    gpu_usage = GPUtil.getGPUs()[0].load * 100
+                except:
+                    gpu_usage = "N/A"
+                self.system_info.configure(
+                    text=f"CPU: {cpu_usage:.1f}% | Mem: {mem_usage:.1f}% | GPU: {gpu_usage:.1f}%"
+                )
+                time.sleep(1)
+        threading.Thread(target=get_usage_info, daemon=True).start()
+
+        self.system_info = customtkinter.CTkLabel(
+            master=self.imports_frame,
+            text=f"CPU: 00.0% | Mem: 00.0% | GPU: 00.0%",
+            font=(self.FONT, -12),
+            text_color=self.logolabel.cget("text_color"),
+            state=tkinter.DISABLED,
+        )
+        self.system_info.place(relx=0.76, rely=0.95, anchor=tkinter.CENTER)
+
+        self.return_button = customtkinter.CTkButton(
+            master=self.imports_frame,
+            command=lambda: self.imports_frame.destroy(),
+            image=customtkinter.CTkImage(light_image=Image.open("./Assets/UIAssets/goback.png"), dark_image=Image.open("./Assets/UIAssets/goback_dark.png")),
+            fg_color='transparent',
+            hover_color=self.imports_frame.cget("bg_color"),
+            text="Return",
+            font=(self.FONT, -12),
+            width=5,
+            text_color="#6D6D6D",
+        )
+        self.return_button.place(relx=0.24, rely=0.95, anchor=tkinter.CENTER)
+
+        self.console = MISSTconsole(self.preprocess_terminal_text, "MISST Preprocessor\nCopyright (C) @Frikallo Corporation.\n\nMISST>")
+        self.console.update(" waiting")
+
+    def filePreprocess(self):
+        self.import_file_button.configure(state=tkinter.DISABLED)
+        self.import_button.configure(state=tkinter.DISABLED)
+        file = tkinter.filedialog.askopenfilename(initialdir = "/",title = "Select file",filetypes = (("mp3 files","*.mp3"),("wav files", "*.wav"),("all files","*.*")), multiple=False)
+        if file != "":
+            self.console.endUpdate()
+            threading.Thread(target=MISSTpreprocess.preprocess, args=(self, file, self.importsDest, "cuda" if self.settings.getSetting("accelerate_on_gpu") == "true" else "cpu"), daemon=True).start()
+
+    def sourcePreprocess(self, url):
+        if url != "":
+
+            # Spotify Import
+            if self.import_Spotify_var.get() == "on":
+                self.console.endUpdate()
+                self.console.addLine("Not implemented yet. Sorry :(")
+                #threading.Thread(target=MISSTpreprocess.importSpotify, args=(self, url, self.importsDest), daemon=True).start()
+            
+            # Youtube Import
+            elif self.import_Youtube_var.get() == "on":
+                self.console.endUpdate()
+                self.console.addLine("Not implemented yet. Sorry :(")
+                #threading.Thread(target=MISSTpreprocess.importYoutube, args=(self, url, self.importsDest), daemon=True).start()
+
+            # Deezer Import
+            elif self.import_Deezer_var.get() == "on":
+                self.console.endUpdate()
+                self.console.addLine("Not implemented yet. Sorry :(")
+                #threading.Thread(target=MISSTpreprocess.importDeezer, args=(self, url, self.importsDest), daemon=True).start()
+
+            # Soundcloud Import
+            elif self.import_Soundcloud_var.get() == "on":
+                self.console.endUpdate()
+                self.console.addLine("Not implemented yet. Sorry :(")
+                #threading.Thread(target=MISSTpreprocess.importSoundcloud, args=(self, url, self.importsDest), daemon=True).start()
+
+            else:
+                pass
+        return
 
     def draw_settings_frame(self):
         self.settings_window = customtkinter.CTkFrame(

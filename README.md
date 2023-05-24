@@ -34,7 +34,7 @@ This project is OpenSource, feel free to use, study and/or send pull request.
 - [x] Customizable themes
 - [x] Additional Efects like nightcore
 - [x] Easy to use equalizer
-- [ ] Preprocessing service available for offline use (WIP)
+- [x] Preprocessing service available for offline use
 - [ ] Docker image (WIP)
 - [ ] Make it as fast as possible (Preprocessing, Model loading, etc.) (Not a priority)
 - [ ] Stable on Windows, Linux and MacOS (Not a priority)
