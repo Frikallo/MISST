@@ -27,7 +27,7 @@ class MISSTsettings():
             data = json.load(f)
         data[setting] = value
         with open("config.json", "w") as f:
-            json.dump(data, f)
+            json.dump(data, f, indent=4)
 
     def applyThemeSettings(self, themeFile, baseTheme):
         # Apply the chosen colorways to the theme file
