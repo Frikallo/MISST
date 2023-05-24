@@ -1,0 +1,5 @@
+#Docker Container to build MISST on a virtual Linux os (WIP)
+FROM ubuntu
+
+#Copy full directory to container
+COPY .. . 

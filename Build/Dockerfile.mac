@@ -1,0 +1,5 @@
+#Docker Container to build MISST on a virtual Mac os (WIP)
+FROM sickcodes/docker-osx
+
+#Copy full directory to container
+COPY .. .
