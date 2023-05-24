@@ -34,15 +34,16 @@ This project is OpenSource, feel free to use, study and/or send pull request.
 - [x] Customizable themes
 - [x] Additional Efects like nightcore
 - [x] Easy to use equalizer
-- [x] Preprocessing service available for offline use
+- [x] Preprocessing service available on both CPU and GPU
 - [ ] Docker image (WIP)
 - [ ] Make it as fast as possible (Preprocessing, Model loading, etc.) (Not a priority)
-- [ ] Stable on Windows, Linux and MacOS (Not a priority)
-- [x] Proper installer/updater
+- [ ] Stable on Windows, Linux and MacOS (WIP)
+- [ ] Reasonable download size 
+- [ ] Proper installer/updater (Not a priority)
 
 
 ## Installation
-as of version 2.0.6, MISST is only available on windows with guaranteed compatibility. Until a later release, please refer to [Manual Installation](https://github.com/Frikallo/MISST/#manual-installation). 
+As of version 3.0.3, MISST is only available on windows with guaranteed compatibility. Until a later release, please refer to [Manual Installation](https://github.com/Frikallo/MISST/#manual-installation). 
 
 ## Manual Installation
 These instructions are for those installing MISST v3.0.2 **manually** only.
@@ -50,25 +51,25 @@ These instructions are for those installing MISST v3.0.2 **manually** only.
 1. Download & install Python 3.9 or higher (but no lower than 3.9) [here](https://www.python.org/downloads/)
     - **Note:** Ensure the *"Add Python to PATH"* box is checked
 2. Download the Source code [here](https://github.com/Frikallo/MISST/releases/latest)
-3. Open the command prompt from the src directory and run the following commands, separately - 
+3. Open the command prompt from the MISST directory and run the following commands, separately - 
 
 ```
 $ pip install -r requirements.txt
 $ pip install torch==1.9.0+cu111 torchvision==0.10.0+cu111 torchaudio==0.9.0 -f https://download.pytorch.org/whl/torch_stable.html
 ```
-- **Note:** The last two commands are only necessary if you intend to host an instance of the MISST server.
+- **Note:** The last command is only necessary if you intend to accelerate preprocessing with your GPU.
 
 From here you should be able to open and run the MISSTapp.py file
 
-- FFmpeg 
+- CUDA 
 
-    - FFmpeg must be installed and configured for the application to process any track that isn't a *.wav* file. You will need to look up instruction on how to configure it on your operating system.
+    - CUDA must be installed and configured for the application to process any track with GPU acceleration. You will need to look up instruction on how to configure it on your operating system. Click [here](https://developer.nvidia.com/cuda-downloads) for nvidia's installation guide.
 
 ## License
 
 The **MISST** code is [GPL-licensed](LICENSE). 
 
-- **Please Note:** For all third-party application developers who wish to use our models, please honor the GPL license by providing credit to MISST and its developer.
+- **Please Note:** For all third-party application developers who wish to use MISST or its code, please honor the GPL license by providing credit to MISST and its developer.
 
 ## Issue Reporting
 
