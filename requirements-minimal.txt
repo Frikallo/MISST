@@ -43,3 +43,4 @@ treetable==0.2.5
 typing_extensions==4.6.0
 vcolorpicker==1.4.1
 Werkzeug==2.2.3
+GPUtil==1.4.0

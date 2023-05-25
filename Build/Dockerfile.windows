@@ -1,5 +1,0 @@
-#Docker Container to build MISST on a virtual Windows os (WIP)
-FROM mcr.microsoft.com/windows
-
-#Copy full directory to container
-COPY .. .

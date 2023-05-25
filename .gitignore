@@ -1,5 +1,6 @@
 venv/*
+venv-minimal/*
 MISST/__pycache__/*
 MISST/MISST.log
+MISST/config.json
 output/*
-build/MISSTwin32.exe
