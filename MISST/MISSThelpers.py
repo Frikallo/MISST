@@ -173,13 +173,14 @@ class MISSThelpers():
         return chosen_color
     
     def resetSettings(self):
+        cuda = torch.cuda.is_available()
         self.settings.resetDefaultTheme("./Assets/Themes/MISST.json", "./Assets/Themes/maluableJSON")
         self.settings.setSetting("rpc", "true")
         self.settings.setSetting("autoplay", "true")
-        self.settings.setSetting("accelerate_on_gpu", "false")
+        self.settings.setSetting("accelerate_on_gpu", "true" if cuda else "false")
         self.rpc_box.select()
         self.autoplay_box.select()
-        self.preprocess_method_box.deselect()
+        self.preprocess_method_box.select() if cuda else self.preprocess_method_box.deselect()
         self.button_light.configure(fg_color=self.settings.getSetting("defaultLightColor"), hover_color=self.settings.getSetting("defaultLightColor"))
         self.button_dark.configure(fg_color=self.settings.getSetting("defaultDarkColor"), hover_color=self.settings.getSetting("defaultDarkColor"))
 

@@ -1,6 +1,7 @@
 import json
 import shutil
 import os
+import torch
 
 class MISSTsettings():
     def __init__(self):
@@ -59,11 +60,4 @@ class MISSTsettings():
     def createSettings(self):
         # Creates a new config file in the apps directory with all the default settings.
         shutil.copy("Assets/config_base.json", "config.json")
-
-
-if __name__ == "__main__":
-    settings = MISSTsettings()
-    #print(settings.getSetting("serverBase"))
-    #settings.setSetting("serverBase", "http://localhost:5001")
-    #print(settings.getSetting("serverBase"))
-    #settings.applyThemeSettings("./MISST/Assets/Themes/MISST.json", "./MISST/Assets/Themes/maluableJSON")
+        self.setSetting("accelerate_on_gpu", "true" if torch.cuda.is_available() else "false") #Automatically set GPU acceleration to true if available.

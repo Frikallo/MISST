@@ -49,6 +49,7 @@ class MISSTapp(customtkinter.CTk):
                 self.RPC.connect()
                 self.RPC_CONNECTED = True
             except:
+                self.logger.error("RPC connection failed or abborted.")
                 self.RPC_CONNECTED = False
         else:
             self.RPC_CONNECTED = False
@@ -624,7 +625,7 @@ class MISSTapp(customtkinter.CTk):
                 try:
                     gpu_usage = GPUtil.getGPUs()[0].load * 100
                 except:
-                    gpu_usage = "N/A"
+                    gpu_usage = "N/A" #CPU version of MISST
                 self.system_info.configure(
                     text=f"CPU: {cpu_usage:.1f}% | Mem: {mem_usage:.1f}% | GPU: {gpu_usage:.1f}%"
                 )
@@ -1214,6 +1215,7 @@ class MISSTapp(customtkinter.CTk):
         try:
             cover_art = customtkinter.CTkImage(Image.open(MISSThelpers.resize_image(self, f"{song_dir}/{web_name}.png", 40)), size=(40, 40))
         except:
+            self.logger.error("No cover art found.")
             cover_art = customtkinter.CTkImage(Image.open("./Assets/UIAssets/default.png"), size=(40, 40))
 
         self.songlabel.configure(text=song_name)
@@ -1245,6 +1247,7 @@ class MISSTapp(customtkinter.CTk):
                 try:
                     self.next(song_name)
                 except:
+                    self.logger.info("No more songs to play. Returning to default state.")
                     self.playpause_button.configure(image=customtkinter.CTkImage(Image.open(f"./Assets/Player/player-play.png"), size=(32, 32)), state=tkinter.DISABLED)
                     self.playing = False
                     self.progressbar.configure(state=tkinter.DISABLED)
@@ -1321,6 +1324,7 @@ class MISSTapp(customtkinter.CTk):
                 if self.update_timer:
                     MISSThelpers.terminate_thread(self, self.update_timer)
             except:
+                self.logger.error("Error stopping update thread.")
                 pass
 
         def on_progressbar_drag_start(event):
