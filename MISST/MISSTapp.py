@@ -13,6 +13,9 @@ from werkzeug.utils import secure_filename
 import shutil
 import psutil
 import GPUtil
+import webbrowser
+import subprocess
+import tempfile
 
 from MISSTplayer import MISSTplayer
 from MISSTsettings import MISSTsettings
@@ -29,13 +32,7 @@ class MISSTapp(customtkinter.CTk):
     def __init__(self):
         super().__init__()
 
-        # remove download folder if it exists
-        try:
-            shutil.rmtree('./dl-songs')
-        except:
-            pass
-
-        self.player = MISSTplayer(["Assets/silent/silence.wav","Assets/silent/silence.wav","Assets/silent/silence.wav","Assets/silent/silence.wav"], [0]*4)
+        self.player = MISSTplayer(["Assets/silent/silence.flac","Assets/silent/silence.flac","Assets/silent/silence.flac","Assets/silent/silence.flac"], [0]*4)
         self.logger = MISSTlogger().logger 
         self.settings = MISSTsettings()
         self.preprocess = MISSTpreprocess()
@@ -277,19 +274,19 @@ class MISSTapp(customtkinter.CTk):
         )
         self.equalizer.place(relx=0.7, rely=0.9, anchor=tkinter.CENTER)
 
-        self.refresh_button = customtkinter.CTkButton(
+        self.github_button = customtkinter.CTkButton(
             master=self.west_frame,
             font=(self.FONT, -12),
             text="",
-            image=customtkinter.CTkImage(Image.open(f"./Assets/UIAssets/reload.png"), size=(25,25)),
+            image=customtkinter.CTkImage(Image.open(f"./Assets/UIAssets/code.png"), size=(25,25)),
             bg_color='transparent',
             fg_color='transparent',
             hover_color=self.west_frame.cget("bg_color"),
             width=5,
             height=5,
-            command=lambda: threading.Thread(target=MISSThelpers.refreshConnection, args=(self,), daemon=True).start(),
+            command=lambda: webbrowser.open("https://github.com/Frikallo/MISST", new=0, autoraise=True),
         )
-        self.refresh_button.place(relx=0.5, rely=0.9, anchor=tkinter.CENTER)
+        self.github_button.place(relx=0.5, rely=0.9, anchor=tkinter.CENTER)
 
         ## NORTH FRAME ----------------------------------------------------------------------------------------------------
 
@@ -414,7 +411,7 @@ class MISSTapp(customtkinter.CTk):
 
         self.import_button = customtkinter.CTkButton(
             master=self.south_frame,
-            command=lambda: self.draw_imports_frame(),
+            command=lambda: self.imports_toggle(),
             image=customtkinter.CTkImage(Image.open(f"./Assets/UIAssets/import.png"), size=(30, 30)),
             fg_color='transparent',
             hover_color=self.south_frame.cget("bg_color"),
@@ -435,6 +432,12 @@ class MISSTapp(customtkinter.CTk):
                 checkboxes[vars.index(var)].deselect()
         current_var.set("on")
         checkboxes[vars.index(current_var)].select()
+
+    def imports_toggle(self):
+        try:
+            self.imports_frame.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
+        except:
+            self.draw_imports_frame()
 
     def draw_imports_frame(self):
         self.imports_frame = customtkinter.CTkFrame(
@@ -564,7 +567,7 @@ class MISSTapp(customtkinter.CTk):
 
         self.import_button = customtkinter.CTkButton(
             master=self.left_frame,
-            command=lambda: self.sourcePreprocess(self.source_entry.get()),
+            command=lambda: threading.Thread(target=self.sourcePreprocess, args=(self.source_entry.get(),), daemon=True).start(),
             text="Import",
             font=(self.FONT, -14),
             width=75,
@@ -643,7 +646,7 @@ class MISSTapp(customtkinter.CTk):
 
         self.return_button = customtkinter.CTkButton(
             master=self.imports_frame,
-            command=lambda: self.imports_frame.destroy(),
+            command=lambda: self.imports_frame.place_forget(),
             image=customtkinter.CTkImage(light_image=Image.open("./Assets/UIAssets/goback.png"), dark_image=Image.open("./Assets/UIAssets/goback_dark.png")),
             fg_color='transparent',
             hover_color=self.imports_frame.cget("bg_color"),
@@ -660,37 +663,113 @@ class MISSTapp(customtkinter.CTk):
     def filePreprocess(self):
         self.import_file_button.configure(state=tkinter.DISABLED)
         self.import_button.configure(state=tkinter.DISABLED)
-        file = tkinter.filedialog.askopenfilename(initialdir = "/",title = "Select file",filetypes = (("mp3 files","*.mp3"),("wav files", "*.wav"),("all files","*.*")), multiple=False)
+        file = tkinter.filedialog.askopenfilename(initialdir = "/",title = "Select file",filetypes = (("mp3 files","*.mp3"),("wav files", "*.wav"),("flac files", "*.flac"),("all files","*.*")), multiple=False)
         if file != "":
             self.console.endUpdate()
             threading.Thread(target=MISSTpreprocess.preprocess, args=(self, file, self.importsDest, "cuda" if self.settings.getSetting("accelerate_on_gpu") == "true" else "cpu"), daemon=True).start()
 
     def sourcePreprocess(self, url):
         if url != "":
-
             # Spotify Import
             if self.import_Spotify_var.get() == "on":
+                self.import_file_button.configure(state=tkinter.DISABLED)
+                self.import_button.configure(state=tkinter.DISABLED)
+                if "spotify.com" not in url:
+                    self.console.endUpdate()
+                    self.console.addLine("\nMISST> Invalid URL.")
+                    self.import_file_button.configure(state=tkinter.NORMAL)
+                    self.import_button.configure(state=tkinter.NORMAL)
+                    return
                 self.console.endUpdate()
-                self.console.addLine("Not implemented yet. Sorry :(")
-                #threading.Thread(target=MISSTpreprocess.importSpotify, args=(self, url, self.importsDest), daemon=True).start()
+                self.console.update(" Downloading")
+                temp_dir = tempfile.mkdtemp()
+                cmd = f"{os.path.abspath('./Assets/Bin/spotdl.exe')} {url} --output {temp_dir} --ffmpeg ./ffmpeg.exe"
+                process = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True, creationflags=0x08000000)
+                if process.returncode != 0:
+                    print(process.stderr)
+                    self.console.endUpdate()
+                    self.console.addLine("\nMISST> Error downloading file.")
+                    self.import_file_button.configure(state=tkinter.NORMAL)
+                    self.import_button.configure(state=tkinter.NORMAL)
+                    return
+                self.console.endUpdate()
+                self.console.addLine("\nMISST> Downloaded.")
+                thread = threading.Thread(target=MISSTpreprocess.preprocess, args=(self, f"{temp_dir}/{os.listdir(temp_dir)[0]}", self.importsDest, "cuda" if self.settings.getSetting("accelerate_on_gpu") == "true" else "cpu"), daemon=True)
+                thread.start()
+                thread.join()
+                os.remove(os.path.join(temp_dir, os.listdir(temp_dir)[0]))
+                os.rmdir(temp_dir)
+                self.import_file_button.configure(state=tkinter.NORMAL)
+                self.import_button.configure(state=tkinter.NORMAL)
             
             # Youtube Import
             elif self.import_Youtube_var.get() == "on":
+                self.import_file_button.configure(state=tkinter.DISABLED)
+                self.import_button.configure(state=tkinter.DISABLED)
+                if "youtube.com" not in url:
+                    self.console.endUpdate()
+                    self.console.addLine("\nMISST> Invalid URL.")
+                    self.import_file_button.configure(state=tkinter.NORMAL)
+                    self.import_button.configure(state=tkinter.NORMAL)
+                    return
                 self.console.endUpdate()
-                self.console.addLine("Not implemented yet. Sorry :(")
-                #threading.Thread(target=MISSTpreprocess.importYoutube, args=(self, url, self.importsDest), daemon=True).start()
+                self.console.update(" Downloading")
+                temp_dir = tempfile.mkdtemp()
+                cmd = f"{os.path.abspath('./Assets/Bin/music-dl.exe')} -v -x --audio-format wav -o {temp_dir}/%(title)s.%(ext)s {url} --ffmpeg-location ./ffmpeg.exe"
+                process = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True, creationflags=0x08000000)
+                if process.returncode != 0:
+                    print(process.stderr)
+                    self.console.endUpdate()
+                    self.console.addLine("\nMISST> Error downloading file.")
+                    self.import_file_button.configure(state=tkinter.NORMAL)
+                    self.import_button.configure(state=tkinter.NORMAL)
+                    return
+                self.console.endUpdate()
+                self.console.addLine("\nMISST> Downloaded.")
+                thread = threading.Thread(target=MISSTpreprocess.preprocess, args=(self, f"{temp_dir}/{os.listdir(temp_dir)[0]}", self.importsDest, "cuda" if self.settings.getSetting("accelerate_on_gpu") == "true" else "cpu"), daemon=True)
+                thread.start()
+                thread.join()
+                os.remove(os.path.join(temp_dir, os.listdir(temp_dir)[0]))
+                os.rmdir(temp_dir)
+                self.import_file_button.configure(state=tkinter.NORMAL)
+                self.import_button.configure(state=tkinter.NORMAL)
 
             # Deezer Import
             elif self.import_Deezer_var.get() == "on":
                 self.console.endUpdate()
-                self.console.addLine("Not implemented yet. Sorry :(")
-                #threading.Thread(target=MISSTpreprocess.importDeezer, args=(self, url, self.importsDest), daemon=True).start()
+                self.console.addLine("\nMISST> Not implemented yet. Sorry:(")
 
             # Soundcloud Import
             elif self.import_Soundcloud_var.get() == "on":
+                self.import_file_button.configure(state=tkinter.DISABLED)
+                self.import_button.configure(state=tkinter.DISABLED)
+                if "soundcloud.com" not in url:
+                    self.console.endUpdate()
+                    self.console.addLine("\nMISST> Invalid URL.")
+                    self.import_file_button.configure(state=tkinter.NORMAL)
+                    self.import_button.configure(state=tkinter.NORMAL)
+                    return
                 self.console.endUpdate()
-                self.console.addLine("Not implemented yet. Sorry :(")
-                #threading.Thread(target=MISSTpreprocess.importSoundcloud, args=(self, url, self.importsDest), daemon=True).start()
+                self.console.update(" Downloading")
+                temp_dir = tempfile.mkdtemp()
+                cmd = f"{os.path.abspath('./Assets/Bin/music-dl.exe')} -v -x --audio-format wav -o {temp_dir}/%(title)s.%(ext)s {url} --ffmpeg-location ./ffmpeg.exe"
+                process = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True, creationflags=0x08000000)
+                if process.returncode != 0:
+                    print(process.stderr)
+                    self.console.endUpdate()
+                    self.console.addLine("\nMISST> Error downloading file.")
+                    self.import_file_button.configure(state=tkinter.NORMAL)
+                    self.import_button.configure(state=tkinter.NORMAL)
+                    return
+                self.console.endUpdate()
+                self.console.addLine("\nMISST> Downloaded.")
+                thread = threading.Thread(target=MISSTpreprocess.preprocess, args=(self, f"{temp_dir}/{os.listdir(temp_dir)[0]}", self.importsDest, "cuda" if self.settings.getSetting("accelerate_on_gpu") == "true" else "cpu"), daemon=True)
+                thread.start()
+                thread.join()
+                os.remove(os.path.join(temp_dir, os.listdir(temp_dir)[0]))
+                os.rmdir(temp_dir)
+                self.import_file_button.configure(state=tkinter.NORMAL)
+                self.import_button.configure(state=tkinter.NORMAL)
 
             else:
                 pass
@@ -1086,13 +1165,13 @@ class MISSTapp(customtkinter.CTk):
                 entry_val = search_entry.get()
 
     def play(self, dir):    
-        self.UI_thread = threading.Thread(target=self.update_UI, args=(f"{self.importsDest}/{dir}/other.wav", 0), daemon=True)
+        self.UI_thread = threading.Thread(target=self.update_UI, args=(f"{self.importsDest}/{dir}/other.flac", 0), daemon=True)
         self.UI_thread.start()
         try:
             self.player.stop()
         except:
             pass
-        self.player = MISSTplayer([f"{self.importsDest}/{dir}/bass.wav", f"{self.importsDest}/{dir}/drums.wav", f"{self.importsDest}/{dir}/other.wav", f"{self.importsDest}/{dir}/vocals.wav"], [self.slider1.get(), self.slider2.get(), self.slider3.get(), self.slider4.get()])
+        self.player = MISSTplayer([f"{self.importsDest}/{dir}/bass.flac", f"{self.importsDest}/{dir}/drums.flac", f"{self.importsDest}/{dir}/other.flac", f"{self.importsDest}/{dir}/vocals.flac"], [self.slider1.get(), self.slider2.get(), self.slider3.get(), self.slider4.get()])
         threading.Thread(target=self.player.play, daemon=True).start()
 
     def play_search(self, index_label, songs):
@@ -1240,49 +1319,43 @@ class MISSTapp(customtkinter.CTk):
 
         self.progressbar_active = False
 
+        def reset_to_default():
+            self.logger.info("No more songs to play. Returning to default state.")
+            self.playpause_button.configure(image=customtkinter.CTkImage(Image.open(f"./Assets/Player/player-play.png"), size=(32, 32)), state=tkinter.DISABLED)
+            self.playing = False
+            self.progressbar.configure(state=tkinter.DISABLED)
+            self.nc_checkbox.configure(state=tkinter.DISABLED)
+            self.progressbar.set(0)
+            self.progress_label_left.configure(text="00:00")
+            self.progress_label_right.configure(text="00:00")
+            self.songlabel.configure(text="Play Something!", image=customtkinter.CTkImage(Image.open("./Assets/UIAssets/empty.png"), size=(1, 1)))
+            self.next_button.configure(state=tkinter.DISABLED)
+            self.previous_button.configure(state=tkinter.DISABLED)
+            MISSThelpers.update_rpc(
+                self,
+                Ltext="Idle",
+                Dtext="Nothing is playing",
+                image="icon-0",
+                large_text="MISST",
+            )    
+        
         def on_end():
             if self.loop == True:
-                self.play(song_name)
+                try:
+                    self.play(song_name)
+                except:
+                    reset_to_default()
             elif self.autoplay == True:
                 try:
-                    self.next(song_name)
+                    songs = MISSThelpers.MISSTlistdir(self, self.importsDest) 
+                    index = songs.index(song_name)
+                    self.playing = True
+                    self.nc_checkbox.deselect()
+                    self.play(songs[index + 1])
                 except:
-                    self.logger.info("No more songs to play. Returning to default state.")
-                    self.playpause_button.configure(image=customtkinter.CTkImage(Image.open(f"./Assets/Player/player-play.png"), size=(32, 32)), state=tkinter.DISABLED)
-                    self.playing = False
-                    self.progressbar.configure(state=tkinter.DISABLED)
-                    self.nc_checkbox.configure(state=tkinter.DISABLED)
-                    self.progressbar.set(0)
-                    self.progress_label_left.configure(text="00:00")
-                    self.progress_label_right.configure(text="00:00")
-                    self.songlabel.configure(text="Play Something!", image=customtkinter.CTkImage(Image.open("./Assets/UIAssets/empty.png"), size=(1, 1)))
-                    self.next_button.configure(state=tkinter.DISABLED)
-                    self.previous_button.configure(state=tkinter.DISABLED)
-                    MISSThelpers.update_rpc(
-                        self,
-                        Ltext="Idle",
-                        Dtext="Nothing is playing",
-                        image="icon-0",
-                        large_text="MISST",
-                    )            
+                    reset_to_default()      
             else:
-                self.playpause_button.configure(image=customtkinter.CTkImage(Image.open(f"./Assets/Player/player-play.png"), size=(32, 32)), state=tkinter.DISABLED)
-                self.playing = False
-                self.progressbar.configure(state=tkinter.DISABLED)
-                self.nc_checkbox.configure(state=tkinter.DISABLED)
-                self.progressbar.set(0)
-                self.progress_label_left.configure(text="00:00")
-                self.progress_label_right.configure(text="00:00")
-                self.songlabel.configure(text="Play Something!", image=customtkinter.CTkImage(Image.open("./Assets/UIAssets/empty.png"), size=(1, 1)))
-                self.next_button.configure(state=tkinter.DISABLED)
-                self.previous_button.configure(state=tkinter.DISABLED)
-                MISSThelpers.update_rpc(
-                    self,
-                    Ltext="Idle",
-                    Dtext="Nothing is playing",
-                    image="icon-0",
-                    large_text="MISST",
-                )
+                reset_to_default()
 
         def update_progress():
             nonlocal current_time

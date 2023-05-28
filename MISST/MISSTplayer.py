@@ -1,6 +1,6 @@
 from MISSTsettings import MISSTsettings
 import pyaudio
-import wave
+import soundfile as sf
 import threading
 import numpy as np
 
@@ -21,13 +21,12 @@ class MISSTplayer:
         self.center_freqs = [62, 125, 250, 500, 1_000, 2_500, 4_000, 8_000, 16_000] # 62 Hz, 125 Hz, 250 Hz, 500 Hz, 1 KHz, 2.5 KHz, 4 KHz, 8 KHz, 16 KHz
         
         for file in self.files:
-            wf = wave.open(file, 'rb')
-            self.frame_rate = wf.getframerate()
-            self.duration = wf.getnframes() / self.frame_rate
-            self.channels = wf.getnchannels()
-            stream = self.p.open(format=self.p.get_format_from_width(wf.getsampwidth()),
-                                 channels=wf.getnchannels(),
-                                 rate=wf.getframerate(),
+            data, self.frame_rate = sf.read(file, dtype='int16')
+            self.duration = len(data) / self.frame_rate
+            self.channels = data.shape[1]
+            stream = self.p.open(format=self.p.get_format_from_width(2),
+                                 channels=self.channels,
+                                 rate=self.frame_rate,
                                  output=True)
             self.streams.append(stream)
         
@@ -44,21 +43,18 @@ class MISSTplayer:
                     break
         
     def get_data(self, stream_index):
-        wf = wave.open(self.files[stream_index], 'rb')
-        wf.setpos(self.positions[stream_index])
-        data = wf.readframes(self.chunk_size)
-        if data:
-            self.positions[stream_index] = wf.tell()
+        data, _ = sf.read(self.files[stream_index], dtype='int16', start=self.positions[stream_index], frames=self.chunk_size)
+        if len(data) > 0:
+            self.positions[stream_index] += len(data)
             data = self.adjust_volume(data, self.volumes[stream_index])
             if self.nightcore == True:
                 data = self.apply_nightcore(data)
             try:
                 if self.eq() == True:
-                    data = self.apply_eq(data) # apply eq last so it can be applied to nightcore data aswell
+                    data = self.apply_eq(data)  # apply eq last so it can be applied to nightcore data as well
             except:
                 # json error
                 pass
-        wf.close()
         return data
     
     def adjust_volume(self, data, volume):

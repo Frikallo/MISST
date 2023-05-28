@@ -9,6 +9,7 @@ import logging
 import soundfile
 import julius
 import wave
+import soundfile as sf
 from MISSThelpers import MISSTconsole
 import os
 
@@ -78,6 +79,14 @@ class MISSTpreprocess():
             f.setframerate(samplerate)
             f.writeframes(bytearray(wav.numpy()))
 
+    def compress_wav_to_flac(self, wav_file, flac_file):
+        # Read the WAV file
+        data, samplerate = sf.read(wav_file)
+
+        # Write the FLAC file and delete the WAV file
+        sf.write(flac_file, data, samplerate, format='FLAC')
+        os.remove(wav_file)
+
     def convert_audio(self, wav, from_samplerate, to_samplerate, channels):
         """Convert audio from a given samplerate to a target one and target number of channels."""
         wav = self.convert_audio_channels(wav, channels)
@@ -135,7 +144,7 @@ class MISSTpreprocess():
             for i in range(len(stems)):
                 stem = (new_audio[i] / total)[:, :orig_len]
                 self.write_wav(torch.from_numpy(stem.transpose()), str(outpath / f"{stems[i]}.wav"), sample_rate)
-
+                self.compress_wav_to_flac(str(outpath / f"{stems[i]}.wav"), str(outpath / f"{stems[i]}.flac"))
         else:
             pass
 
