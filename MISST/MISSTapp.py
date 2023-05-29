@@ -412,7 +412,7 @@ class MISSTapp(customtkinter.CTk):
         self.import_button = customtkinter.CTkButton(
             master=self.south_frame,
             command=lambda: self.imports_toggle(),
-            image=customtkinter.CTkImage(Image.open(f"./Assets/UIAssets/import.png"), size=(30, 30)),
+            image=customtkinter.CTkImage(light_image=Image.open(f"./Assets/UIAssets/import-light.png"), dark_image=Image.open(f"./Assets/UIAssets/import-dark.png"), size=(30, 30)),
             fg_color='transparent',
             hover_color=self.south_frame.cget("bg_color"),
             text="Import Song(s)",
@@ -667,7 +667,10 @@ class MISSTapp(customtkinter.CTk):
         if file != "":
             self.console.endUpdate()
             threading.Thread(target=MISSTpreprocess.preprocess, args=(self, file, self.importsDest, "cuda" if self.settings.getSetting("accelerate_on_gpu") == "true" else "cpu"), daemon=True).start()
-
+        else:
+            self.import_file_button.configure(state=tkinter.NORMAL)
+            self.import_button.configure(state=tkinter.NORMAL)
+            
     def sourcePreprocess(self, url):
         if url != "":
             # Spotify Import
@@ -1389,8 +1392,12 @@ class MISSTapp(customtkinter.CTk):
                 return
 
             # Schedule the next update
-            self.update_timer = threading.Timer(1.0, update_progress)
-            self.update_timer.start()
+            if self.nc_checkbox.get() == True:
+                self.update_timer = threading.Timer(1.0/1.25, update_progress)
+                self.update_timer.start()
+            else:
+                self.update_timer = threading.Timer(1.0, update_progress)
+                self.update_timer.start()
 
         def stop_update_thread():
             try:
