@@ -4,6 +4,7 @@ os.chdir(os.path.dirname(os.path.abspath(__file__)))
 import tkinter
 import customtkinter
 from pypresence import Presence
+import lyricsgenius
 import threading
 import time
 import random
@@ -51,6 +52,9 @@ class MISSTapp(customtkinter.CTk):
                 self.RPC_CONNECTED = False
         else:
             self.RPC_CONNECTED = False
+
+        token = self.settings.getSetting("genius_client_token")
+        self.genius = lyricsgenius.Genius(token)
 
         self.importsDest = os.path.abspath(self.settings.getSetting("importsDest"))
         if not os.path.isdir(self.importsDest):
@@ -454,7 +458,11 @@ class MISSTapp(customtkinter.CTk):
         self.lyrics_box.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
 
         self.lyrics_box.configure(state=tkinter.NORMAL)
-        self.lyrics_box.insert(tkinter.END, "Check back next update for lyrics! :)")
+        try:
+            song = genius.search_song(self.songlabel.cget("text"))
+            self.lyrics_box.insert(tkinter.END, song.lyrics)
+        except:
+            self.lyrics_box.insert(tkinter.END, "MISST encountered an error.")
         self.lyrics_box.configure(state=tkinter.DISABLED)
 
     def imports_checkbox_event(self, current_var):
