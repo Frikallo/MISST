@@ -114,7 +114,12 @@ class MISSThelpers():
             os_list = os.listdir(directory)
             misst_list = []
             for _ in os_list:
-                if os.path.isfile(f"{directory}/{_}/bass.flac") and os.path.isfile(f"{directory}/{_}/drums.flac") and os.path.isfile(f"{directory}/{_}/other.flac") and os.path.isfile(f"{directory}/{_}/vocals.flac"):
+                required_files = ["bass.flac", "drums.flac", "other.flac", "vocals.flac", ".misst"]
+                found = 0
+                for file in required_files:
+                    if os.path.isfile(f"{directory}/{_}/{file}"):
+                        found += 1
+                if len(required_files) == found:
                     misst_list.append(_)
             return misst_list
         except:
