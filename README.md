@@ -43,7 +43,7 @@ This project is OpenSource, feel free to use, study and/or send pull request.
 
 
 ## Installation
-As of version 3.0.3, MISST is only available on windows with guaranteed compatibility. Until a later release, please refer to [Manual Installation](https://github.com/Frikallo/MISST/#manual-installation). 
+As of version 3.0.3, MISST is only available on windows with guaranteed compatibility. Until a later release, if you are not on a windows device please refer to [Manual Installation](https://github.com/Frikallo/MISST/#manual-installation). Otherwise, refer to the latest [Release](https://github.com/Frikallo/MISST/releases/latest)
 
 ## Manual Installation
 These instructions are for those installing MISST v3.0.2 **manually** only.
@@ -64,6 +64,15 @@ From here you should be able to open and run the MISSTapp.py file
 - CUDA 
 
     - CUDA must be installed and configured for the application to process any track with GPU acceleration. You will need to look up instruction on how to configure it on your operating system. Click [here](https://developer.nvidia.com/cuda-downloads) for nvidia's installation guide.
+
+## Small Output Size
+By employing advanced compression techniques, MISST optimizes the output files to minimize their size without compromising audio quality. This is achieved through a two-step process:
+
+- **Audio Compression**: MISST employs the FLAC (Free Lossless Audio Codec) format to compress the separated audio stems. FLAC offers a high level of compression while maintaining the original audio fidelity. As a result, the size of each stem is significantly reduced compared to other common audio formats.
+
+- **Metadata Compression**: In addition to compressing the audio, MISST also optimizes the metadata associated with the stems. It encodes the metadata using Base64 encoding, which allows for efficient representation of the information while keeping the file size to a minimum.
+
+As a result of these compression techniques, the output file size of MISST is remarkably small. In fact, even a four-stem output from MISST can be almost the same size as your original one-stem input. This makes MISST an ideal choice for scenarios where storage space or bandwidth limitations are a concern.
 
 ## License
 

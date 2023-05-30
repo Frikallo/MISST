@@ -61,3 +61,37 @@ class MISSTsettings():
         # Creates a new config file in the apps directory with all the default settings.
         shutil.copy("Assets/config_base.json", "config.json")
         self.setSetting("accelerate_on_gpu", "true" if torch.cuda.is_available() else "false") #Automatically set GPU acceleration to true if available.
+
+
+class MISSTconfig:
+    def __init__(self, configPath):
+        # Check if the config file exists, if not create it
+        # Path: MISST\MISSTsettings.py
+        if not os.path.isfile(f"{configPath}/.misst"):
+            self.createConfig(configPath)
+        return
+    
+    def getConfig(self, configPath):
+        # Get the setting from the saved config file
+        # Path: MISST\MISSTsettings.py
+        # setting: The setting to be retrieved
+        with open(f"{configPath}/.misst", "r") as f:
+            data = json.load(f)
+        return data
+    
+    def setConfig(self, configPath, setting, value):
+        # Set the setting in the saved config file
+        # Path: MISST\MISSTsettings.py
+        # setting: The setting to be set
+        # value: The value to be set
+        with open(f"{configPath}/.misst", "r") as f:
+            data = json.load(f)
+        data[setting] = value
+        with open(f"{configPath}/.misst", "w") as f:
+            json.dump(data, f, indent=4)
+
+    def createConfig(self, configPath):
+        # Creates a new config file in the apps directory with all the default settings.
+        with open(f"{configPath}/.misst", "w") as f:
+            json.dump({"image_url": "null", "image_raw": "null", "lyrics": "null"}, f, indent=4)
+        f.close()

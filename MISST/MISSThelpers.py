@@ -15,6 +15,7 @@ import re
 import demucs
 import threading
 import ctypes
+import requests
 
 class MISSTconsole():
     def __init__(self, terminal, ogText):
@@ -313,6 +314,19 @@ class MISSThelpers():
         info += "FFMpeg available:\t%s\n" % self.FFMpegAvailable
         info += "MISST version:\t%s\n" % self.version
         return info
+    
+    def freeimage_upload(self, img):
+        key = "6d207e02198a847aa98d0a2a901485a5"
+
+        response = requests.post(
+            url="https://freeimage.host/api/1/upload",
+            data={"key": key},
+            files={"source": img},
+        )
+        if not response.ok:
+            raise Exception("Error uploading image", response.json())
+
+        return response.json()["image"]["url"]
     
     def terminate_thread(self, thread):
         if not thread.is_alive():

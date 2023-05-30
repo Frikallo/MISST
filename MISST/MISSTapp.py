@@ -9,16 +9,17 @@ import time
 import random
 import datetime
 from PIL import Image
-from werkzeug.utils import secure_filename
 import shutil
 import psutil
 import GPUtil
 import webbrowser
 import subprocess
 import tempfile
+import music_tag
+import io, base64
 
 from MISSTplayer import MISSTplayer
-from MISSTsettings import MISSTsettings
+from MISSTsettings import MISSTsettings, MISSTconfig
 from MISSThelpers import MISSThelpers, MISSTconsole
 from MISSTlogger import MISSTlogger
 from MISSTpreprocess import MISSTpreprocess
@@ -296,7 +297,7 @@ class MISSTapp(customtkinter.CTk):
             width=240,
             height=50,
             font=(self.FONT, -14),
-            command=lambda: print("test"),
+            command=lambda: self.draw_lyrics_box(),
             fg_color='transparent',
             hover_color=self.north_frame.cget("bg_color"),
             text_color=self.logolabel.cget("text_color"),
@@ -422,6 +423,39 @@ class MISSTapp(customtkinter.CTk):
             text_color=self.logolabel.cget("text_color"),
         )
         self.import_button.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)        
+
+    def raise_above_all(self, window):
+        window.attributes("-topmost", 1)
+        window.attributes("-topmost", 0)
+
+    def draw_lyrics_box(self):
+        try:
+            self.lyrics_window.destroy() # Destroy the window if it already exists
+        except:
+            pass
+
+        self.lyrics_window = customtkinter.CTkToplevel(app)
+        self.lyrics_window.geometry("580x435")
+        self.lyrics_window.title("Lyrics")
+        self.lyrics_window.after(201, lambda: self.lyrics_window.wm_iconbitmap(r"Assets/icon.ico")) # Weird bug where icon doesn't load unless it's done after 200ms
+        self.lyrics_window.minsize(580, 435)
+        self.lyrics_window.maxsize(580, 435)
+        self.raise_above_all(self.lyrics_window)
+
+        self.lyrics_box = customtkinter.CTkTextbox(
+            master=self.lyrics_window,
+            font=(self.FONT, -14),
+            width=500,
+            height=355,
+            bg_color=self.lyrics_window.cget("fg_color"),
+            fg_color=self.lyrics_window.cget("fg_color"),
+            state=tkinter.DISABLED,
+        )
+        self.lyrics_box.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
+
+        self.lyrics_box.configure(state=tkinter.NORMAL)
+        self.lyrics_box.insert(tkinter.END, "Check back next update for lyrics! :)")
+        self.lyrics_box.configure(state=tkinter.DISABLED)
 
     def imports_checkbox_event(self, current_var):
         vars = [self.import_Spotify_var, self.import_Youtube_var, self.import_Deezer_var, self.import_Soundcloud_var]
@@ -630,7 +664,7 @@ class MISSTapp(customtkinter.CTk):
                 except:
                     gpu_usage = "N/A" #CPU version of MISST
                 self.system_info.configure(
-                    text=f"CPU: {cpu_usage:.1f}% | Mem: {mem_usage:.1f}% | GPU: {gpu_usage:.1f}%"
+                    text=f"CPU: {cpu_usage:.1f}% | Mem: {mem_usage:.1f}% | GPU: {f'{gpu_usage:.1f}' if gpu_usage != 'N/A' else 'N/A'}%"
                 )
                 time.sleep(1)
         threading.Thread(target=get_usage_info, daemon=True).start()
@@ -672,6 +706,40 @@ class MISSTapp(customtkinter.CTk):
             self.import_button.configure(state=tkinter.NORMAL)
             
     def sourcePreprocess(self, url):
+        def retrieve_metadata():
+                self.console.update("\nMISST> Getting Metadata")
+                save_dir = f"{self.importsDest}/{os.path.splitext(os.path.basename(os.listdir(temp_dir)[0]))[0]}"
+                if not os.path.exists(save_dir):
+                    os.mkdir(save_dir)
+                config = MISSTconfig(save_dir) #Create config file
+                try:
+                    f = music_tag.load_file(f"{temp_dir}/{os.listdir(temp_dir)[0]}")
+                    art = f['artwork']
+                    raw_art = art.first.data
+                    image = Image.open(io.BytesIO(raw_art))
+
+                    square_size = min(image.size)
+                    left = (image.width - square_size) // 2
+                    top = (image.height - square_size) // 2
+                    right = left + square_size
+                    bottom = top + square_size
+
+                    # Crop the square region from the center of the image
+                    cropped_image = image.crop((left, top, right, bottom))
+
+                    image = cropped_image.resize((40, 40), Image.Resampling.LANCZOS)
+                    raw_art = image.tobytes()
+                    png_bytes = io.BytesIO()
+                    image.save(png_bytes, format="PNG")
+                    raw_art = png_bytes.getvalue()
+                    config.setConfig(save_dir, "image_url", MISSThelpers().freeimage_upload(raw_art))
+                    config.setConfig(save_dir, "image_raw", base64.b64encode(raw_art).decode('utf-8'))
+                    self.console.endUpdate()
+                    self.console.addLine("\nMISST> Metadata Retrieved.")
+                except Exception as e:
+                    self.logger.error(e)
+                    self.console.endUpdate()
+                    self.console.addLine("\nMISST> Error getting metadata.")
         if url != "":
             # Spotify Import
             if self.import_Spotify_var.get() == "on":
@@ -697,6 +765,7 @@ class MISSTapp(customtkinter.CTk):
                     return
                 self.console.endUpdate()
                 self.console.addLine("\nMISST> Downloaded.")
+                retrieve_metadata()
                 thread = threading.Thread(target=MISSTpreprocess.preprocess, args=(self, f"{temp_dir}/{os.listdir(temp_dir)[0]}", self.importsDest, "cuda" if self.settings.getSetting("accelerate_on_gpu") == "true" else "cpu"), daemon=True)
                 thread.start()
                 thread.join()
@@ -704,12 +773,13 @@ class MISSTapp(customtkinter.CTk):
                 os.rmdir(temp_dir)
                 self.import_file_button.configure(state=tkinter.NORMAL)
                 self.import_button.configure(state=tkinter.NORMAL)
+                self.source_entry.delete(0, tkinter.END) #Clear entry
             
             # Youtube Import
             elif self.import_Youtube_var.get() == "on":
                 self.import_file_button.configure(state=tkinter.DISABLED)
                 self.import_button.configure(state=tkinter.DISABLED)
-                if "youtube.com" not in url:
+                if "https://music.youtube.com/watch?v=" and "https://www.youtube.com/watch?v=" not in url:
                     self.console.endUpdate()
                     self.console.addLine("\nMISST> Invalid URL.")
                     self.import_file_button.configure(state=tkinter.NORMAL)
@@ -718,7 +788,7 @@ class MISSTapp(customtkinter.CTk):
                 self.console.endUpdate()
                 self.console.update(" Downloading")
                 temp_dir = tempfile.mkdtemp()
-                cmd = f"{os.path.abspath('./Assets/Bin/music-dl.exe')} -v -x --audio-format wav -o {temp_dir}/%(title)s.%(ext)s {url} --ffmpeg-location ./ffmpeg.exe"
+                cmd = f"{os.path.abspath('./Assets/Bin/music-dl.exe')} -v -x --embed-thumbnail --audio-format flac -o {temp_dir}/%(title)s.%(ext)s {url} --ffmpeg-location ./ffmpeg.exe"
                 process = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True, creationflags=0x08000000)
                 if process.returncode != 0:
                     print(process.stderr)
@@ -729,6 +799,7 @@ class MISSTapp(customtkinter.CTk):
                     return
                 self.console.endUpdate()
                 self.console.addLine("\nMISST> Downloaded.")
+                retrieve_metadata()
                 thread = threading.Thread(target=MISSTpreprocess.preprocess, args=(self, f"{temp_dir}/{os.listdir(temp_dir)[0]}", self.importsDest, "cuda" if self.settings.getSetting("accelerate_on_gpu") == "true" else "cpu"), daemon=True)
                 thread.start()
                 thread.join()
@@ -736,6 +807,7 @@ class MISSTapp(customtkinter.CTk):
                 os.rmdir(temp_dir)
                 self.import_file_button.configure(state=tkinter.NORMAL)
                 self.import_button.configure(state=tkinter.NORMAL)
+                self.source_entry.delete(0, tkinter.END) #Clear entry
 
             # Deezer Import
             elif self.import_Deezer_var.get() == "on":
@@ -755,7 +827,7 @@ class MISSTapp(customtkinter.CTk):
                 self.console.endUpdate()
                 self.console.update(" Downloading")
                 temp_dir = tempfile.mkdtemp()
-                cmd = f"{os.path.abspath('./Assets/Bin/music-dl.exe')} -v -x --audio-format wav -o {temp_dir}/%(title)s.%(ext)s {url} --ffmpeg-location ./ffmpeg.exe"
+                cmd = f"{os.path.abspath('./Assets/Bin/music-dl.exe')} -v -x --embed-thumbnail --audio-format flac -o {temp_dir}/%(title)s.%(ext)s {url} --ffmpeg-location ./ffmpeg.exe"
                 process = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True, creationflags=0x08000000)
                 if process.returncode != 0:
                     print(process.stderr)
@@ -766,6 +838,7 @@ class MISSTapp(customtkinter.CTk):
                     return
                 self.console.endUpdate()
                 self.console.addLine("\nMISST> Downloaded.")
+                retrieve_metadata()
                 thread = threading.Thread(target=MISSTpreprocess.preprocess, args=(self, f"{temp_dir}/{os.listdir(temp_dir)[0]}", self.importsDest, "cuda" if self.settings.getSetting("accelerate_on_gpu") == "true" else "cpu"), daemon=True)
                 thread.start()
                 thread.join()
@@ -773,6 +846,7 @@ class MISSTapp(customtkinter.CTk):
                 os.rmdir(temp_dir)
                 self.import_file_button.configure(state=tkinter.NORMAL)
                 self.import_button.configure(state=tkinter.NORMAL)
+                self.source_entry.delete(0, tkinter.END) #Clear entry
 
             else:
                 pass
@@ -1289,13 +1363,17 @@ class MISSTapp(customtkinter.CTk):
 
         self.songlabel.configure(text="")
         song_name = os.path.basename(os.path.dirname(audioPath))
-        web_name = secure_filename(song_name)
         song_dir = os.path.dirname(audioPath)
+        config = MISSTconfig(song_dir)
 
         self.next_button.configure(command=lambda: self.next(song_name))
         self.previous_button.configure(command=lambda: self.previous(song_name))
         try:
-            cover_art = customtkinter.CTkImage(Image.open(MISSThelpers.resize_image(self, f"{song_dir}/{web_name}.png", 40)), size=(40, 40))
+            byte_string = config.getConfig(song_dir)["image_raw"]
+            byte_data = base64.b64decode(byte_string)
+            byte_stream = io.BytesIO(byte_data)
+            byte_stream.seek(0)
+            cover_art = customtkinter.CTkImage(Image.open(byte_stream), size=(40, 40))
         except:
             self.logger.error("No cover art found.")
             cover_art = customtkinter.CTkImage(Image.open("./Assets/UIAssets/default.png"), size=(40, 40))
@@ -1314,7 +1392,7 @@ class MISSTapp(customtkinter.CTk):
             self,
             Ltext="Listening to seperated audio",
             Dtext=song_name,
-            #image=f"{self.server_base}/getcoverart/{web_name}.png",
+            image=config.getConfig(song_dir)["image_url"],
             large_text=song_name,
             end_time=time.time() + duration,
             small_image="icon-0",
@@ -1370,7 +1448,7 @@ class MISSTapp(customtkinter.CTk):
                     self,
                     Ltext="(Paused)",
                     Dtext=song_name,
-                    #image=f"{self.server_base}/getcoverart/{web_name}.png",
+                    image=config.getConfig(song_dir)["image_url"],
                     large_text=song_name,
                     end_time=None,
                     small_image="icon-0",
@@ -1381,7 +1459,7 @@ class MISSTapp(customtkinter.CTk):
                     self,
                     Ltext="Listening to seperated audio",
                     Dtext=song_name,
-                    #image=f"{self.server_base}/getcoverart/{web_name}.png",
+                    image=config.getConfig(song_dir)["image_url"],
                     large_text=song_name,
                     end_time=time.time() + duration - current_time,
                     small_image="icon-0",
