@@ -4,7 +4,7 @@ os.chdir(os.path.dirname(os.path.abspath(__file__)))
 import tkinter
 import customtkinter
 from pypresence import Presence
-import lyricsgenius
+from lyrics_extractor import SongLyrics
 import threading
 import time
 import random
@@ -53,8 +53,8 @@ class MISSTapp(customtkinter.CTk):
         else:
             self.RPC_CONNECTED = False
 
-        token = self.settings.getSetting("genius_client_token")
-        self.genius = lyricsgenius.Genius(token)
+        tokens = [self.settings.getSetting("cse_api_key"), self.settings.getSetting("cse_id")]
+        self.lyric_engine = SongLyrics(tokens[0],tokens[1])
 
         self.importsDest = os.path.abspath(self.settings.getSetting("importsDest"))
         if not os.path.isdir(self.importsDest):
@@ -446,24 +446,63 @@ class MISSTapp(customtkinter.CTk):
         self.lyrics_window.maxsize(580, 435)
         self.raise_above_all(self.lyrics_window)
 
+        search_term = self.songlabel.cget("text")
+        if search_term == "Play Something!":
+            self.lyrics_window.destroy()
+            return
+
         self.lyrics_box = customtkinter.CTkTextbox(
             master=self.lyrics_window,
             font=(self.FONT, -14),
             width=500,
-            height=355,
+            height=375,
             bg_color=self.lyrics_window.cget("fg_color"),
             fg_color=self.lyrics_window.cget("fg_color"),
             state=tkinter.DISABLED,
         )
-        self.lyrics_box.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
+        self.lyrics_box.place(relx=0.5, rely=0.45, anchor=tkinter.CENTER)
 
-        self.lyrics_box.configure(state=tkinter.NORMAL)
-        try:
-            song = genius.search_song(self.songlabel.cget("text"))
-            self.lyrics_box.insert(tkinter.END, song.lyrics)
-        except:
-            self.lyrics_box.insert(tkinter.END, "MISST encountered an error.")
-        self.lyrics_box.configure(state=tkinter.DISABLED)
+        def search(term):
+            self.lyrics_box.configure(state=tkinter.NORMAL)
+            try:
+                lyrics = self.lyric_engine.get_lyrics(term)
+                self.lyrics_box.delete("0.0", "end")
+                self.lyrics_box.insert(tkinter.END, lyrics['lyrics'])
+                config.setConfig(path, "lyrics", lyrics['lyrics'])
+            except:
+                self.lyrics_box.delete("0.0", "end")
+                self.lyrics_box.insert(tkinter.END, "Lyrics not found")
+            self.lyrics_box.configure(state=tkinter.DISABLED)
+
+        path = f"{self.importsDest}/{search_term}"
+        config = MISSTconfig(path)
+
+        if config.getConfig(path)["lyrics"] == "null":
+            search(search_term)
+        else:
+            self.lyrics_box.configure(state=tkinter.NORMAL)
+            self.lyrics_box.delete("0.0", "end")
+            self.lyrics_box.insert(tkinter.END, config.getConfig(path)["lyrics"])
+            self.lyrics_box.configure(state=tkinter.DISABLED)
+
+        self.lyric_entry = customtkinter.CTkEntry(
+            master=self.lyrics_window,
+            font=(self.FONT, -14),
+            width=375,
+            height=15,
+            placeholder_text="Not the right lyrics? Click here to search for them!",
+        )
+        self.lyric_entry.place(relx=0.4, rely=0.92, anchor=tkinter.CENTER)
+
+        self.search_button = customtkinter.CTkButton(
+            master=self.lyrics_window,
+            command=lambda: search(self.lyric_entry.get()),
+            text="Search",
+            font=(self.FONT, -14),
+            width=100,
+            height=15,
+        )
+        self.search_button.place(relx=0.84, rely=0.92, anchor=tkinter.CENTER)
 
     def imports_checkbox_event(self, current_var):
         vars = [self.import_Spotify_var, self.import_Youtube_var, self.import_Deezer_var, self.import_Soundcloud_var]
