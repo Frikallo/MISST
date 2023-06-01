@@ -101,54 +101,59 @@ var
   unzipTool, unzipParams : String; // path and param for the unzip tool
   ExecInfo: TShellExecuteInfo;     // info object for ShellExecuteEx()
 begin
-    // source and targetdir might contain {tmp} or {app} constant, so expand/resolve it to path names
-    source := ExpandConstant(source);
-    targetdir := ExpandConstant(targetdir);
+  // source and targetdir might contain {tmp} or {app} constant, so expand/resolve it to path names
+  source := ExpandConstant(source);
+  targetdir := ExpandConstant(targetdir);
 
-    // prepare 7zip execution
-    unzipTool := ExpandConstant('{tmp}\7za.exe');
-    ExtractTemporaryFile('7za.exe');
-    unzipParams := ' x "' + source + '" -o"' + targetdir + '" -y';
+  // prepare 7zip execution
+  unzipTool := ExpandConstant('{tmp}\7za.exe');
+  ExtractTemporaryFile('7za.exe');
+  unzipParams := ' x "' + source + '" -o"' + targetdir + '" -y';
 
-    // prepare information about the application being executed by ShellExecuteEx()
-    ExecInfo.cbSize := SizeOf(ExecInfo);
-    ExecInfo.fMask := SEE_MASK_NOCLOSEPROCESS;
-    ExecInfo.Wnd := 0;
-    ExecInfo.lpFile := unzipTool;
-    ExecInfo.lpParameters := unzipParams;
-    ExecInfo.nShow := SW_HIDE;
+  // prepare information about the application being executed by ShellExecuteEx()
+  ExecInfo.cbSize := SizeOf(ExecInfo);
+  ExecInfo.fMask := SEE_MASK_NOCLOSEPROCESS;
+  ExecInfo.Wnd := 0;
+  ExecInfo.lpFile := unzipTool;
+  ExecInfo.lpParameters := unzipParams;
+  ExecInfo.nShow := SW_HIDE;
 
-    if not FileExists(unzipTool)
-    then MsgBox('UnzipTool not found: ' + unzipTool, mbError, MB_OK)
-    else if not FileExists(source)
-    then MsgBox('File was not found while trying to unzip: ' + source, mbError, MB_OK)
-    else begin
+  if not FileExists(unzipTool) then
+  begin
+    MsgBox('UnzipTool not found: ' + unzipTool, mbError, MB_OK);
+  end
+  else if not FileExists(source) then
+  begin
+    MsgBox('File was not found while trying to unzip: ' + source, mbError, MB_OK);
+  end
+  else
+  begin
+    {
+      The unzip tool is executed via ShellExecuteEx().
+      Then the installer uses a while loop with the condition
+      WaitForSingleObject and a very minimal timeout
+      to execute AppProcessMessage.
 
-          {
-             The unzip tool is executed via ShellExecuteEx()
-             Then the installer uses a while loop with the condition
-             WaitForSingleObject and a very minimal timeout
-             to execute AppProcessMessage.
+      AppProcessMessage is itself a helper function, because
+      Inno Setup does not provide Application.ProcessMessages().
+      Its job is to be the message pump to the Inno Setup GUI.
 
-             AppProcessMessage is itself a helper function, because
-             Innosetup does not provide Application.ProcessMessages().
-             Its job is to be the message pump to the InnoSetup GUI.
-
-             This trick makes the window responsive/dragable again,
-             while the extraction is done in the background.
-          }
-
-          if ShellExecuteEx(ExecInfo) then
-          begin
-            while WaitForSingleObject(ExecInfo.hProcess, 100) = WAIT_TIMEOUT
-            do begin
-                AppProcessMessage;
-                WizardForm.Refresh();
-            end;
-          CloseHandle(ExecInfo.hProcess);
-          end;
-
+      This trick makes the window responsive/draggable again,
+      while the extraction is done in the background.
+    }
+    if ShellExecuteEx(ExecInfo) then
+    begin
+      while WaitForSingleObject(ExecInfo.hProcess, 100) = WAIT_TIMEOUT do
+      begin
+        AppProcessMessage;
+        if WizardForm.ProgressGauge.Position = 100 then
+          WizardForm.ProgressGauge.Position := 0
+        else
+          WizardForm.ProgressGauge.Position := WizardForm.ProgressGauge.Position + 1;
+      end;
+      CloseHandle(ExecInfo.hProcess);
     end;
+  end;
 end;
 
 var
@@ -217,29 +222,6 @@ begin
     Result := True;
 end;
 
-procedure CurStepChanged(CurStep: TSetupStep);
-var
-  ExtractResultCode: Integer;
-  ArchivePath: string;
-begin
-  if CurStep = ssInstall then
-  begin
-    ArchivePath := ExpandConstant('{tmp}\MISST.7z');
-    ExtractResultCode := 0;
-
-    if not FileExists(ArchivePath) then
-    begin
-      MsgBox('The MISST.7z archive file is missing.', mbError, MB_OK);
-      WizardForm.Close;
-    end
-    else
-    begin
-      WizardForm.StatusLabel.Caption := 'Extracting...';
-      Unzip(ArchivePath,ExpandConstant('{app}'))
-    end;
-  end;
-end;
-
 function GetFirstSubfolder(Param: String): String;
 var
   FindRec: TFindRec;
@@ -263,5 +245,32 @@ begin
   end;
 end;
 
+procedure CurStepChanged(CurStep: TSetupStep);
+var
+  ExtractResultCode: Integer;
+  ArchivePath: string;
+begin
+  if CurStep = ssInstall then
+  begin
+    ArchivePath := ExpandConstant('{tmp}\MISST.7z');
+    ExtractResultCode := 0;
+
+    if not FileExists(ArchivePath) then
+    begin
+      MsgBox('The MISST.7z archive file is missing.', mbError, MB_OK);
+      WizardForm.Close;
+    end
+    else
+    begin
+      WizardForm.StatusLabel.Caption := 'Extracting...';
+      WizardForm.ProgressGauge.Max := 100; // Set the maximum value for the progress bar
+      WizardForm.ProgressGauge.Position := 0; // Initialize the progress bar position
+
+      Unzip(ArchivePath, ExpandConstant('{app}'));
+      RenameFile(ExpandConstant('{app}\'+GetFirstSubfolder('')),ExpandConstant('{app}\MISST'));
+    end;
+  end;
+end;
+
 [Run]
-Filename: "{app}\{code:GetFirstSubfolder}\MISST.exe"; Description: "{cm:LaunchProgram,MISST}"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\MISST\MISST.exe"; Description: "{cm:LaunchProgram,MISST}"; Flags: nowait postinstall skipifsilent
