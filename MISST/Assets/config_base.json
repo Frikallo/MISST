@@ -15,7 +15,7 @@
     "autoplay": "true", 
     "accelerate_on_gpu": "false", 
     "importsDest": "./separated", 
-    "eq": "true", 
+    "eq": "false", 
     "eq_move_sliders_together": "true", 
     "eq_1": "0.0", 
     "eq_2": "0.0", 
