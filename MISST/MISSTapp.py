@@ -1331,7 +1331,6 @@ class MISSTapp(customtkinter.CTk):
         self.UI_thread = threading.Thread(target=self.update_UI, args=(f"{self.importsDest}/{dir}/other.flac", 0), daemon=True)
         self.UI_thread.start()
         self.player.change_files([f"{self.importsDest}/{dir}/bass.flac", f"{self.importsDest}/{dir}/drums.flac", f"{self.importsDest}/{dir}/other.flac", f"{self.importsDest}/{dir}/vocals.flac"], [self.slider1.get(), self.slider2.get(), self.slider3.get(), self.slider4.get()])
-        threading.Thread(target=self.player.play, daemon=True).start()
 
     def play_search(self, index_label, songs):
         self.playbutton.configure(state=tkinter.DISABLED)
