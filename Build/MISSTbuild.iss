@@ -193,12 +193,12 @@ begin
     // Set the download URL and filename based on the selected version
     if ProgramVersion = 'cuda' then
     begin
-      DownloadURL := 'https://github.com/Frikallo/MISST/releases/download/V3.0.6/MISST_3.0.6_CUDA_Release_Win.7z';
+      DownloadURL := 'https://github.com/Frikallo/MISST/releases/download/V3.0.6/MISST_CUDA_3.0.6_Release_Win.7z';
       DownloadFileName := 'MISST.7z';
     end
     else
     begin
-      DownloadURL := 'https://github.com/Frikallo/MISST/releases/download/V3.0.6/MISST_3.0.6_CPU_Release_Win.7z';
+      DownloadURL := 'https://github.com/Frikallo/MISST/releases/download/V3.0.6/MISST_CPU_3.0.6_Release_Win.7z';
       DownloadFileName := 'MISST.7z';
     end;
 
