@@ -16,6 +16,9 @@
 ![](./MISST/Assets/showcase/showcaseimage3.png)
 | _`MISST` on Windows 11 Showcasing how versatile and personal you can be with MISST!_
 
+![](./MISST/Assets/showcase/showcaseimage4.png)
+| _`MISST` on Windows 11 Showcasing how importing audios is as easy as two clicks!_
+
 ###
 
 Original Repository of MISST : **M**usic/**I**nstrumental **S**tem **S**eparation **T**ool.
