@@ -13,7 +13,6 @@ class MISSTplayer:
         self.positions = [0] * len(files)
         self.volumes = volumes
         self.chunk_size = 1024
-        self.fade_duration = 1  # Fade duration in seconds
         self.nightcore = False
         self.settings = MISSTsettings()
         self.bands = lambda: [self.settings.getSetting(f"eq_{n}") for n in range(1,10)] # lambda so the player can access the latest information 
@@ -36,8 +35,6 @@ class MISSTplayer:
             for i, stream in enumerate(self.streams):
                 data = self.get_data(i)
                 if data:
-                    if self.positions[i] == 0:
-                        data = self.fade_in(data)
                     stream.write(data)
                 else:
                     break
@@ -64,22 +61,6 @@ class MISSTplayer:
             sample = int(sample * volume)
             data[i:i+2] = sample.to_bytes(2, byteorder='little', signed=True)
         return bytes(data)
-    
-    def fade_in(self, data):
-        samples = np.frombuffer(data, dtype=np.int16)
-        fade_samples = int(self.fade_duration * self.frame_rate)
-        fade_in = np.linspace(0.0, 1.0, fade_samples)
-        samples_copy = samples.copy()  # Make a copy of the samples array
-        samples_copy[:fade_samples] = (samples_copy[:fade_samples] * fade_in[:len(samples_copy[:fade_samples])]).astype(np.int16)
-        return samples_copy.tobytes()
-    
-    def fade_out(self, data):
-        samples = np.frombuffer(data, dtype=np.int16)
-        fade_samples = int(self.fade_duration * self.frame_rate)
-        fade_out = np.linspace(1.0, 0.0, fade_samples)
-        samples_copy = samples.copy()  # Make a copy of the samples array
-        samples_copy[-fade_samples:] = (samples_copy[-fade_samples:] * fade_out[:len(samples_copy[-fade_samples:])]).astype(np.int16)
-        return samples_copy.tobytes()
     
     def apply_nightcore(self, data):
         samples = np.frombuffer(data, dtype=np.int16)
@@ -147,12 +128,6 @@ class MISSTplayer:
     
     def pause(self):
         self.paused = True
-        for i, stream in enumerate(self.streams):
-            if self.positions[i] > 0:
-                data = self.get_data(i)
-                if data:
-                    data = self.fade_out(data)
-                    stream.write(data)
 
     def resume(self):
         if self.paused:
@@ -161,11 +136,31 @@ class MISSTplayer:
     
     def stop(self):
         for i, stream in enumerate(self.streams):
-            if self.positions[i] > 0:
-                data = self.get_data(i)
-                if data:
-                    data = self.fade_out(data)
-                    stream.write(data)
             stream.stop_stream()
             stream.close()
         self.p.terminate()
+
+    def change_files(self, new_files, volumes):
+        self.paused = True
+        self.volumes = volumes
+
+        for i, stream in enumerate(self.streams):
+            stream.stop_stream()
+            stream.close()
+
+        self.streams.clear()
+        self.files = new_files
+        self.positions = [0] * len(new_files)
+
+        for file in self.files:
+            data, self.frame_rate = sf.read(file, dtype='int16')
+            self.duration = len(data) / self.frame_rate
+            self.channels = data.shape[1]
+            stream = self.p.open(format=self.p.get_format_from_width(2),
+                                channels=self.channels,
+                                rate=self.frame_rate,
+                                output=True)
+            self.streams.append(stream)
+
+        self.paused = False
+        threading.Thread(target=self.play, daemon=True).start()

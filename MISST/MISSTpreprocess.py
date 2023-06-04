@@ -19,7 +19,7 @@ class MISSTpreprocess():
 
     def GetModel(
         self, 
-        name: str = "mdx_extra_q",
+        name: str = "mdx",
         repo: pathlib.Path = None,
         device: Literal["cpu", "cuda"] = "cuda" if torch.cuda.is_available() else "cpu",
     ) -> HDemucs:
@@ -98,6 +98,24 @@ class MISSTpreprocess():
             audio = np.atleast_2d(audio).transpose()
         converted = self.convert_audio(torch.from_numpy(audio.transpose()), raw_sr, sr, 2)
         return converted.numpy()
+    
+    def apply_fade_in_out(self, input_file, output_file, fade_duration):
+        # Read the audio file
+        audio_data, sample_rate = sf.read(input_file)
+        
+        # Calculate the number of samples for the fade duration
+        fade_samples = int(fade_duration * sample_rate)
+        
+        # Apply fade-in
+        fade_in_curve = np.linspace(0.0, 1.0, fade_samples)
+        audio_data[:fade_samples] *= fade_in_curve[:, np.newaxis]
+        
+        # Apply fade-out
+        fade_out_curve = np.linspace(1.0, 0.0, fade_samples)
+        audio_data[-fade_samples:] *= fade_out_curve[:, np.newaxis]
+        
+        # Save the modified audio to a new file
+        sf.write(output_file, audio_data, sample_rate)
 
     def process(
         self, 
@@ -145,6 +163,7 @@ class MISSTpreprocess():
                 stem = (new_audio[i] / total)[:, :orig_len]
                 self.write_wav(torch.from_numpy(stem.transpose()), str(outpath / f"{stems[i]}.wav"), sample_rate)
                 self.compress_wav_to_flac(str(outpath / f"{stems[i]}.wav"), str(outpath / f"{stems[i]}.flac"))
+                self.apply_fade_in_out(str(outpath / f"{stems[i]}.flac"), str(outpath / f"{stems[i]}.flac"), 3.5)
         else:
             pass
 
@@ -155,7 +174,7 @@ class MISSTpreprocess():
             savename = os.path.basename(file).replace('.mp3', '').replace('.wav', '').replace('.flac', '')
             console.update("\nMISST> Loading model")
             processor = MISSTpreprocess()
-            model = processor.GetModel(name="mdx_extra_q", repo=pathlib.Path("Pretrained"))
+            model = processor.GetModel(name="mdx", repo=pathlib.Path("Pretrained"))
             console.endUpdate()
             console.addLine("\nMISST> Model loaded.")
             console.update("\nMISST> Preprocessing")

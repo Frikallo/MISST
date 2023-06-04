@@ -3,4 +3,9 @@ venv-minimal/*
 MISST/__pycache__/*
 MISST/MISST.log
 MISST/config.json
+MISST/separated/*
+MISST/Pretrained/0d19c1c6-0f06f20e.th
+MISST/Pretrained/7ecf8ec1-70f50cc9.th
+MISST/Pretrained/c511e2ab-fe698775.th
+MISST/Pretrained/7d865c68-3d5dd56b.th
 output/*

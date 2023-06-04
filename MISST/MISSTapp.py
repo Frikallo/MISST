@@ -16,6 +16,7 @@ import GPUtil
 import webbrowser
 import subprocess
 import tempfile
+import traceback
 import music_tag
 import io, base64
 
@@ -24,6 +25,7 @@ from MISSTsettings import MISSTsettings, MISSTconfig
 from MISSThelpers import MISSThelpers, MISSTconsole
 from MISSTlogger import MISSTlogger
 from MISSTpreprocess import MISSTpreprocess
+from MISSTSetup import MISSTSetup
 
 from __version__ import __version__ as version
 
@@ -48,6 +50,7 @@ class MISSTapp(customtkinter.CTk):
                 self.RPC.connect()
                 self.RPC_CONNECTED = True
             except:
+                self.logger.error(traceback.format_exc())
                 self.logger.error("RPC connection failed or abborted.")
                 self.RPC_CONNECTED = False
         else:
@@ -92,9 +95,25 @@ class MISSTapp(customtkinter.CTk):
         self.loop = False
         self.autoplay = True
 
-        # create widgets
         self.FONT = "Roboto Medium"
+        self.createWidgets()
 
+        # Check if setup is needed
+        required_model_files = [
+            "Pretrained/0d19c1c6-0f06f20e.th",
+            "Pretrained/7ecf8ec1-70f50cc9.th",
+            "Pretrained/c511e2ab-fe698775.th",
+            "Pretrained/7d865c68-3d5dd56b.th"
+        ]
+        model_files_exist = [os.path.isfile(file) for file in required_model_files]
+        if not all(model_files_exist):
+            self.logger.warning("Setup is needed.")
+            self.model_setup_widget = MISSTSetup(self, required_model_files)
+            self.model_setup_widget.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
+        else:
+            self.logger.info("Setup is not needed.")
+
+    def createWidgets(self):
         self.west_frame = customtkinter.CTkFrame(master=self, width=self.WIDTH * (175 / self.WIDTH), height=self.HEIGHT * (430 / self.HEIGHT), corner_radius=0)
         self.west_frame.grid(row=0, column=0, sticky="nsew", padx=(0, 5), rowspan=4)
 
@@ -436,6 +455,7 @@ class MISSTapp(customtkinter.CTk):
         try:
             self.lyrics_window.destroy() # Destroy the window if it already exists
         except:
+            self.logger.error(traceback.format_exc())
             pass
 
         self.lyrics_window = customtkinter.CTkToplevel(app)
@@ -470,6 +490,7 @@ class MISSTapp(customtkinter.CTk):
                 self.lyrics_box.insert(tkinter.END, lyrics['lyrics'])
                 config.setConfig(path, "lyrics", lyrics['lyrics'])
             except:
+                self.logger.error(traceback.format_exc())
                 self.lyrics_box.delete("0.0", "end")
                 self.lyrics_box.insert(tkinter.END, "Lyrics not found")
             self.lyrics_box.configure(state=tkinter.DISABLED)
@@ -518,6 +539,7 @@ class MISSTapp(customtkinter.CTk):
         try:
             self.imports_frame.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
         except:
+            self.logger.error(traceback.format_exc())
             self.draw_imports_frame()
 
     def draw_imports_frame(self):
@@ -666,7 +688,7 @@ class MISSTapp(customtkinter.CTk):
 
         self.import_file_button = customtkinter.CTkButton(
             master=self.left_frame,
-            command=lambda: self.filePreprocess(),
+            command=lambda: threading.Thread(target=self.filePreprocess, daemon=True).start(),
             text="From File",
             font=(self.FONT, -14),
             width=75,
@@ -709,6 +731,7 @@ class MISSTapp(customtkinter.CTk):
                 try:
                     gpu_usage = GPUtil.getGPUs()[0].load * 100
                 except:
+                    self.logger.error(traceback.format_exc())
                     gpu_usage = "N/A" #CPU version of MISST
                 self.system_info.configure(
                     text=f"CPU: {cpu_usage:.1f}% | Mem: {mem_usage:.1f}% | GPU: {f'{gpu_usage:.1f}' if gpu_usage != 'N/A' else 'N/A'}%"
@@ -741,52 +764,68 @@ class MISSTapp(customtkinter.CTk):
         self.console = MISSTconsole(self.preprocess_terminal_text, "MISST Preprocessor\nCopyright (C) @Frikallo Corporation.\n\nMISST>")
         self.console.update(" waiting")
 
+    def retrieve_metadata(self, save_dir=None, temp_dir=None, file=None):
+            self.console.update("\nMISST> Getting Metadata")
+            if temp_dir is not None:
+                save_dir = f"{self.importsDest}/{os.path.splitext(os.path.basename(os.listdir(temp_dir)[0]))[0]}"
+                if not os.path.exists(save_dir):
+                    os.mkdir(save_dir)
+                file = f"{temp_dir}/{os.listdir(temp_dir)[0]}"
+            else:
+                file = file
+            config = MISSTconfig(save_dir) #Create config file
+            try:
+                f = music_tag.load_file(file)
+                art = f['artwork']
+                raw_art = art.first.data
+                image = Image.open(io.BytesIO(raw_art))
+
+                square_size = min(image.size)
+                left = (image.width - square_size) // 2
+                top = (image.height - square_size) // 2
+                right = left + square_size
+                bottom = top + square_size
+
+                # Crop the square region from the center of the image
+                cropped_image = image.crop((left, top, right, bottom))
+
+                image = cropped_image.resize((40, 40), Image.Resampling.LANCZOS)
+                raw_art = image.tobytes()
+                png_bytes = io.BytesIO()
+                image.save(png_bytes, format="PNG")
+                raw_art = png_bytes.getvalue()
+                config.setConfig(save_dir, "image_url", MISSThelpers().freeimage_upload(raw_art))
+                config.setConfig(save_dir, "image_raw", base64.b64encode(raw_art).decode('utf-8'))
+                self.console.endUpdate()
+                self.console.addLine("\nMISST> Metadata Retrieved.")
+            except:
+                self.logger.error(traceback.format_exc())
+                self.console.endUpdate()
+                self.console.addLine("\nMISST> Error getting metadata.")
+
     def filePreprocess(self):
+        self.console.editLine(f"MISST Preprocessor\nCopyright (C) @Frikallo Corporation.\n", 0)
         self.import_file_button.configure(state=tkinter.DISABLED)
         self.import_button.configure(state=tkinter.DISABLED)
         file = tkinter.filedialog.askopenfilename(initialdir = "/",title = "Select file",filetypes = (("mp3 files","*.mp3"),("wav files", "*.wav"),("flac files", "*.flac"),("all files","*.*")), multiple=False)
         if file != "":
             self.console.endUpdate()
-            threading.Thread(target=MISSTpreprocess.preprocess, args=(self, file, self.importsDest, "cuda" if self.settings.getSetting("accelerate_on_gpu") == "true" else "cpu"), daemon=True).start()
+            save_name = os.path.splitext(os.path.basename(file))[0]
+            save_dir = f"{self.importsDest}/{save_name}"
+            if not os.path.exists(save_dir):
+                os.mkdir(save_dir)
+            self.retrieve_metadata(save_dir=save_dir, file=file)
+            thread = threading.Thread(target=MISSTpreprocess.preprocess, args=(self, file, self.importsDest, "cuda" if self.settings.getSetting("accelerate_on_gpu") == "true" else "cpu"), daemon=True)
+            thread.start()
+            thread.join()
+            self.import_file_button.configure(state=tkinter.NORMAL)
+            self.import_button.configure(state=tkinter.NORMAL)
         else:
             self.import_file_button.configure(state=tkinter.NORMAL)
             self.import_button.configure(state=tkinter.NORMAL)
             
     def sourcePreprocess(self, url):
-        def retrieve_metadata():
-                self.console.update("\nMISST> Getting Metadata")
-                save_dir = f"{self.importsDest}/{os.path.splitext(os.path.basename(os.listdir(temp_dir)[0]))[0]}"
-                if not os.path.exists(save_dir):
-                    os.mkdir(save_dir)
-                config = MISSTconfig(save_dir) #Create config file
-                try:
-                    f = music_tag.load_file(f"{temp_dir}/{os.listdir(temp_dir)[0]}")
-                    art = f['artwork']
-                    raw_art = art.first.data
-                    image = Image.open(io.BytesIO(raw_art))
-
-                    square_size = min(image.size)
-                    left = (image.width - square_size) // 2
-                    top = (image.height - square_size) // 2
-                    right = left + square_size
-                    bottom = top + square_size
-
-                    # Crop the square region from the center of the image
-                    cropped_image = image.crop((left, top, right, bottom))
-
-                    image = cropped_image.resize((40, 40), Image.Resampling.LANCZOS)
-                    raw_art = image.tobytes()
-                    png_bytes = io.BytesIO()
-                    image.save(png_bytes, format="PNG")
-                    raw_art = png_bytes.getvalue()
-                    config.setConfig(save_dir, "image_url", MISSThelpers().freeimage_upload(raw_art))
-                    config.setConfig(save_dir, "image_raw", base64.b64encode(raw_art).decode('utf-8'))
-                    self.console.endUpdate()
-                    self.console.addLine("\nMISST> Metadata Retrieved.")
-                except Exception as e:
-                    self.logger.error(e)
-                    self.console.endUpdate()
-                    self.console.addLine("\nMISST> Error getting metadata.")
+        self.console.editLine(f"MISST Preprocessor\nCopyright (C) @Frikallo Corporation.\n", 0)
         if url != "":
             # Spotify Import
             if self.import_Spotify_var.get() == "on":
@@ -799,7 +838,7 @@ class MISSTapp(customtkinter.CTk):
                     self.import_button.configure(state=tkinter.NORMAL)
                     return
                 self.console.endUpdate()
-                self.console.update(" Downloading")
+                self.console.update("\nMISST> Downloading")
                 temp_dir = tempfile.mkdtemp()
                 cmd = f"{os.path.abspath('./Assets/Bin/spotdl.exe')} {url} --output {temp_dir} --ffmpeg ./ffmpeg.exe"
                 process = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True, creationflags=0x08000000)
@@ -812,7 +851,7 @@ class MISSTapp(customtkinter.CTk):
                     return
                 self.console.endUpdate()
                 self.console.addLine("\nMISST> Downloaded.")
-                retrieve_metadata()
+                self.retrieve_metadata(temp_dir=temp_dir)
                 thread = threading.Thread(target=MISSTpreprocess.preprocess, args=(self, f"{temp_dir}/{os.listdir(temp_dir)[0]}", self.importsDest, "cuda" if self.settings.getSetting("accelerate_on_gpu") == "true" else "cpu"), daemon=True)
                 thread.start()
                 thread.join()
@@ -833,7 +872,7 @@ class MISSTapp(customtkinter.CTk):
                     self.import_button.configure(state=tkinter.NORMAL)
                     return
                 self.console.endUpdate()
-                self.console.update(" Downloading")
+                self.console.update("\nMISST> Downloading")
                 temp_dir = tempfile.mkdtemp()
                 cmd = f"{os.path.abspath('./Assets/Bin/music-dl.exe')} -v -x --embed-thumbnail --audio-format flac -o {temp_dir}/%(title)s.%(ext)s {url} --ffmpeg-location ./ffmpeg.exe"
                 process = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True, creationflags=0x08000000)
@@ -846,7 +885,7 @@ class MISSTapp(customtkinter.CTk):
                     return
                 self.console.endUpdate()
                 self.console.addLine("\nMISST> Downloaded.")
-                retrieve_metadata()
+                self.retrieve_metadata(temp_dir=temp_dir)
                 thread = threading.Thread(target=MISSTpreprocess.preprocess, args=(self, f"{temp_dir}/{os.listdir(temp_dir)[0]}", self.importsDest, "cuda" if self.settings.getSetting("accelerate_on_gpu") == "true" else "cpu"), daemon=True)
                 thread.start()
                 thread.join()
@@ -872,7 +911,7 @@ class MISSTapp(customtkinter.CTk):
                     self.import_button.configure(state=tkinter.NORMAL)
                     return
                 self.console.endUpdate()
-                self.console.update(" Downloading")
+                self.console.update("\nMISST> Downloading")
                 temp_dir = tempfile.mkdtemp()
                 cmd = f"{os.path.abspath('./Assets/Bin/music-dl.exe')} -v -x --embed-thumbnail --audio-format flac -o {temp_dir}/%(title)s.%(ext)s {url} --ffmpeg-location ./ffmpeg.exe"
                 process = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True, creationflags=0x08000000)
@@ -885,7 +924,7 @@ class MISSTapp(customtkinter.CTk):
                     return
                 self.console.endUpdate()
                 self.console.addLine("\nMISST> Downloaded.")
-                retrieve_metadata()
+                self.retrieve_metadata(temp_dir=temp_dir)
                 thread = threading.Thread(target=MISSTpreprocess.preprocess, args=(self, f"{temp_dir}/{os.listdir(temp_dir)[0]}", self.importsDest, "cuda" if self.settings.getSetting("accelerate_on_gpu") == "true" else "cpu"), daemon=True)
                 thread.start()
                 thread.join()
@@ -1291,11 +1330,7 @@ class MISSTapp(customtkinter.CTk):
     def play(self, dir):    
         self.UI_thread = threading.Thread(target=self.update_UI, args=(f"{self.importsDest}/{dir}/other.flac", 0), daemon=True)
         self.UI_thread.start()
-        try:
-            self.player.stop()
-        except:
-            pass
-        self.player = MISSTplayer([f"{self.importsDest}/{dir}/bass.flac", f"{self.importsDest}/{dir}/drums.flac", f"{self.importsDest}/{dir}/other.flac", f"{self.importsDest}/{dir}/vocals.flac"], [self.slider1.get(), self.slider2.get(), self.slider3.get(), self.slider4.get()])
+        self.player.change_files([f"{self.importsDest}/{dir}/bass.flac", f"{self.importsDest}/{dir}/drums.flac", f"{self.importsDest}/{dir}/other.flac", f"{self.importsDest}/{dir}/vocals.flac"], [self.slider1.get(), self.slider2.get(), self.slider3.get(), self.slider4.get()])
         threading.Thread(target=self.player.play, daemon=True).start()
 
     def play_search(self, index_label, songs):
@@ -1306,8 +1341,8 @@ class MISSTapp(customtkinter.CTk):
             self.playing = True
             self.nc_checkbox.deselect()
             self.play(song)
-        except Exception as e:
-            self.logger.error(e)
+        except:
+            self.logger.error(traceback.format_exc())
             pass
         self.playbutton.configure(state=tkinter.NORMAL)
 
@@ -1319,8 +1354,8 @@ class MISSTapp(customtkinter.CTk):
             self.playing = True
             self.nc_checkbox.deselect()
             self.play(songs[0])
-        except Exception as e:
-            self.logger.error(e)
+        except:
+            self.logger.error(traceback.format_exc())
             pass
         self.shuffle_button.configure(state=tkinter.NORMAL)
 
@@ -1332,8 +1367,8 @@ class MISSTapp(customtkinter.CTk):
             self.playing = True
             self.nc_checkbox.deselect()
             self.play(songs[index + 1])
-        except Exception as e:
-            self.logger.error(e)
+        except:
+            self.logger.error(traceback.format_exc())
             pass
         self.next_button.configure(state=tkinter.NORMAL)
 
@@ -1345,8 +1380,8 @@ class MISSTapp(customtkinter.CTk):
             self.playing = True
             self.nc_checkbox.deselect()
             self.play(songs[index - 1])
-        except Exception as e:
-            self.logger.error(e)
+        except:
+            self.logger.error(traceback.format_exc())
             pass
         self.previous_button.configure(state=tkinter.NORMAL)
 
@@ -1422,6 +1457,7 @@ class MISSTapp(customtkinter.CTk):
             byte_stream.seek(0)
             cover_art = customtkinter.CTkImage(Image.open(byte_stream), size=(40, 40))
         except:
+            self.logger.error(traceback.format_exc())
             self.logger.error("No cover art found.")
             cover_art = customtkinter.CTkImage(Image.open("./Assets/UIAssets/default.png"), size=(40, 40))
 
@@ -1472,6 +1508,7 @@ class MISSTapp(customtkinter.CTk):
                 try:
                     self.play(song_name)
                 except:
+                    self.logger.error(traceback.format_exc())
                     reset_to_default()
             elif self.autoplay == True:
                 try:
@@ -1481,6 +1518,7 @@ class MISSTapp(customtkinter.CTk):
                     self.nc_checkbox.deselect()
                     self.play(songs[index + 1])
                 except:
+                    self.logger.error(traceback.format_exc())
                     reset_to_default()      
             else:
                 reset_to_default()
@@ -1529,6 +1567,7 @@ class MISSTapp(customtkinter.CTk):
                 if self.update_timer:
                     MISSThelpers.terminate_thread(self, self.update_timer)
             except:
+                self.logger.error(traceback.format_exc())
                 self.logger.error("Error stopping update thread.")
                 pass
 

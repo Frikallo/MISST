@@ -1,6 +1,6 @@
 [Setup]
 AppName=MISST
-AppVersion=3.0.5
+AppVersion=3.0.6
 AppPublisher=@Frikallo
 AppPublisherURL=https://github.com/Frikallo/MISST
 AppSupportURL=https://github.com/Frikallo/MISST
@@ -8,13 +8,13 @@ AppUpdatesURL=https://github.com/Frikallo/MISST
 DefaultDirName={autopf}\MISST
 DisableProgramGroupPage=yes
 UninstallDisplayIcon={app}\MISST.exe
-OutputDir=C:\Users\noahs\Desktop\Repos\MISST\output
+OutputDir=F:\Repos\MISST\output
 OutputBaseFilename=MISST
-SetupIconFile=C:\Users\noahs\Desktop\Repos\MISST\MISST\Assets\icon.ico
+SetupIconFile=F:\Repos\MISST\MISST\Assets\icon.ico
 Compression=lzma2
 SolidCompression=yes
 PrivilegesRequired=lowest
-LicenseFile=C:\Users\noahs\Desktop\Repos\MISST\LICENSE
+LicenseFile=F:\Repos\MISST\LICENSE
 DisableWelcomePage=no
 WizardStyle=modern
 
@@ -181,7 +181,7 @@ begin
   begin
     // Prompt the user to select the version of the program
     ProgramVersion := '';
-    if MsgBox('Do you want to download the CUDA version of MISST 3.0.5?', mbConfirmation, MB_YESNO) = IDYES then
+    if MsgBox('Do you want to download the CUDA version of MISST 3.0.6?', mbConfirmation, MB_YESNO) = IDYES then
     begin
       ProgramVersion := 'cuda';
     end
@@ -193,12 +193,12 @@ begin
     // Set the download URL and filename based on the selected version
     if ProgramVersion = 'cuda' then
     begin
-      DownloadURL := 'https://github.com/Frikallo/MISST/releases/download/V3.0.5/MISST_3.0.5_CUDA_Release_Win.7z';
+      DownloadURL := 'https://github.com/Frikallo/MISST/releases/download/V3.0.6/MISST_3.0.6_CUDA_Release_Win.7z';
       DownloadFileName := 'MISST.7z';
     end
     else
     begin
-      DownloadURL := 'https://github.com/Frikallo/MISST/releases/download/V3.0.5/MISST_3.0.5_CPU_Release_Win.7z';
+      DownloadURL := 'https://github.com/Frikallo/MISST/releases/download/V3.0.6/MISST_3.0.6_CPU_Release_Win.7z';
       DownloadFileName := 'MISST.7z';
     end;
 
