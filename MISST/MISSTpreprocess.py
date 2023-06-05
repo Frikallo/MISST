@@ -1,4 +1,4 @@
-from demucs.pretrained import get_model as _gm
+from demucs.pretrained import get_model
 from demucs.hdemucs import HDemucs
 from demucs.apply import BagOfModels, apply_model
 import pathlib
@@ -13,42 +13,32 @@ import soundfile as sf
 from MISSThelpers import MISSTconsole
 import os
 
+# Modified functions from https://github.com/facebookresearch/demucs, 
+#                         https://pytorch.org/audio/main/tutorials/hybrid_demucs_tutorial.html 
+#                         and https://github.com/CarlGao4/Demucs-Gui
+
 class MISSTpreprocess():
     def __init__(self):
         pass
 
-    def GetModel(
-        self, 
-        name: str = "mdx",
-        repo: pathlib.Path = None,
-        device: Literal["cpu", "cuda"] = "cuda" if torch.cuda.is_available() else "cpu",
-    ) -> HDemucs:
-        model = _gm(name=name, repo=repo)
+    def LoadModel(self, name = "mdx", repo = None, device = "cuda" if torch.cuda.is_available() else "cpu",):
+        model = get_model(name=name, repo=repo)
         model.to(device)
         model.eval()
         return model
 
-    def GetData(self, model: HDemucs):
+    def GetData(self, model):
         res = {}
-        # Number of audio channels
         res["channels"] = model.audio_channels
-        # Require audio sample rate
         res["samplerate"] = model.samplerate
-        # Number of models in the bag
         if isinstance(model, BagOfModels):
             res["models"] = len(model.models)
         else:
             res["models"] = 1
-        # list of final output tracks
         res["sources"] = model.sources
         return res
 
-    def Apply(
-        self, 
-        model: HDemucs,
-        wav: torch.Tensor,
-        shifts: int = 1,
-    ) -> dict:
+    def Apply(self, model, wav, shifts = 1,):
         audio = wav
         ref = audio.mean(0)
         audio = (audio - ref.mean()) / ref.std()
@@ -67,7 +57,7 @@ class MISSTpreprocess():
         elif src_channels >= channels:
             wav = wav[..., :channels, :]
         else:
-            raise ValueError("The audio file has less channels than requested but is not mono.")
+            raise Exception("Error changing audio dims")
         return wav
 
     def write_wav(self, wav, filename, samplerate):
@@ -88,7 +78,6 @@ class MISSTpreprocess():
         os.remove(wav_file)
 
     def convert_audio(self, wav, from_samplerate, to_samplerate, channels):
-        """Convert audio from a given samplerate to a target one and target number of channels."""
         wav = self.convert_audio_channels(wav, channels)
         return julius.resample_frac(wav, from_samplerate, to_samplerate)
 
@@ -119,18 +108,18 @@ class MISSTpreprocess():
 
     def process(
         self, 
-        model: HDemucs,
-        infile: pathlib.Path,
-        write: bool = True,
-        outpath: pathlib.Path = pathlib.Path(""),
-        split: float = 10.0,
-        overlap: float = 0.25,
-        sample_rate: int = 44100,
-        shifts: int = 1,
-        device: Literal["cpu", "cuda"] = "cuda" if torch.cuda.is_available() else "cpu",
-        callback=None,
-        logger: logging.Logger = logging.getLogger("MISST"),
-        console: MISSTconsole = None,
+        model, 
+        infile, 
+        write = True, 
+        outpath = pathlib.Path(""), 
+        split = 10.0, 
+        overlap = 0.25, 
+        sample_rate = 44100, 
+        shifts = 1, 
+        device = "cuda" if torch.cuda.is_available() else "cpu", 
+        callback = None,
+        logger = logging.getLogger("MISST"),
+        console = None,
     ):
         split = int(split * sample_rate)
         overlap = int(overlap * split)
@@ -174,7 +163,7 @@ class MISSTpreprocess():
             savename = os.path.basename(file).replace('.mp3', '').replace('.wav', '').replace('.flac', '')
             console.update("\nMISST> Loading model")
             processor = MISSTpreprocess()
-            model = processor.GetModel(name="mdx", repo=pathlib.Path("Pretrained"))
+            model = processor.LoadModel(name="mdx", repo=pathlib.Path("Pretrained"))
             console.endUpdate()
             console.addLine("\nMISST> Model loaded.")
             console.update("\nMISST> Preprocessing")

@@ -44,7 +44,7 @@ class MISSTSetup(customtkinter.CTkFrame):
         threading.Timer(2, self.destroy).start()
 
     def download_file(self, file):
-        url = "https://dl.fbaipublicfiles.com/demucs/mdx_final/" + file.replace("Pretrained/","")  # Replace with your actual download URL
+        url = "https://dl.fbaipublicfiles.com/demucs/mdx_final/" + file.replace("Pretrained/","")
         response = requests.get(url, stream=True)
         total_length = response.headers.get('content-length')
 
