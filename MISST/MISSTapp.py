@@ -113,6 +113,15 @@ class MISSTapp(customtkinter.CTk):
         else:
             self.logger.info("Setup is not needed.")
 
+        def on_closing():
+            self.destroy()
+            self.quit()
+            self.player.stop()
+            self.logger.info("MISST closed.")
+            exit()
+
+        self.protocol("WM_DELETE_WINDOW", on_closing)
+
     def createWidgets(self):
         self.west_frame = customtkinter.CTkFrame(master=self, width=self.WIDTH * (175 / self.WIDTH), height=self.HEIGHT * (430 / self.HEIGHT), corner_radius=0)
         self.west_frame.grid(row=0, column=0, sticky="nsew", padx=(0, 5), rowspan=4)
