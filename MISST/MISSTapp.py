@@ -100,10 +100,10 @@ class MISSTapp(customtkinter.CTk):
 
         # Check if setup is needed
         required_model_files = [
-            "Pretrained/0d19c1c6-0f06f20e.th",
-            "Pretrained/7ecf8ec1-70f50cc9.th",
-            "Pretrained/c511e2ab-fe698775.th",
-            "Pretrained/7d865c68-3d5dd56b.th"
+            "Pretrained/e51eebcc-c1b80bdd.th",
+            "Pretrained/a1d90b5c-ae9d2452.th",
+            "Pretrained/5d2d6c55-db83574e.th",
+            "Pretrained/cfa93e08-61801ae1.th"
         ]
         model_files_exist = [os.path.isfile(file) for file in required_model_files]
         if not all(model_files_exist):

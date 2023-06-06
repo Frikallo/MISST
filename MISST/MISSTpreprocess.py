@@ -1,9 +1,8 @@
 from demucs.pretrained import get_model
-from demucs.hdemucs import HDemucs
 from demucs.apply import BagOfModels, apply_model
 import pathlib
 import torch
-from typing import Literal
+import concurrent.futures
 import numpy as np
 import logging
 import soundfile
@@ -21,7 +20,7 @@ class MISSTpreprocess():
     def __init__(self):
         pass
 
-    def LoadModel(self, name = "mdx", repo = None, device = "cuda" if torch.cuda.is_available() else "cpu",):
+    def LoadModel(self, name = "mdx_extra", repo = None, device = "cuda" if torch.cuda.is_available() else "cpu",):
         model = get_model(name=name, repo=repo)
         model.to(device)
         model.eval()
@@ -38,7 +37,7 @@ class MISSTpreprocess():
         res["sources"] = model.sources
         return res
 
-    def Apply(self, model, wav, shifts = 1,):
+    def Apply(self, model, wav, shifts=1):
         audio = wav
         ref = audio.mean(0)
         audio = (audio - ref.mean()) / ref.std()
@@ -115,9 +114,7 @@ class MISSTpreprocess():
         split = 10.0, 
         overlap = 0.25, 
         sample_rate = 44100, 
-        shifts = 1, 
         device = "cuda" if torch.cuda.is_available() else "cpu", 
-        callback = None,
         logger = logging.getLogger("MISST"),
         console = None,
     ):
@@ -135,7 +132,8 @@ class MISSTpreprocess():
         new_audio = np.zeros((len(stems), 2, audio.shape[1]))
         total = np.zeros(audio.shape[1])
         logger.info("Total splits of '%s' : %d" % (str(infile), n))
-        for i in range(n):
+
+        def separation(i):
             logger.info("Separation %d/%d" % (i + 1, n))
             console.editLine(f"MISST Preprocessor\nCopyright (C) @Frikallo Corporation.\n\nMISST> {((i + 1)/n) * 100:.1f}%", 0)
             l = i * (split - overlap)
@@ -144,6 +142,13 @@ class MISSTpreprocess():
             for (j, stem) in enumerate(stems):
                 new_audio[j, :, l:r] += result[stem].cpu().numpy()
             total[l:r] += 1
+
+        workers = 1 if device == "cuda" else (os.cpu_count() // 2) # CPU parallelization on half the cores available, CUDA kernels are already parallelized
+
+        with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as executor:
+            futures = [executor.submit(separation, i) for i in range(n)]
+            concurrent.futures.wait(futures)
+
         if write:
             logger.info("Writing to file")
             console.addLine("\nMISST> Writing to file")
@@ -155,6 +160,7 @@ class MISSTpreprocess():
                 self.apply_fade_in_out(str(outpath / f"{stems[i]}.flac"), str(outpath / f"{stems[i]}.flac"), 3.5)
         else:
             pass
+        del model # Free up memory
 
     def preprocess(self, file, outDir, device="cuda"):
         self.logger.info(f"Preprocessing {file}...")
@@ -163,11 +169,12 @@ class MISSTpreprocess():
             savename = os.path.basename(file).replace('.mp3', '').replace('.wav', '').replace('.flac', '')
             console.update("\nMISST> Loading model")
             processor = MISSTpreprocess()
-            model = processor.LoadModel(name="mdx", repo=pathlib.Path("Pretrained"))
+            model = processor.LoadModel(name="mdx_extra", repo=pathlib.Path("Pretrained"))
             console.endUpdate()
             console.addLine("\nMISST> Model loaded.")
             console.update("\nMISST> Preprocessing")
             processor.process(model, infile=pathlib.Path(file), outpath=pathlib.Path(f"{outDir}/{savename}"), device=device, console=console)
+            del model # Free up memory
             console.endUpdate()
             console.addLine("\nMISST> Preprocessed.")
         except Exception as e:

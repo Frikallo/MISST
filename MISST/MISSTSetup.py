@@ -12,7 +12,7 @@ class MISSTSetup(customtkinter.CTkFrame):
         self.width = 755
         self.height = 430
         self.FONT = "Roboto Medium"
-        self.expected_sizes = [173_876, 173_876, 163_413, 163_984] # Expected sizes (in kB) of the models
+        self.expected_sizes = [167_399, 167_391, 167_391, 167_399] # Expected sizes (in kB) of the models
         self.configure(width=self.width, height=self.height)
         self.create_widgets()
 
