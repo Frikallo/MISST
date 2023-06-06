@@ -1328,9 +1328,8 @@ class MISSTapp(customtkinter.CTk):
                 entry_val = search_entry.get()
 
     def play(self, dir):    
-        self.UI_thread = threading.Thread(target=self.update_UI, args=(f"{self.importsDest}/{dir}/other.flac", 0), daemon=True)
-        self.UI_thread.start()
         self.player.change_files([f"{self.importsDest}/{dir}/bass.flac", f"{self.importsDest}/{dir}/drums.flac", f"{self.importsDest}/{dir}/other.flac", f"{self.importsDest}/{dir}/vocals.flac"], [self.slider1.get(), self.slider2.get(), self.slider3.get(), self.slider4.get()])
+        self.update_UI(f"{self.importsDest}/{dir}/other.flac", 0)
 
     def play_search(self, index_label, songs):
         self.playbutton.configure(state=tkinter.DISABLED)
@@ -1569,9 +1568,7 @@ class MISSTapp(customtkinter.CTk):
                 if self.update_timer:
                     MISSThelpers.terminate_thread(self, self.update_timer)
             except:
-                self.logger.error(traceback.format_exc())
-                self.logger.error("Error stopping update thread.")
-                pass
+                pass # Can ignore this error because the threads pointer is killed when this function is called (which is when a new song is played)
 
         def on_progressbar_drag_start(event):
             self.progressbar_active = True

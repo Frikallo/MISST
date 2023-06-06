@@ -8,10 +8,10 @@
 ---
 
 ![](./MISST/Assets/showcase/showcaseimage1.png)
-| _`MISST` on Windows 11 with Dark mode and 'Blue' theme with 'Kanye West's All of The Lights' playing_
+| _`MISST` on Windows 11 with Dark mode and 'Blue' theme with 'Steve Lacy's Infrunami' playing_
 
 ![](./MISST/Assets/showcase/showcaseimage2.png)
-| _`MISST` on Windows 11 with Light mode and 'Blue' theme with 'Beabadoobee's Cologne' playing_
+| _`MISST` on Windows 11 with Light mode and 'Blue' theme with 'Frank Ocean's Ivy' playing_
 
 ![](./MISST/Assets/showcase/showcaseimage3.png)
 | _`MISST` on Windows 11 Showcasing how versatile and personal you can be with MISST!_
