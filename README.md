@@ -23,7 +23,7 @@
 
 Original Repository of MISST : **M**usic/**I**nstrumental **S**tem **S**eparation **T**ool.
 
-This application uses state-of-the-art source separation models to extract the 4 core stems from audio files (Bass, Drums, Other Instrumentals and Vocals). But it is not limited to this. MISST acts as a developped music player aswell, fit to enjoy and medal with your audio files as you see fit. MISST even comes prepared to import songs and playlists directly from your music library.
+This application uses state-of-the-art [demucs](https://github.com/facebookresearch/demucs) source separation models to extract the 4 core stems from audio files (Bass, Drums, Other Instrumentals and Vocals). But it is not limited to this. MISST acts as a developped music player aswell, fit to enjoy and medal with your audio files as you see fit. MISST even comes prepared to import songs and playlists directly from your music library.
 
 This project is OpenSource, feel free to use, study and/or send pull request.
 

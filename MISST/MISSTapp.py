@@ -1431,16 +1431,19 @@ class MISSTapp(customtkinter.CTk):
         self.progress_label_right.configure(text=f"{str(datetime.timedelta(seconds=total_duration))[2:7]}")
         
     def update_UI(self, audioPath, start_ms):
-        self.next_button.configure(state="normal")
-        self.previous_button.configure(state="normal")
-        self.playpause_button.configure(state="normal")
-        self.nc_checkbox.configure(state="normal")
-        self.nc_checkbox.deselect()
+        try:
+            self.next_button.configure(state="normal")
+            self.previous_button.configure(state="normal")
+            self.playpause_button.configure(state="normal")
+            self.nc_checkbox.configure(state="normal")
+            self.nc_checkbox.deselect()
 
-        if self.playing == True:
-            self.playpause_button.configure(image=customtkinter.CTkImage(Image.open(f"./Assets/Player/player-pause.png"), size=(32, 32)))
-        else:
-            self.playpause_button.configure(image=customtkinter.CTkImage(Image.open(f"./Assets/Player/player-play.png"), size=(32, 32)))
+            if self.playing == True:
+                self.playpause_button.configure(image=customtkinter.CTkImage(Image.open(f"./Assets/Player/player-pause.png"), size=(32, 32)))
+            else:
+                self.playpause_button.configure(image=customtkinter.CTkImage(Image.open(f"./Assets/Player/player-play.png"), size=(32, 32)))
+        except:
+            pass # This is just to prevent errors when the player is closed or the song is changed before the UI is updated.
 
         self.songlabel.configure(text="")
         song_name = os.path.basename(os.path.dirname(audioPath))
