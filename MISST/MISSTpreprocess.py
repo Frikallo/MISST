@@ -135,7 +135,8 @@ class MISSTpreprocess():
 
         def separation(i):
             logger.info("Separation %d/%d" % (i + 1, n))
-            console.editLine(f"MISST Preprocessor\nCopyright (C) @Frikallo Corporation.\n\nMISST> {((i + 1)/n) * 100:.1f}%", 0)
+            percent = ((i + 1)/n) * 100
+            console.editLine(f"MISST Preprocessor\nCopyright (C) @Frikallo Corporation.\n\nMISST> [{'=' * int(percent / 4) + ' ' * (20 - int(percent / 4))}] {percent:.1f}%", 0)
             l = i * (split - overlap)
             r = l + split
             result = self.Apply(model, torch.from_numpy(audio[:, l:r]).to(device))

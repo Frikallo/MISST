@@ -118,7 +118,7 @@ class MISSTapp(customtkinter.CTk):
             self.quit()
             self.player.stop()
             self.logger.info("MISST closed.")
-            exit()
+            exit(0)
 
         self.protocol("WM_DELETE_WINDOW", on_closing)
 
@@ -258,7 +258,7 @@ class MISSTapp(customtkinter.CTk):
         )
         self.playbutton.place(relx=0.5, rely=0.93, anchor=tkinter.CENTER)
 
-        importsBoxUpdates = threading.Thread(target=self.global_checks, args=(self.search_entry, self.songs_box))
+        importsBoxUpdates = threading.Thread(target=self.imports_check, args=(self.search_entry, self.songs_box))
         importsBoxUpdates.daemon = True
         importsBoxUpdates.start()
         ## WEST FRAME ----------------------------------------------------------------------------------------------------
@@ -1298,7 +1298,10 @@ class MISSTapp(customtkinter.CTk):
             self.eqOnOffButton.deselect()
             self.eqOnOff()
         
-    def global_checks(self, search_entry, songs_box):
+    def imports_check(self, search_entry, songs_box):
+        def add_highlight(text, start, end):
+            text.tag_add("start", start, end)
+            text.tag_config("start", background = self.settings.getSetting("chosenLightColor") if customtkinter.get_appearance_mode == "Light" else self.settings.getSetting("chosenDarkColor"), foreground= "black")
         entry_val = None
         num = 0
         songs = []
@@ -1306,7 +1309,7 @@ class MISSTapp(customtkinter.CTk):
             num += 1
             songs.append(f"{num}. {_}")
         while True:
-            time.sleep(0.5)
+            time.sleep(0.25)
             if len(MISSThelpers.MISSTlistdir(self, self.importsDest)) != num:
                 num = 0
                 songs = []
@@ -1333,6 +1336,12 @@ class MISSTapp(customtkinter.CTk):
                 songs_box.configure(state="normal")
                 songs_box.delete("0.0", "end")
                 songs_box.insert("0.0", "\n\n".join(found_songs))
+                for line in songs_box.get("0.0", "end").splitlines():
+                    if search.lower() in line.lower():
+                        start = line.lower().find(search.lower())
+                        end = line.lower().find(search.lower()) + len(search)
+                        line_num = songs_box.get("0.0", "end").splitlines().index(line)
+                        add_highlight(songs_box, f"{line_num + 1}.{start}", f"{line_num + 1}.{end}")
                 songs_box.configure(state=tkinter.DISABLED)
                 entry_val = search_entry.get()
 
