@@ -16,6 +16,7 @@ import demucs
 import threading
 import ctypes
 import requests
+import music_tag
 
 class MISSTconsole():
     def __init__(self, terminal, ogText):
@@ -91,6 +92,22 @@ class MISSThelpers():
                 return
         return
     
+    def apple_music(url, outdir):
+        host = 'https://api.fabdl.com'
+        info = requests.get(host + '/apple-music/get?url=', params={'url': url}).json()['result']
+        convert_task = requests.get(host + f'/apple-music/mp3-convert-task/{info["gid"]}/{info["id"]}')
+        tid = convert_task.json()['result']['tid']
+        convert_task = requests.get(host + f'/apple-music/mp3-convert-progress/{tid}')
+        r = requests.get(host + convert_task.json()['result']['download_url'])  
+        with open(f"{outdir}/{info['artists'] + ' - ' + info['name']}.mp3", 'wb') as f:
+            f.write(r.content)
+        try:
+            audiofile = music_tag.load_file(f"{outdir}/{info['artists'] + ' - ' + info['name']}.mp3")
+            audiofile['artwork'] = requests.get(info['image']).content
+            audiofile.save()
+        except:
+            pass
+
     def change_theme(theme):
         customtkinter.set_appearance_mode(theme)
 

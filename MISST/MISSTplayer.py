@@ -54,6 +54,9 @@ class MISSTplayer:
                 pass
         return data
     
+    def get_position(self, stream_index):
+        return self.positions[stream_index] / float(self.frame_rate)
+    
     def adjust_volume(self, data, volume):
         data = bytearray(data)
         for i in range(0, len(data), 2):

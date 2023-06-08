@@ -1,6 +1,6 @@
 [Setup]
 AppName=MISST
-AppVersion=3.0.7
+AppVersion=3.0.8
 AppPublisher=@Frikallo
 AppPublisherURL=https://github.com/Frikallo/MISST
 AppSupportURL=https://github.com/Frikallo/MISST
@@ -181,7 +181,7 @@ begin
   begin
     // Prompt the user to select the version of the program
     ProgramVersion := '';
-    if MsgBox('Do you want to download the CUDA version of MISST 3.0.7?', mbConfirmation, MB_YESNO) = IDYES then
+    if MsgBox('Do you want to download the CUDA version of MISST 3.0.8?', mbConfirmation, MB_YESNO) = IDYES then
     begin
       ProgramVersion := 'cuda';
     end
@@ -193,12 +193,12 @@ begin
     // Set the download URL and filename based on the selected version
     if ProgramVersion = 'cuda' then
     begin
-      DownloadURL := 'https://github.com/Frikallo/MISST/releases/download/V3.0.7/MISST_CUDA_3.0.7_Release_Win.7z';
+      DownloadURL := 'https://github.com/Frikallo/MISST/releases/download/V3.0.8/MISST_CUDA_3.0.8_Release_Win.7z';
       DownloadFileName := 'MISST.7z';
     end
     else
     begin
-      DownloadURL := 'https://github.com/Frikallo/MISST/releases/download/V3.0.7/MISST_CPU_3.0.7_Release_Win.7z';
+      DownloadURL := 'https://github.com/Frikallo/MISST/releases/download/V3.0.8/MISST_CPU_3.0.8_Release_Win.7z';
       DownloadFileName := 'MISST.7z';
     end;
 
