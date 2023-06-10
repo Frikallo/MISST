@@ -1,8 +1,11 @@
-from MISSTsettings import MISSTsettings
+import threading
+
+import numpy as np
 import pyaudio
 import soundfile as sf
-import threading
-import numpy as np
+
+from MISSTsettings import MISSTsettings
+
 
 class MISSTplayer:
     def __init__(self, files, volumes):

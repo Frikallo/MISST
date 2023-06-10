@@ -1,7 +1,9 @@
-import customtkinter
 import os
 import threading
+
+import customtkinter
 import requests
+
 
 class MISSTSetup(customtkinter.CTkFrame):
     def __init__(self, parent, model_files):

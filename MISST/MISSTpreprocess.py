@@ -1,16 +1,18 @@
-from demucs.pretrained import get_model
-from demucs.apply import BagOfModels, apply_model
-import pathlib
-import torch
 import concurrent.futures
-import numpy as np
 import logging
-import soundfile
-import julius
-import wave
-import soundfile as sf
-from MISSThelpers import MISSTconsole
 import os
+import pathlib
+import wave
+
+import julius
+import numpy as np
+import soundfile
+import soundfile as sf
+import torch
+from demucs.apply import BagOfModels, apply_model
+from demucs.pretrained import get_model
+
+from MISSThelpers import MISSTconsole
 
 # Modified functions from https://github.com/facebookresearch/demucs, 
 #                         https://pytorch.org/audio/main/tutorials/hybrid_demucs_tutorial.html 

@@ -31,6 +31,7 @@ This project is OpenSource, feel free to use, study and/or send pull request.
 - [x] Import songs and playlists from your music library
 - [x] Play your songs and playlists
 - [x] Extract and manipulate the 4 core stems from your audio files as they play
+- [x] Discord rich presence to show off your music to your friends
 - [x] Save your stems as audio files
 - [x] If imported from your music library, view lyrics and metadata just as you would in your old music player
 - [x] Minimal memory usage

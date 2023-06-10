@@ -1,22 +1,24 @@
-import customtkinter
+import ctypes
 import os
-import time
-from PIL import Image
-from vcolorpicker import getColor, rgb2hex, hex2rgb, useLightTheme
-from colorsys import rgb_to_hls, hls_to_rgb
+import platform
+import re
 import shutil
+import sys
+import threading
+import time
 import tkinter
 import uuid
-import sys
-import platform
-import psutil
-import torch
-import re
+from colorsys import hls_to_rgb, rgb_to_hls
+
+import customtkinter
 import demucs
-import threading
-import ctypes
-import requests
 import music_tag
+import psutil
+import requests
+import torch
+from PIL import Image
+from vcolorpicker import getColor, hex2rgb, rgb2hex, useLightTheme
+
 
 class MISSTconsole():
     def __init__(self, terminal, ogText):

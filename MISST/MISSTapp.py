@@ -1,33 +1,35 @@
 import os
+
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
-import tkinter
-import customtkinter
-from pypresence import Presence
-from lyrics_extractor import SongLyrics
-import threading
-import time
-import random
+import base64
 import datetime
-from PIL import Image
+import io
+import random
 import shutil
-import psutil
-import GPUtil
-import webbrowser
 import subprocess
 import tempfile
+import threading
+import time
+import tkinter
 import traceback
-import music_tag
-import io, base64
+import webbrowser
 
-from MISSTplayer import MISSTplayer
-from MISSTsettings import MISSTsettings, MISSTconfig
-from MISSThelpers import MISSThelpers, MISSTconsole
-from MISSTlogger import MISSTlogger
-from MISSTpreprocess import MISSTpreprocess
-from MISSTSetup import MISSTSetup
+import customtkinter
+import GPUtil
+import music_tag
+import psutil
+from lyrics_extractor import SongLyrics
+from PIL import Image
+from pypresence import Presence
 
 from __version__ import __version__ as version
+from MISSThelpers import MISSTconsole, MISSThelpers
+from MISSTlogger import MISSTlogger
+from MISSTplayer import MISSTplayer
+from MISSTpreprocess import MISSTpreprocess
+from MISSTsettings import MISSTconfig, MISSTsettings
+from MISSTSetup import MISSTSetup
 
 customtkinter.set_appearance_mode("System")  # Modes: "System" (standard), "Dark", "Light"
 customtkinter.set_default_color_theme("./Assets/Themes/MISST.json")  # Themes: "blue" (standard), "green", "dark-blue"
@@ -51,7 +53,7 @@ class MISSTapp(customtkinter.CTk):
                 self.RPC_CONNECTED = True
             except:
                 self.logger.error(traceback.format_exc())
-                self.logger.error("RPC connection failed or abborted.")
+                self.logger.error("RPC connection failed or aborted.")
                 self.RPC_CONNECTED = False
         else:
             self.RPC_CONNECTED = False
@@ -759,7 +761,6 @@ class MISSTapp(customtkinter.CTk):
                 try:
                     gpu_usage = GPUtil.getGPUs()[0].load * 100
                 except:
-                    self.logger.error(traceback.format_exc())
                     gpu_usage = "N/A" #CPU version of MISST
                 self.system_info.configure(
                     text=f"CPU: {cpu_usage:.1f}% | Mem: {mem_usage:.1f}% | GPU: {f'{gpu_usage:.1f}' if gpu_usage != 'N/A' else 'N/A'}%"
@@ -1539,7 +1540,7 @@ class MISSTapp(customtkinter.CTk):
 
         MISSThelpers.update_rpc(
             self,
-            Ltext="Listening to seperated audio",
+            Ltext="Listening to separated audio",
             Dtext=song_name,
             image=config.getConfig(song_dir)["image_url"],
             large_text=song_name,
@@ -1610,7 +1611,7 @@ class MISSTapp(customtkinter.CTk):
                 if not self.progressbar_active and self.playing == True:
                     MISSThelpers.update_rpc(
                         self,
-                        Ltext="Listening to seperated audio",
+                        Ltext="Listening to separated audio",
                         Dtext=song_name,
                         image=config.getConfig(song_dir)["image_url"],
                         large_text=song_name,
