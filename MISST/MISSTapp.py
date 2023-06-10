@@ -8,6 +8,7 @@ import io
 import random
 import shutil
 import subprocess
+import sys
 import tempfile
 import threading
 import time
@@ -139,8 +140,19 @@ class MISSTapp(customtkinter.CTk):
             self.destroy()
             self.quit()
             self.player.stop()
+            current_pid = psutil.Process().pid
+            parent_pid = psutil.Process(current_pid).ppid()
+            
+            # Terminate child processes
+            parent = psutil.Process(parent_pid)
+            children = parent.children(recursive=True)
+            self.logger.info(f"Terminating {len(children)} child processes.")
+            for child in children:
+                child.terminate()
+            
+            # Terminate the current process
             self.logger.info("MISST closed.")
-            exit(0)
+            sys.exit()
 
         self.protocol("WM_DELETE_WINDOW", on_closing)
 
