@@ -4,7 +4,13 @@ import sys
 
 
 class MISSTlogger:
+    """
+    MISSTlogger class
+    """
     def __init__(self):
+        """
+        Initialize the logger
+        """
         loggerName = "MISST"
         logFormatter = logging.Formatter(fmt=" %(name)s :: %(levelname)-8s :: %(message)s")
         self.logger = logging.getLogger(loggerName)

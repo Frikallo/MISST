@@ -8,7 +8,17 @@ from MISSTsettings import MISSTsettings
 
 
 class MISSTplayer:
+    """
+    MISSTplayer class
+    """
     def __init__(self, files, volumes):
+        """
+        Initialize the player
+
+        Args:
+            files (list): List of file paths
+            volumes (list): List of volume values
+        """
         self.files = files
         self.p = pyaudio.PyAudio()
         self.streams = []
@@ -33,6 +43,9 @@ class MISSTplayer:
             self.streams.append(stream)
         
     def play(self):
+        """
+        Play the audio
+        """
         self.paused = False
         while not self.paused:
             for i, stream in enumerate(self.streams):
@@ -43,6 +56,12 @@ class MISSTplayer:
                     break
         
     def get_data(self, stream_index):
+        """
+        Get the audio data
+
+        Args:
+            stream_index (int): Index of the stream
+        """
         data, _ = sf.read(self.files[stream_index], dtype='int16', start=self.positions[stream_index], frames=self.chunk_size)
         if len(data) > 0:
             self.positions[stream_index] += len(data)
@@ -58,9 +77,22 @@ class MISSTplayer:
         return data
     
     def get_position(self, stream_index):
+        """
+        Get the position of the audio
+
+        Args:
+            stream_index (int): Index of the stream
+        """
         return self.positions[stream_index] / float(self.frame_rate)
     
     def adjust_volume(self, data, volume):
+        """
+        Adjust the volume of the audio
+
+        Args:
+            data (bytes): Audio data
+            volume (float): Volume value
+        """
         data = bytearray(data)
         for i in range(0, len(data), 2):
             sample = int.from_bytes(data[i:i+2], byteorder='little', signed=True)
@@ -69,6 +101,12 @@ class MISSTplayer:
         return bytes(data)
     
     def apply_nightcore(self, data):
+        """
+        Apply the nightcore effect to the audio
+
+        Args:
+            data (bytes): Audio data
+        """
         samples = np.frombuffer(data, dtype=np.int16)
         samples = samples.astype(np.float32)
         samples = samples.reshape((len(samples) // 2, 2)).T
@@ -84,6 +122,12 @@ class MISSTplayer:
         return samples.tobytes()
 
     def apply_eq(self, data):
+        """
+        Apply the equalizer effect to the audio
+
+        Args:
+            data (bytes): Audio data
+        """
         # Convert data to float32
         audio_data = np.frombuffer(data, dtype=np.int16)
 
@@ -124,29 +168,65 @@ class MISSTplayer:
         return equalized_audio.tobytes()
     
     def set_nightcore(self, nightcore):
+        """
+        Set the nightcore effect
+
+        Args:
+            nightcore (bool): Nightcore effect
+        """
         self.nightcore = nightcore
         
     def set_volume(self, stream_index, volume):
+        """
+        Set the volume of the audio
+
+        Args:
+            stream_index (int): Index of the stream
+            volume (float): Volume value
+        """
         self.volumes[stream_index] = volume
     
     def set_position(self, stream_index, position):
+        """
+        Set the position of the audio
+
+        Args:
+            stream_index (int): Index of the stream
+            position (float): Position value
+        """
         self.positions[stream_index] = position
     
     def pause(self):
+        """
+        Pause the audio
+        """
         self.paused = True
 
     def resume(self):
+        """
+        Resume the audio
+        """
         if self.paused:
             self.paused = False
             threading.Thread(target=self.play, daemon=True).start()
     
     def stop(self):
+        """
+        Stop the audio
+        """
         for i, stream in enumerate(self.streams):
             stream.stop_stream()
             stream.close()
         self.p.terminate()
 
     def change_files(self, new_files, volumes):
+        """
+        Change the files of the audio
+
+        Args:
+            new_files (list): List of new files
+            volumes (list): List of volumes
+        """
         self.paused = True
         self.volumes = volumes
 

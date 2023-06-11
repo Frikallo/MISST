@@ -6,7 +6,20 @@ import requests
 
 
 class MISSTSetup(customtkinter.CTkFrame):
+    """
+    Class for handling the setup of MISST
+
+    Args:
+        parent (tkinter.Tk): The parent of the frame
+    """
     def __init__(self, parent, model_files):
+        """
+        Initialize the setup
+
+        Args:
+            parent (tkinter.Tk): The parent of the frame
+            model_files (list): List of model files
+        """
         super().__init__(parent)
         self.parent = parent
         self.model_files = model_files
@@ -19,6 +32,9 @@ class MISSTSetup(customtkinter.CTkFrame):
         self.create_widgets()
 
     def create_widgets(self):
+        """
+        Create the widgets
+        """
         self.label = customtkinter.CTkLabel(self, text="Setting up models...", font=(self.FONT, 20))
         self.label.place(relx=0.5, rely=0.45, anchor="center")
 
@@ -32,10 +48,16 @@ class MISSTSetup(customtkinter.CTkFrame):
             threading.Timer(2, self.destroy).start()
 
     def start_setup(self):
+        """
+        Start the setup
+        """
         self.thread = threading.Thread(target=self.setup_models)
         self.thread.start()
 
     def setup_models(self):
+        """
+        Setup the models
+        """
         total_files = len(self.model_files)
         for i, file in enumerate(self.model_files):
             self.label.configure(text="Setting up models {}/{}".format(i + 1, total_files))
@@ -46,6 +68,12 @@ class MISSTSetup(customtkinter.CTkFrame):
         threading.Timer(2, self.destroy).start()
 
     def download_file(self, file):
+        """
+        Download a file
+
+        Args:
+            file (str): The file to download
+        """
         url = "https://dl.fbaipublicfiles.com/demucs/mdx_final/" + file.replace("Pretrained/","")
         response = requests.get(url, stream=True)
         total_length = response.headers.get('content-length')

@@ -19,16 +19,33 @@ from MISSThelpers import MISSTconsole
 #                         and https://github.com/CarlGao4/Demucs-Gui
 
 class MISSTpreprocess():
+    """
+    MISSTpreprocess class
+    """
     def __init__(self):
         pass
 
     def LoadModel(self, name = "mdx_extra", repo = None, device = "cuda" if torch.cuda.is_available() else "cpu",):
+        """
+        Load the model
+
+        Args:
+            name (str): Name of the model
+            repo (str): Repository of the model
+            device (str): Device to use
+        """
         model = get_model(name=name, repo=repo)
         model.to(device)
         model.eval()
         return model
 
     def GetData(self, model):
+        """
+        Get the data from the model
+
+        Args:
+            model (demucs.pretrained.BagOfModels): Model to get the data from
+        """
         res = {}
         res["channels"] = model.audio_channels
         res["samplerate"] = model.samplerate
@@ -40,6 +57,14 @@ class MISSTpreprocess():
         return res
 
     def Apply(self, model, wav, shifts=1):
+        """
+        Apply the model to the audio
+
+        Args:
+            model (demucs.pretrained.BagOfModels): Model to apply
+            wav (numpy.ndarray): Audio data
+            shifts (int): Number of shifts
+        """
         audio = wav
         ref = audio.mean(0)
         audio = (audio - ref.mean()) / ref.std()
@@ -48,6 +73,13 @@ class MISSTpreprocess():
         return dict(zip(model.sources, sources))
 
     def convert_audio_channels(self, wav, channels=2):
+        """
+        Convert the audio channels
+
+        Args:
+            wav (numpy.ndarray): Audio data
+            channels (int): Number of channels
+        """
         *shape, src_channels, length = wav.shape
         if src_channels == channels:
             pass
@@ -62,6 +94,14 @@ class MISSTpreprocess():
         return wav
 
     def write_wav(self, wav, filename, samplerate):
+        """
+        Write the audio to a WAV file
+
+        Args:
+            wav (numpy.ndarray): Audio data
+            filename (str): Filename
+            samplerate (int): Samplerate
+        """
         if wav.dtype.is_floating_point:
             wav = (wav.clamp_(-1, 1) * (2**15 - 1)).short()
         with wave.open(filename, "wb") as f:
@@ -71,6 +111,13 @@ class MISSTpreprocess():
             f.writeframes(bytearray(wav.numpy()))
 
     def compress_wav_to_flac(self, wav_file, flac_file):
+        """
+        Compress the WAV file to a FLAC file
+
+        Args:
+            wav_file (str): WAV filename
+            flac_file (str): FLAC filename
+        """
         # Read the WAV file
         data, samplerate = sf.read(wav_file)
 
@@ -79,10 +126,26 @@ class MISSTpreprocess():
         os.remove(wav_file)
 
     def convert_audio(self, wav, from_samplerate, to_samplerate, channels):
+        """
+        Convert the audio
+
+        Args:
+            wav (numpy.ndarray): Audio data
+            from_samplerate (int): From samplerate
+            to_samplerate (int): To samplerate
+            channels (int): Number of channels
+        """
         wav = self.convert_audio_channels(wav, channels)
         return julius.resample_frac(wav, from_samplerate, to_samplerate)
 
     def load_audio(self, fn, sr):
+        """
+        Load the audio
+
+        Args:
+            fn (str): Filename
+            sr (int): Samplerate
+        """
         audio, raw_sr = soundfile.read(fn, dtype="float32")
         if len(audio.shape) == 1:
             audio = np.atleast_2d(audio).transpose()
@@ -90,6 +153,14 @@ class MISSTpreprocess():
         return converted.numpy()
     
     def apply_fade_in_out(self, input_file, output_file, fade_duration):
+        """
+        Apply fade in and out to the audio
+
+        Args:
+            input_file (str): Input filename
+            output_file (str): Output filename
+            fade_duration (float): Fade duration
+        """
         # Read the audio file
         audio_data, sample_rate = sf.read(input_file)
         
@@ -120,6 +191,21 @@ class MISSTpreprocess():
         logger = logging.getLogger("MISST"),
         console = None,
     ):
+        """
+        Process the audio
+
+        Args:
+            model (demucs.pretrained.BagOfModels): Model to apply
+            infile (str): Input filename
+            write (bool): Write the output
+            outpath (pathlib.Path): Output path
+            split (float): Split
+            overlap (float): Overlap
+            sample_rate (int): Sample rate
+            device (str): Device
+            logger (logging.Logger): Logger
+            console (MISSTConsole): Console
+        """
         split = int(split * sample_rate)
         overlap = int(overlap * split)
         logger.info("Loading file")
@@ -165,6 +251,14 @@ class MISSTpreprocess():
         del model # Free up memory
 
     def preprocess(self, file, outDir, device="cuda"):
+        """
+        Preprocess the audio
+
+        Args:
+            file (str): Input filename
+            outDir (str): Output directory
+            device (str): Device
+        """
         self.logger.info(f"Preprocessing {file}...")
         console = MISSTconsole(self.preprocess_terminal_text, "MISST Preprocessor\nCopyright (C) @Frikallo Corporation.\n")
         try:

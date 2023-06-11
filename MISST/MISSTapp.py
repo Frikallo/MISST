@@ -36,7 +36,13 @@ customtkinter.set_appearance_mode("System")  # Modes: "System" (standard), "Dark
 customtkinter.set_default_color_theme("./Assets/Themes/MISST.json")  # Themes: "blue" (standard), "green", "dark-blue"
 
 class MISSTapp(customtkinter.CTk):
+    """
+    The main MISST application.
+    """
     def __init__(self):
+        """
+        Initialize the MISST application.
+        """
         super().__init__()
 
         self.player = MISSTplayer(["Assets/silent/silence.flac","Assets/silent/silence.flac","Assets/silent/silence.flac","Assets/silent/silence.flac"], [0]*4)
@@ -157,6 +163,9 @@ class MISSTapp(customtkinter.CTk):
         self.protocol("WM_DELETE_WINDOW", on_closing)
 
     def createWidgets(self):
+        """
+        Creates the widgets for the main window.
+        """
         self.west_frame = customtkinter.CTkFrame(master=self, width=self.WIDTH * (175 / self.WIDTH), height=self.HEIGHT * (430 / self.HEIGHT), corner_radius=0)
         self.west_frame.grid(row=0, column=0, sticky="nsew", padx=(0, 5), rowspan=4)
 
@@ -491,10 +500,19 @@ class MISSTapp(customtkinter.CTk):
         self.import_button.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)        
 
     def raise_above_all(self, window):
+        """
+        Raises a window above all other windows
+
+        Args:
+            window (tkinter.Tk): The window to raise
+        """
         window.attributes("-topmost", 1)
         window.attributes("-topmost", 0)
 
     def draw_lyrics_box(self):
+        """
+        Draws the lyrics box
+        """
         try:
             self.lyrics_window.destroy() # Destroy the window if it already exists
         except:
@@ -569,6 +587,12 @@ class MISSTapp(customtkinter.CTk):
         self.search_button.place(relx=0.84, rely=0.92, anchor=tkinter.CENTER)
 
     def imports_checkbox_event(self, current_var):
+        """
+        Called when an import checkbox is clicked
+
+        Args:
+            current_var (tkinter.StringVar): The variable of the checkbox that was clicked
+        """
         vars = [self.import_Spotify_var, self.import_Youtube_var, self.import_AppleMusic_var, self.import_Soundcloud_var]
         checkboxes = [self.import_Spotify_checkbox, self.import_Youtube_checkbox, self.import_AppleMusic_checkbox, self.import_Soundcloud_checkbox]
         for var in vars:
@@ -579,12 +603,18 @@ class MISSTapp(customtkinter.CTk):
         checkboxes[vars.index(current_var)].select()
 
     def imports_toggle(self):
+        """
+        Toggles the imports frame
+        """
         try:
             self.imports_frame.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
         except:
             self.draw_imports_frame()
 
     def draw_imports_frame(self):
+        """
+        Draws the imports frame
+        """
         self.imports_frame = customtkinter.CTkFrame(
             master=self, width=self.WIDTH * (755 / self.WIDTH), height=self.HEIGHT * (430 / self.HEIGHT)
         )
@@ -806,45 +836,56 @@ class MISSTapp(customtkinter.CTk):
         self.console.update(" waiting")
 
     def retrieve_metadata(self, save_dir=None, temp_dir=None, file=None):
-            self.console.update("\nMISST> Getting Metadata")
-            if temp_dir is not None:
-                save_dir = f"{self.importsDest}/{os.path.splitext(os.path.basename(os.listdir(temp_dir)[0]))[0]}"
-                if not os.path.exists(save_dir):
-                    os.mkdir(save_dir)
-                file = f"{temp_dir}/{os.listdir(temp_dir)[0]}"
-            else:
-                file = file
-            config = MISSTconfig(save_dir) #Create config file
-            try:
-                f = music_tag.load_file(file)
-                art = f['artwork']
-                raw_art = art.first.data
-                image = Image.open(io.BytesIO(raw_art))
+        """
+        Retrieves metadata from a file and saves it to a directory.
 
-                square_size = min(image.size)
-                left = (image.width - square_size) // 2
-                top = (image.height - square_size) // 2
-                right = left + square_size
-                bottom = top + square_size
+        Args:
+            save_dir (str): The directory to save the metadata to.
+            temp_dir (str): The directory to retrieve the metadata from.
+            file (str): The file to retrieve the metadata from.
+        """
+        self.console.update("\nMISST> Getting Metadata")
+        if temp_dir is not None:
+            save_dir = f"{self.importsDest}/{os.path.splitext(os.path.basename(os.listdir(temp_dir)[0]))[0]}"
+            if not os.path.exists(save_dir):
+                os.mkdir(save_dir)
+            file = f"{temp_dir}/{os.listdir(temp_dir)[0]}"
+        else:
+            file = file
+        config = MISSTconfig(save_dir) #Create config file
+        try:
+            f = music_tag.load_file(file)
+            art = f['artwork']
+            raw_art = art.first.data
+            image = Image.open(io.BytesIO(raw_art))
 
-                # Crop the square region from the center of the image
-                cropped_image = image.crop((left, top, right, bottom))
+            square_size = min(image.size)
+            left = (image.width - square_size) // 2
+            top = (image.height - square_size) // 2
+            right = left + square_size
+            bottom = top + square_size
 
-                image = cropped_image.resize((40, 40), Image.Resampling.LANCZOS)
-                raw_art = image.tobytes()
-                png_bytes = io.BytesIO()
-                image.save(png_bytes, format="PNG")
-                raw_art = png_bytes.getvalue()
-                config.setConfig(save_dir, "image_url", MISSThelpers().freeimage_upload(raw_art))
-                config.setConfig(save_dir, "image_raw", base64.b64encode(raw_art).decode('utf-8'))
-                self.console.endUpdate()
-                self.console.addLine("\nMISST> Metadata Retrieved.")
-            except:
-                self.logger.error(traceback.format_exc())
-                self.console.endUpdate()
-                self.console.addLine("\nMISST> Error getting metadata.")
+            # Crop the square region from the center of the image
+            cropped_image = image.crop((left, top, right, bottom))
+
+            image = cropped_image.resize((40, 40), Image.Resampling.LANCZOS)
+            raw_art = image.tobytes()
+            png_bytes = io.BytesIO()
+            image.save(png_bytes, format="PNG")
+            raw_art = png_bytes.getvalue()
+            config.setConfig(save_dir, "image_url", MISSThelpers().freeimage_upload(raw_art))
+            config.setConfig(save_dir, "image_raw", base64.b64encode(raw_art).decode('utf-8'))
+            self.console.endUpdate()
+            self.console.addLine("\nMISST> Metadata Retrieved.")
+        except:
+            self.logger.error(traceback.format_exc())
+            self.console.endUpdate()
+            self.console.addLine("\nMISST> Error getting metadata.")
 
     def filePreprocess(self):
+        """
+        Preprocesses a file.
+        """
         self.console.editLine(f"MISST Preprocessor\nCopyright (C) @Frikallo Corporation.\n", 0)
         self.import_file_button.configure(state=tkinter.DISABLED)
         self.import_button.configure(state=tkinter.DISABLED)
@@ -866,6 +907,12 @@ class MISSTapp(customtkinter.CTk):
             self.import_button.configure(state=tkinter.NORMAL)
             
     def sourcePreprocess(self, url):
+        """
+        Preprocesses a source.
+
+        Args:
+            url (str): The URL of the source to preprocess.
+        """
         self.console.editLine(f"MISST Preprocessor\nCopyright (C) @Frikallo Corporation.\n", 0)
         if url != "":
             # Spotify Import
@@ -1008,6 +1055,9 @@ class MISSTapp(customtkinter.CTk):
         return
 
     def draw_settings_frame(self):
+        """
+        Draws the settings frame.
+        """
         self.settings_window = customtkinter.CTkFrame(
             master=self, width=self.WIDTH * (755 / self.WIDTH), height=self.HEIGHT * (430 / self.HEIGHT)
         )
@@ -1216,6 +1266,14 @@ class MISSTapp(customtkinter.CTk):
         self.reset_button.place(relx=0.75, rely=0.95, anchor=tkinter.CENTER)
 
     def eq_sliders_event(self, curVal, curSlider, sliders):
+        """
+        Event that is called when a slider is moved. If the move sliders together option is enabled, it will move all the sliders together.
+
+        Args:
+            curVal (int): The current value of the slider.
+            curSlider (int): The index of the slider that was moved.
+            sliders (list): A list of all the sliders.
+        """
         self.settings.setSetting(f"eq_{curSlider+1}", str(curVal))
         if self.move_sliders_together.get() == 0:
             return
@@ -1236,10 +1294,16 @@ class MISSTapp(customtkinter.CTk):
         return
         
     def moveSlidersTogether(self):
+        """
+        Event that is called when the move sliders together option is changed. It will save the setting.
+        """
         self.settings.setSetting("eq_move_sliders_together", "true" if str(self.move_sliders_together.get()) == "1" else "false")
         return
     
     def eqOnOff(self):
+        """
+        Event that is called when the eq on/off button is changed. It will save the setting and enable/disable the eq sliders.
+        """
         self.settings.setSetting("eq", "true" if str(self.eqOnOffButton.get()) == "1" else "false")
         if self.eqOnOffButton.get() == 0:
             self.eqOnOffButton.configure(text="Off")
@@ -1255,6 +1319,9 @@ class MISSTapp(customtkinter.CTk):
         return
 
     def draw_eq_frame(self):
+        """
+        Draws the eq frame.
+        """
         self.eq_window = customtkinter.CTkFrame(
             master=self, width=self.WIDTH * (755 / self.WIDTH), height=self.HEIGHT * (430 / self.HEIGHT)
         )
@@ -1359,6 +1426,13 @@ class MISSTapp(customtkinter.CTk):
             self.eqOnOff()
         
     def imports_check(self, search_entry, songs_box):
+        """
+        Checks for new songs in the imports folder and adds them to the songs box
+
+        Args:
+            search_entry (tkinter.Entry): The search entry
+            songs_box (tkinter.Text): The songs box
+        """
         def add_highlight(text, start, end):
             text.tag_add("start", start, end)
             text.tag_config("start", background = self.settings.getSetting("chosenLightColor") if customtkinter.get_appearance_mode == "Light" else self.settings.getSetting("chosenDarkColor"), foreground= "black")
@@ -1405,11 +1479,24 @@ class MISSTapp(customtkinter.CTk):
                 songs_box.configure(state=tkinter.DISABLED)
                 entry_val = search_entry.get()
 
-    def play(self, dir):    
+    def play(self, dir):  
+        """
+        Plays a song
+
+        Args:
+            dir (str): The directory of the song
+        """  
         self.player.change_files([f"{self.importsDest}/{dir}/bass.flac", f"{self.importsDest}/{dir}/drums.flac", f"{self.importsDest}/{dir}/other.flac", f"{self.importsDest}/{dir}/vocals.flac"], [self.slider1.get(), self.slider2.get(), self.slider3.get(), self.slider4.get()])
         self.update_UI(f"{self.importsDest}/{dir}/other.flac", 0)
 
     def play_search(self, index_label, songs):
+        """
+        Plays a song from the search box
+
+        Args:
+            index_label (str): The index of the song
+            songs (list): The list of songs
+        """
         self.playbutton.configure(state=tkinter.DISABLED)
         try:
             index = int(index_label)
@@ -1423,6 +1510,9 @@ class MISSTapp(customtkinter.CTk):
         self.playbutton.configure(state=tkinter.NORMAL)
 
     def shuffle(self):
+        """
+        Plays a random song
+        """
         self.shuffle_button.configure(state=tkinter.DISABLED)
         try:
             songs = MISSThelpers.MISSTlistdir(self, self.importsDest) 
@@ -1431,11 +1521,17 @@ class MISSTapp(customtkinter.CTk):
             self.nc_checkbox.deselect()
             self.play(songs[0])
         except:
-            self.logger.error(traceback.format_exc())
+            # can ignore this error
             pass
         self.shuffle_button.configure(state=tkinter.NORMAL)
 
     def next(self, songName):
+        """
+        Plays the next song
+
+        Args:
+            songName (str): The name of the current song
+        """
         self.next_button.configure(state=tkinter.DISABLED)
         try:
             songs = MISSThelpers.MISSTlistdir(self, self.importsDest) 
@@ -1444,11 +1540,17 @@ class MISSTapp(customtkinter.CTk):
             self.nc_checkbox.deselect()
             self.play(songs[index + 1])
         except:
-            self.logger.error(traceback.format_exc())
+            # can ignore this error
             pass
         self.next_button.configure(state=tkinter.NORMAL)
 
     def previous(self, songName):
+        """
+        Plays the previous song
+
+        Args:
+            songName (str): The name of the current song
+        """
         self.previous_button.configure(state=tkinter.DISABLED)
         try:
             songs = MISSThelpers.MISSTlistdir(self, self.importsDest) 
@@ -1457,11 +1559,17 @@ class MISSTapp(customtkinter.CTk):
             self.nc_checkbox.deselect()
             self.play(songs[index - 1])
         except:
-            self.logger.error(traceback.format_exc())
+            # can ignore this error
             pass
         self.previous_button.configure(state=tkinter.NORMAL)
 
     def slider_event(self, value):
+        """
+        Sets the position of the song
+
+        Args:
+            value (int): The position of the song
+        """
         frames_per_millisecond = self.player.frame_rate / 1000
         ms = value * 1000
         frame = int(ms * frames_per_millisecond)
@@ -1472,12 +1580,18 @@ class MISSTapp(customtkinter.CTk):
         return
     
     def nightcore(self):
+        """
+        Sets the nightcore state
+        """
         if self.nc_checkbox.get() == 'on':
             self.player.set_nightcore(True)
         else:
             self.player.set_nightcore(False)
     
     def playpause(self):
+        """
+        Pauses or resumes the song
+        """
         if self.playing == True:
             self.playpause_button.configure(state="normal", image=self.ImageCache["paused"])
             self.player.pause()
@@ -1492,6 +1606,9 @@ class MISSTapp(customtkinter.CTk):
             self.nc_checkbox.configure(state="normal")
 
     def loopEvent(self):
+        """
+        Sets the loop state
+        """
         if self.loop == True:
             self.loop = False
             self.loop_button.configure(state="normal", image=self.ImageCache["loop-off"])
@@ -1500,6 +1617,13 @@ class MISSTapp(customtkinter.CTk):
             self.loop_button.configure(state="normal", image=self.ImageCache["loop"])
 
     def update_progress_bar(self, current_time, total_duration):
+        """
+        Updates the progress bar
+
+        Args:
+            current_time (int): The current time of the song
+            total_duration (int): The total duration of the song
+        """
         progress = current_time / total_duration
         progress_in_seconds = int(progress * total_duration)
 
@@ -1508,6 +1632,13 @@ class MISSTapp(customtkinter.CTk):
         self.progress_label_right.configure(text=f"{str(datetime.timedelta(seconds=total_duration))[2:7]}")
         
     def update_UI(self, audioPath, start_ms):
+        """
+        Updates the UI
+
+        Args:
+            audioPath (str): The path to the song
+            start_ms (int): The start time of the song
+        """
         try:
             self.next_button.configure(state="normal")
             self.previous_button.configure(state="normal")

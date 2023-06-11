@@ -21,7 +21,18 @@ from vcolorpicker import getColor, hex2rgb, rgb2hex, useLightTheme
 
 
 class MISSTconsole():
+    """
+    A class to handle the console output of MISST
+    """
     def __init__(self, terminal, ogText):
+        """
+        Parameters
+
+        terminal : tkinter.Text
+            The tkinter.Text widget to be used as the console
+        ogText : str
+            The original text to be displayed in the console
+        """
         self.consoleText = ogText
         self.terminal = terminal
         self.curThread = None
@@ -30,6 +41,12 @@ class MISSTconsole():
         self.terminal.configure(state="disabled")
 
     def updateThread(self, text):
+        """
+        A thread to update the console text
+
+        Args:
+            text (str): The text to be added to the console
+        """
         t = 0
         while True:
             time.sleep(0.5)
@@ -43,11 +60,22 @@ class MISSTconsole():
             t += 1
 
     def update(self, text):
+        """
+        Update the console text
+
+        Args:
+            text (str): The text to be added to the console
+        """
         self.curThread = threading.Thread(target=self.updateThread, args=(text,), daemon=True)
         self.curThread.start()
 
     def endUpdate(self):
-        print(self.curThread)
+        """
+        End the update thread
+
+        Args:
+            text (str): The text to be added to the console
+        """
         MISSThelpers.terminate_thread(self, self.curThread)
         self.terminal.configure(state="normal")
         self.terminal.delete("0.0", "end")
@@ -55,6 +83,12 @@ class MISSTconsole():
         self.terminal.configure(state="disabled")
 
     def addLine(self, text):
+        """
+        Add a line to the console
+
+        Args:
+            text (str): The text to be added to the console
+        """
         self.consoleText += f"{text}"
         self.terminal.configure(state="normal")
         self.terminal.delete("0.0", "end")
@@ -62,6 +96,13 @@ class MISSTconsole():
         self.terminal.configure(state="disabled")
 
     def editLine(self, text, line_number):
+        """
+        Edit a line in the console
+
+        Args:
+            text (str): The text to be added to the console
+            line_number (int): The line number to be edited
+        """
         self.consoleText = text
         self.terminal.configure(state="normal")
         self.terminal.delete(f"{line_number + 1}.0", f"end")
@@ -69,6 +110,9 @@ class MISSTconsole():
         self.terminal.configure(state="disabled")
 
 class MISSThelpers():
+    """
+    A class filled with helper methods for MISST
+    """
     def update_rpc(
         self,
         Ltext=None,
@@ -78,6 +122,17 @@ class MISSThelpers():
         end_time=None,
         small_image=None,
     ):
+        """
+        Update the Discord Rich Presence
+
+        Args:
+            Ltext (str, optional): The large text to be displayed. Defaults to None.
+            Dtext (str, optional): The details text to be displayed. Defaults to None.
+            image (str, optional): The image to be displayed. Defaults to "icon-0".
+            large_text (str, optional): The large text to be displayed. Defaults to "MISST".
+            end_time (int, optional): The end time of the activity. Defaults to None.
+            small_image (str, optional): The small image to be displayed. Defaults to None.
+        """
         start_time = time.time()
         if self.RPC_CONNECTED:
             try:
@@ -95,6 +150,13 @@ class MISSThelpers():
         return
     
     def apple_music(url, outdir):
+        """
+        Download an Apple Music song
+
+        Args:
+            url (str): The Apple Music song URL
+            outdir (str): The output directory
+        """
         host = 'https://api.fabdl.com'
         info = requests.get(host + '/apple-music/get?url=', params={'url': url}).json()['result']
         convert_task = requests.get(host + f'/apple-music/mp3-convert-task/{info["gid"]}/{info["id"]}')
@@ -111,9 +173,24 @@ class MISSThelpers():
             pass
 
     def change_theme(theme):
+        """
+        Change the theme of the application
+
+        Args:
+            theme (str): The theme to be changed to
+        """
         customtkinter.set_appearance_mode(theme)
 
     def checkbox_event(checkbox, sound, player, slider):
+        """
+        Change the volume of a sound
+
+        Args:
+            checkbox (tkinter.Checkbutton): The checkbox
+            sound (str): The sound to be changed
+            player (tkinter.tkinter.Sound): The sound player
+            slider (tkinter.Scale): The volume slider
+        """
         if checkbox.get() == "on":
             player.set_volume(sound, slider.get())
         else:
@@ -121,6 +198,15 @@ class MISSThelpers():
             player.set_volume(sound, slider.get())
 
     def slider_event(value, sound, player, checkbox):
+        """
+        Change the volume of a sound
+
+        Args:
+            value (int): The volume value
+            sound (str): The sound to be changed
+            player (tkinter.tkinter.Sound): The sound player
+            checkbox (tkinter.Checkbutton): The checkbox
+        """
         if value >= 0.01:
             checkbox.select()
             player.set_volume(sound, value)
@@ -129,6 +215,12 @@ class MISSThelpers():
             player.set_volume(sound, value)
     
     def MISSTlistdir(self, directory):
+        """
+        List all MISST folders in a directory
+
+        Args:
+            directory (str): The directory to be searched
+        """
         try:
             os_list = os.listdir(directory)
             misst_list = []
@@ -145,12 +237,25 @@ class MISSThelpers():
             return []
         
     def resize_image(self, image, size):
+        """
+        Resize an image
+
+        Args:
+            image (str): The image to be resized
+            size (int): The size to be resized to
+        """
         im = Image.open(image)
         im = im.resize((size, size))
         im.save(image)
         return image
     
     def getsize(self, dir):
+        """
+        Get the size of a directory
+
+        Args:
+            dir (str): The directory to be searched
+        """
         total = 0
         for entry in os.scandir(dir):
             if entry.is_file():
@@ -160,15 +265,39 @@ class MISSThelpers():
         return total
 
     def adjust_color_lightness(r, g, b, factor):
+        """
+        Adjust the lightness of a color
+
+        Args:
+            r (int): The red value
+            g (int): The green value
+            b (int): The blue value
+            factor (int): The factor to be adjusted by
+        """
         h, l, s = rgb_to_hls(r / 255.0, g / 255.0, b / 255.0)
         l = max(min(l * factor, 1.0), 0.0)
         r, g, b = hls_to_rgb(h, l, s)
         return f"#{rgb2hex(int(r * 255), int(g * 255), int(b * 255))}"
     
     def darken_color(r, g, b, factor=0.1):
+        """
+        Darken a color
+
+        Args:
+            r (int): The red value
+            g (int): The green value
+            b (int): The blue value
+            factor (int, optional): The factor to be darkened by. Defaults to 0.1.
+        """
         return MISSThelpers.adjust_color_lightness(r, g, b, 1 - factor)
 
     def updateTheme(self, color): 
+        """
+        Update the theme of the application
+
+        Args:
+            color (str): The color to be changed
+        """
         if color == "light":
             cur_color = self.settings.getSetting("chosenLightColor")
             old_color = (hex2rgb(cur_color.replace("#", "")))
@@ -198,6 +327,9 @@ class MISSThelpers():
         return chosen_color
     
     def resetSettings(self):
+        """
+        Reset the settings of the application
+        """
         cuda = torch.cuda.is_available()
         self.settings.resetDefaultTheme("./Assets/Themes/MISST.json", "./Assets/Themes/maluableJSON")
         self.settings.setSetting("rpc", "true")
@@ -210,18 +342,27 @@ class MISSThelpers():
         self.button_dark.configure(fg_color=self.settings.getSetting("defaultDarkColor"), hover_color=self.settings.getSetting("defaultDarkColor"))
 
     def autoplay_event(self):
+        """
+        Event for when the autoplay box is checked
+        """
         if self.autoplay_box.get() == 1:
             self.settings.setSetting("autoplay", "true")
         else:
             self.settings.setSetting("autoplay", "false")
 
     def rpc_event(self):
+        """
+        Event for when the rpc box is checked
+        """
         if self.rpc_box.get() == 1:
             self.settings.setSetting("rpc", "true")
         else:
             self.settings.setSetting("rpc", "false")
 
     def accelerate_event(self):
+        """
+        Event for when the accelerate box is checked
+        """
         if self.preprocess_method_box.get() == 1 and torch.cuda.is_available() == True:
             self.settings.setSetting("accelerate_on_gpu", "true")
         elif self.preprocess_method_box.get() == 1 and torch.cuda.is_available() == False:
@@ -236,6 +377,9 @@ class MISSThelpers():
             self.settings.setSetting("accelerate_on_gpu", "false")
 
     def clearDownloads(self):
+        """
+        Clear the downloads folder
+        """
         self.confirmation_frame = customtkinter.CTkFrame(
             master=self.settings_window, width=350, height=350, corner_radius=10
         )
@@ -275,6 +419,9 @@ class MISSThelpers():
                 pass
 
     def change_location(self):
+        """
+        Change the location of the downloads folder
+        """
         try:
             importsdest_nocheck = tkinter.filedialog.askdirectory(
                 initialdir=os.path.abspath(self.importsDest)
@@ -308,6 +455,14 @@ class MISSThelpers():
             return None
 
     def loading_label(label, text, og_text=""):
+        """
+        Loading animation for the settings window
+
+        Args:
+            label (tkinter.Label): The label to animate
+            text (str): The text to append to the label
+            og_text (str, optional): The original text of the label. Defaults to "".
+        """
         t = 0
         try:
             while True:
@@ -324,6 +479,9 @@ class MISSThelpers():
         return
     
     def GenerateSystemInfo(self):
+        """
+        Generate system info for the settings window
+        """
         info = ""
         info += "Python version:\t%s\n" % sys.version
         info += "System:\t%s\n" % platform.platform()
@@ -340,6 +498,12 @@ class MISSThelpers():
         return info
     
     def freeimage_upload(self, img):
+        """
+        Upload an image to freeimage.host
+
+        Args:
+            img (str): The path to the image
+        """
         key = "6d207e02198a847aa98d0a2a901485a5"
 
         response = requests.post(
@@ -353,6 +517,12 @@ class MISSThelpers():
         return response.json()["image"]["url"]
     
     def terminate_thread(self, thread):
+        """
+        Terminate a thread
+
+        Args:
+            thread (threading.Thread): The thread to terminate
+        """
         if not thread.is_alive():
             return
 
