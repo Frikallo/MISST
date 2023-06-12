@@ -7,7 +7,7 @@ class MISSTlogger:
     """
     MISSTlogger class
     """
-    def __init__(self):
+    def __init__(self) -> None:
         """
         Initialize the logger
         """
@@ -30,5 +30,5 @@ class MISSTlogger:
 
         sys.excepthook = self.handler
     
-    def handler(self, type, value, tb):
+    def handler(self, type, value, tb) -> None:
         self.logger.exception("Uncaught exception: {0}".format(str(value)))

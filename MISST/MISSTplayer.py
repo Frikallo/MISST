@@ -11,7 +11,7 @@ class MISSTplayer:
     """
     MISSTplayer class
     """
-    def __init__(self, files, volumes):
+    def __init__(self, files:list, volumes:list) -> None:
         """
         Initialize the player
 
@@ -42,7 +42,7 @@ class MISSTplayer:
                                  output=True)
             self.streams.append(stream)
         
-    def play(self):
+    def play(self) -> None:
         """
         Play the audio
         """
@@ -55,7 +55,7 @@ class MISSTplayer:
                 else:
                     break
         
-    def get_data(self, stream_index):
+    def get_data(self, stream_index:int) -> bytes:
         """
         Get the audio data
 
@@ -76,7 +76,7 @@ class MISSTplayer:
                 pass
         return data
     
-    def get_position(self, stream_index):
+    def get_position(self, stream_index:int) -> float:
         """
         Get the position of the audio
 
@@ -85,7 +85,7 @@ class MISSTplayer:
         """
         return self.positions[stream_index] / float(self.frame_rate)
     
-    def adjust_volume(self, data, volume):
+    def adjust_volume(self, data:bytes, volume:float) -> bytes:
         """
         Adjust the volume of the audio
 
@@ -100,7 +100,7 @@ class MISSTplayer:
             data[i:i+2] = sample.to_bytes(2, byteorder='little', signed=True)
         return bytes(data)
     
-    def apply_nightcore(self, data):
+    def apply_nightcore(self, data:bytes) -> bytes:
         """
         Apply the nightcore effect to the audio
 
@@ -121,7 +121,7 @@ class MISSTplayer:
         
         return samples.tobytes()
 
-    def apply_eq(self, data):
+    def apply_eq(self, data:bytes) -> bytes:
         """
         Apply the equalizer effect to the audio
 
@@ -167,7 +167,7 @@ class MISSTplayer:
 
         return equalized_audio.tobytes()
     
-    def set_nightcore(self, nightcore):
+    def set_nightcore(self, nightcore:bool) -> None:
         """
         Set the nightcore effect
 
@@ -176,7 +176,7 @@ class MISSTplayer:
         """
         self.nightcore = nightcore
         
-    def set_volume(self, stream_index, volume):
+    def set_volume(self, stream_index:int, volume:float) -> None:
         """
         Set the volume of the audio
 
@@ -186,7 +186,7 @@ class MISSTplayer:
         """
         self.volumes[stream_index] = volume
     
-    def set_position(self, stream_index, position):
+    def set_position(self, stream_index:int, position:float) -> None:
         """
         Set the position of the audio
 
@@ -196,13 +196,13 @@ class MISSTplayer:
         """
         self.positions[stream_index] = position
     
-    def pause(self):
+    def pause(self) -> None:
         """
         Pause the audio
         """
         self.paused = True
 
-    def resume(self):
+    def resume(self) -> None:
         """
         Resume the audio
         """
@@ -210,7 +210,7 @@ class MISSTplayer:
             self.paused = False
             threading.Thread(target=self.play, daemon=True).start()
     
-    def stop(self):
+    def stop(self) -> None:
         """
         Stop the audio
         """
@@ -219,7 +219,7 @@ class MISSTplayer:
             stream.close()
         self.p.terminate()
 
-    def change_files(self, new_files, volumes):
+    def change_files(self, new_files:list, volumes:list) -> None:
         """
         Change the files of the audio
 

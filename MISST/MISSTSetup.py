@@ -12,7 +12,7 @@ class MISSTSetup(customtkinter.CTkFrame):
     Args:
         parent (tkinter.Tk): The parent of the frame
     """
-    def __init__(self, parent, model_files):
+    def __init__(self, parent:customtkinter.CTk, model_files:list) -> None:
         """
         Initialize the setup
 
@@ -31,7 +31,7 @@ class MISSTSetup(customtkinter.CTkFrame):
         self.configure(width=self.width, height=self.height)
         self.create_widgets()
 
-    def create_widgets(self):
+    def create_widgets(self) -> None:
         """
         Create the widgets
         """
@@ -47,14 +47,14 @@ class MISSTSetup(customtkinter.CTkFrame):
             self.label.configure(text="Download failed. Please try again.")
             threading.Timer(2, self.destroy).start()
 
-    def start_setup(self):
+    def start_setup(self) -> None:
         """
         Start the setup
         """
         self.thread = threading.Thread(target=self.setup_models)
         self.thread.start()
 
-    def setup_models(self):
+    def setup_models(self) -> None:
         """
         Setup the models
         """
@@ -67,7 +67,7 @@ class MISSTSetup(customtkinter.CTkFrame):
         self.label.configure(text="Setup is complete. Welcome to MISST!")
         threading.Timer(2, self.destroy).start()
 
-    def download_file(self, file):
+    def download_file(self, file:str) -> None:
         """
         Download a file
 

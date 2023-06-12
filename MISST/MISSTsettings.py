@@ -9,7 +9,7 @@ class MISSTsettings():
     """
     Class for handling the settings of MISST
     """
-    def __init__(self):
+    def __init__(self) -> None:
         """
         Initialize the settings
         """
@@ -19,7 +19,7 @@ class MISSTsettings():
             self.createSettings()
         return
     
-    def getSetting(self, setting):
+    def getSetting(self, setting:str) -> str:
         """
         Get the setting from the saved config file
 
@@ -33,7 +33,7 @@ class MISSTsettings():
             data = json.load(f)
         return data[setting]
     
-    def setSetting(self, setting, value):
+    def setSetting(self, setting:str, value:str) -> None:
         """
         Set the setting in the saved config file
 
@@ -51,7 +51,7 @@ class MISSTsettings():
         with open("config.json", "w") as f:
             json.dump(data, f, indent=4)
 
-    def applyThemeSettings(self, themeFile, baseTheme):
+    def applyThemeSettings(self, themeFile:str, baseTheme:str) -> None:
         """
         Apply the chosen colorways to the theme file
 
@@ -71,7 +71,7 @@ class MISSTsettings():
             with open(themeFile, "w") as f:
                 f.write(data)
 
-    def resetDefaultTheme(self, themeFile, baseTheme):
+    def resetDefaultTheme(self, themeFile:str, baseTheme:str) -> None:
         """
         Reset the theme file to the default theme
 
@@ -92,7 +92,7 @@ class MISSTsettings():
             with open(themeFile, "w") as f:
                 f.write(data)
 
-    def createSettings(self):
+    def createSettings(self) -> None:
         """
         Create the config file
         """
@@ -105,7 +105,7 @@ class MISSTconfig:
     """
     Class for handling the metadata of the current song
     """
-    def __init__(self, configPath):
+    def __init__(self, configPath:str) -> None:
         """
         Initialize the config for the current song
 
@@ -118,7 +118,7 @@ class MISSTconfig:
             self.createConfig(configPath)
         return
     
-    def getConfig(self, configPath):
+    def getConfig(self, configPath:str) -> str:
         """
         Get the setting from the saved config file
 
@@ -132,7 +132,7 @@ class MISSTconfig:
             data = json.load(f)
         return data
     
-    def setConfig(self, configPath, setting, value):
+    def setConfig(self, configPath:str, setting:str, value:str) -> None:
         """
         Set the setting in the saved config file
 
@@ -151,7 +151,7 @@ class MISSTconfig:
         with open(f"{configPath}/.misst", "w") as f:
             json.dump(data, f, indent=4)
 
-    def createConfig(self, configPath):
+    def createConfig(self, configPath:str) -> None:
         """
         Create the config file
 

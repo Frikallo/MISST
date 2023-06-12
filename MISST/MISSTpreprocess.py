@@ -22,10 +22,10 @@ class MISSTpreprocess():
     """
     MISSTpreprocess class
     """
-    def __init__(self):
+    def __init__(self) -> None:
         pass
 
-    def LoadModel(self, name = "mdx_extra", repo = None, device = "cuda" if torch.cuda.is_available() else "cpu",):
+    def LoadModel(self, name:str = "mdx_extra", repo:str = None, device:str = "cuda" if torch.cuda.is_available() else "cpu",) -> BagOfModels:
         """
         Load the model
 
@@ -39,7 +39,7 @@ class MISSTpreprocess():
         model.eval()
         return model
 
-    def GetData(self, model):
+    def GetData(self, model:BagOfModels) -> dict:
         """
         Get the data from the model
 
@@ -56,7 +56,7 @@ class MISSTpreprocess():
         res["sources"] = model.sources
         return res
 
-    def Apply(self, model, wav, shifts=1):
+    def Apply(self, model:BagOfModels, wav:np.ndarray, shifts:int = 1) -> dict:
         """
         Apply the model to the audio
 
@@ -72,7 +72,7 @@ class MISSTpreprocess():
         sources = sources * ref.std() + ref.mean()
         return dict(zip(model.sources, sources))
 
-    def convert_audio_channels(self, wav, channels=2):
+    def convert_audio_channels(self, wav:np.ndarray, channels:int = 2) -> np.ndarray:
         """
         Convert the audio channels
 
@@ -93,7 +93,7 @@ class MISSTpreprocess():
             raise Exception("Error changing audio dims")
         return wav
 
-    def write_wav(self, wav, filename, samplerate):
+    def write_wav(self, wav:np.ndarray, filename:str, samplerate:int) -> None:
         """
         Write the audio to a WAV file
 
@@ -110,7 +110,7 @@ class MISSTpreprocess():
             f.setframerate(samplerate)
             f.writeframes(bytearray(wav.numpy()))
 
-    def compress_wav_to_flac(self, wav_file, flac_file):
+    def compress_wav_to_flac(self, wav_file:str, flac_file:str) -> None:
         """
         Compress the WAV file to a FLAC file
 
@@ -125,7 +125,7 @@ class MISSTpreprocess():
         sf.write(flac_file, data, samplerate, format='FLAC')
         os.remove(wav_file)
 
-    def convert_audio(self, wav, from_samplerate, to_samplerate, channels):
+    def convert_audio(self, wav:np.ndarray, from_samplerate:int, to_samplerate:int, channels:int) -> np.ndarray:
         """
         Convert the audio
 
@@ -138,7 +138,7 @@ class MISSTpreprocess():
         wav = self.convert_audio_channels(wav, channels)
         return julius.resample_frac(wav, from_samplerate, to_samplerate)
 
-    def load_audio(self, fn, sr):
+    def load_audio(self, fn:str, sr:int) -> np.ndarray:
         """
         Load the audio
 
@@ -152,7 +152,7 @@ class MISSTpreprocess():
         converted = self.convert_audio(torch.from_numpy(audio.transpose()), raw_sr, sr, 2)
         return converted.numpy()
     
-    def apply_fade_in_out(self, input_file, output_file, fade_duration):
+    def apply_fade_in_out(self, input_file:str, output_file:str, fade_duration:float) -> None:
         """
         Apply fade in and out to the audio
 
@@ -180,16 +180,16 @@ class MISSTpreprocess():
 
     def process(
         self, 
-        model, 
-        infile, 
-        write = True, 
-        outpath = pathlib.Path(""), 
-        split = 10.0, 
-        overlap = 0.25, 
-        sample_rate = 44100, 
-        device = "cuda" if torch.cuda.is_available() else "cpu", 
-        logger = logging.getLogger("MISST"),
-        console = None,
+        model:BagOfModels, 
+        infile:str, 
+        write:bool = True, 
+        outpath:pathlib.Path = pathlib.Path(""), 
+        split:float = 10.0, 
+        overlap:float = 0.25, 
+        sample_rate:int = 44100, 
+        device:str = "cuda" if torch.cuda.is_available() else "cpu", 
+        logger:logging.Logger = logging.getLogger("MISST"),
+        console:MISSTconsole = None,
     ):
         """
         Process the audio
@@ -250,7 +250,7 @@ class MISSTpreprocess():
             pass
         del model # Free up memory
 
-    def preprocess(self, file, outDir, device="cuda"):
+    def preprocess(self, file:str, outDir:str, device:str = "cuda") -> None:
         """
         Preprocess the audio
 

@@ -16,7 +16,7 @@ import music_tag
 import psutil
 import requests
 import torch
-from PIL import Image
+from MISSTplayer import MISSTplayer
 from vcolorpicker import getColor, hex2rgb, rgb2hex, useLightTheme
 
 
@@ -24,7 +24,7 @@ class MISSTconsole():
     """
     A class to handle the console output of MISST
     """
-    def __init__(self, terminal, ogText):
+    def __init__(self, terminal:customtkinter.CTkTextbox, ogText:str) -> None:
         """
         Parameters
 
@@ -40,7 +40,7 @@ class MISSTconsole():
         self.terminal.insert("0.0", self.consoleText)
         self.terminal.configure(state="disabled")
 
-    def updateThread(self, text):
+    def updateThread(self, text:str) -> None:
         """
         A thread to update the console text
 
@@ -59,7 +59,7 @@ class MISSTconsole():
             self.terminal.configure(state="disabled")
             t += 1
 
-    def update(self, text):
+    def update(self, text:str) -> None:
         """
         Update the console text
 
@@ -69,7 +69,7 @@ class MISSTconsole():
         self.curThread = threading.Thread(target=self.updateThread, args=(text,), daemon=True)
         self.curThread.start()
 
-    def endUpdate(self):
+    def endUpdate(self) -> None:
         """
         End the update thread
 
@@ -82,7 +82,7 @@ class MISSTconsole():
         self.terminal.insert("0.0", self.consoleText)
         self.terminal.configure(state="disabled")
 
-    def addLine(self, text):
+    def addLine(self, text:str) -> None:
         """
         Add a line to the console
 
@@ -95,7 +95,7 @@ class MISSTconsole():
         self.terminal.insert("0.0", self.consoleText)
         self.terminal.configure(state="disabled")
 
-    def editLine(self, text, line_number):
+    def editLine(self, text:str, line_number:int) -> None:
         """
         Edit a line in the console
 
@@ -115,13 +115,13 @@ class MISSThelpers():
     """
     def update_rpc(
         self,
-        Ltext=None,
-        Dtext=None,
-        image="icon-0",
-        large_text="MISST",
-        end_time=None,
-        small_image=None,
-    ):
+        Ltext:str = None,
+        Dtext:str = None,
+        image:str = "icon-0",
+        large_text:str = "MISST",
+        end_time:int = None,
+        small_image:str = None,
+    ) -> None:
         """
         Update the Discord Rich Presence
 
@@ -149,7 +149,7 @@ class MISSThelpers():
                 return
         return
     
-    def apple_music(url, outdir):
+    def apple_music(url:str, outdir:str) -> None:
         """
         Download an Apple Music song
 
@@ -172,7 +172,7 @@ class MISSThelpers():
         except:
             pass
 
-    def change_theme(theme):
+    def change_theme(theme:str) -> None:
         """
         Change the theme of the application
 
@@ -181,14 +181,14 @@ class MISSThelpers():
         """
         customtkinter.set_appearance_mode(theme)
 
-    def checkbox_event(checkbox, sound, player, slider):
+    def checkbox_event(checkbox:customtkinter.CTkCheckBox, sound:str, player:MISSTplayer, slider:customtkinter.CTkSlider) -> None:
         """
         Change the volume of a sound
 
         Args:
             checkbox (tkinter.Checkbutton): The checkbox
             sound (str): The sound to be changed
-            player (tkinter.tkinter.Sound): The sound player
+            player (MISSTplayer): The sound player
             slider (tkinter.Scale): The volume slider
         """
         if checkbox.get() == "on":
@@ -197,14 +197,14 @@ class MISSThelpers():
             slider.set(0)
             player.set_volume(sound, slider.get())
 
-    def slider_event(value, sound, player, checkbox):
+    def slider_event(value:int, sound:str, player:MISSTplayer, checkbox:customtkinter.CTkCheckBox) -> None:
         """
         Change the volume of a sound
 
         Args:
             value (int): The volume value
             sound (str): The sound to be changed
-            player (tkinter.tkinter.Sound): The sound player
+            player (MISSTplayer): The sound player
             checkbox (tkinter.Checkbutton): The checkbox
         """
         if value >= 0.01:
@@ -214,7 +214,7 @@ class MISSThelpers():
             checkbox.deselect()
             player.set_volume(sound, value)
     
-    def MISSTlistdir(self, directory):
+    def MISSTlistdir(self, directory:str) -> list:
         """
         List all MISST folders in a directory
 
@@ -236,20 +236,7 @@ class MISSThelpers():
         except:
             return []
         
-    def resize_image(self, image, size):
-        """
-        Resize an image
-
-        Args:
-            image (str): The image to be resized
-            size (int): The size to be resized to
-        """
-        im = Image.open(image)
-        im = im.resize((size, size))
-        im.save(image)
-        return image
-    
-    def getsize(self, dir):
+    def getsize(self, dir:str) -> int:
         """
         Get the size of a directory
 
@@ -264,7 +251,7 @@ class MISSThelpers():
                 total += self.getsize(self, entry.path)
         return total
 
-    def adjust_color_lightness(r, g, b, factor):
+    def adjust_color_lightness(r:int, g:int, b:int, factor:int) -> str:
         """
         Adjust the lightness of a color
 
@@ -279,7 +266,7 @@ class MISSThelpers():
         r, g, b = hls_to_rgb(h, l, s)
         return f"#{rgb2hex(int(r * 255), int(g * 255), int(b * 255))}"
     
-    def darken_color(r, g, b, factor=0.1):
+    def darken_color(r:int, g:int, b:int, factor:int = 0.1) -> str:
         """
         Darken a color
 
@@ -291,7 +278,7 @@ class MISSThelpers():
         """
         return MISSThelpers.adjust_color_lightness(r, g, b, 1 - factor)
 
-    def updateTheme(self, color): 
+    def updateTheme(self, color:str) -> str: 
         """
         Update the theme of the application
 
@@ -326,7 +313,7 @@ class MISSThelpers():
             self.button_dark.configure(fg_color=chosen_color, hover_color=chosen_color)
         return chosen_color
     
-    def resetSettings(self):
+    def resetSettings(self) -> None:
         """
         Reset the settings of the application
         """
@@ -341,7 +328,7 @@ class MISSThelpers():
         self.button_light.configure(fg_color=self.settings.getSetting("defaultLightColor"), hover_color=self.settings.getSetting("defaultLightColor"))
         self.button_dark.configure(fg_color=self.settings.getSetting("defaultDarkColor"), hover_color=self.settings.getSetting("defaultDarkColor"))
 
-    def autoplay_event(self):
+    def autoplay_event(self) -> None:
         """
         Event for when the autoplay box is checked
         """
@@ -350,7 +337,7 @@ class MISSThelpers():
         else:
             self.settings.setSetting("autoplay", "false")
 
-    def rpc_event(self):
+    def rpc_event(self) -> None:
         """
         Event for when the rpc box is checked
         """
@@ -359,7 +346,7 @@ class MISSThelpers():
         else:
             self.settings.setSetting("rpc", "false")
 
-    def accelerate_event(self):
+    def accelerate_event(self) -> None:
         """
         Event for when the accelerate box is checked
         """
@@ -376,7 +363,7 @@ class MISSThelpers():
         else:
             self.settings.setSetting("accelerate_on_gpu", "false")
 
-    def clearDownloads(self):
+    def clearDownloads(self) -> None:
         """
         Clear the downloads folder
         """
@@ -418,7 +405,7 @@ class MISSThelpers():
             except:
                 pass
 
-    def change_location(self):
+    def change_location(self) -> None:
         """
         Change the location of the downloads folder
         """
@@ -454,7 +441,7 @@ class MISSThelpers():
             self.importsDest = os.path.abspath(self.importsDest)
             return None
 
-    def loading_label(label, text, og_text=""):
+    def loading_label(label:customtkinter.CTkLabel, text:str, og_text:str = "") -> None:
         """
         Loading animation for the settings window
 
@@ -478,7 +465,7 @@ class MISSThelpers():
             pass
         return
     
-    def GenerateSystemInfo(self):
+    def GenerateSystemInfo(self) -> str:
         """
         Generate system info for the settings window
         """
@@ -497,7 +484,7 @@ class MISSThelpers():
         info += "MISST version:\t%s\n" % self.version
         return info
     
-    def freeimage_upload(self, img):
+    def freeimage_upload(self, img:str) -> str:
         """
         Upload an image to freeimage.host
 
@@ -516,7 +503,7 @@ class MISSThelpers():
 
         return response.json()["image"]["url"]
     
-    def terminate_thread(self, thread):
+    def terminate_thread(self, thread:threading.Thread) -> None:
         """
         Terminate a thread
 

@@ -39,7 +39,7 @@ class MISSTapp(customtkinter.CTk):
     """
     The main MISST application.
     """
-    def __init__(self):
+    def __init__(self) -> None:
         """
         Initialize the MISST application.
         """
@@ -162,7 +162,7 @@ class MISSTapp(customtkinter.CTk):
 
         self.protocol("WM_DELETE_WINDOW", on_closing)
 
-    def createWidgets(self):
+    def createWidgets(self) -> None:
         """
         Creates the widgets for the main window.
         """
@@ -499,7 +499,7 @@ class MISSTapp(customtkinter.CTk):
         )
         self.import_button.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)        
 
-    def raise_above_all(self, window):
+    def raise_above_all(self, window:customtkinter.CTkToplevel) -> None:
         """
         Raises a window above all other windows
 
@@ -509,7 +509,7 @@ class MISSTapp(customtkinter.CTk):
         window.attributes("-topmost", 1)
         window.attributes("-topmost", 0)
 
-    def draw_lyrics_box(self):
+    def draw_lyrics_box(self) -> None:
         """
         Draws the lyrics box
         """
@@ -586,7 +586,7 @@ class MISSTapp(customtkinter.CTk):
         )
         self.search_button.place(relx=0.84, rely=0.92, anchor=tkinter.CENTER)
 
-    def imports_checkbox_event(self, current_var):
+    def imports_checkbox_event(self, current_var:tkinter.StringVar) -> None:
         """
         Called when an import checkbox is clicked
 
@@ -602,7 +602,7 @@ class MISSTapp(customtkinter.CTk):
         current_var.set("on")
         checkboxes[vars.index(current_var)].select()
 
-    def imports_toggle(self):
+    def imports_toggle(self) -> None:
         """
         Toggles the imports frame
         """
@@ -611,7 +611,7 @@ class MISSTapp(customtkinter.CTk):
         except:
             self.draw_imports_frame()
 
-    def draw_imports_frame(self):
+    def draw_imports_frame(self) -> None:
         """
         Draws the imports frame
         """
@@ -835,7 +835,7 @@ class MISSTapp(customtkinter.CTk):
         self.console = MISSTconsole(self.preprocess_terminal_text, "MISST Preprocessor\nCopyright (C) @Frikallo Corporation.\n\nMISST>")
         self.console.update(" waiting")
 
-    def retrieve_metadata(self, save_dir=None, temp_dir=None, file=None):
+    def retrieve_metadata(self, save_dir:str = None, temp_dir:str = None, file:str = None) -> None:
         """
         Retrieves metadata from a file and saves it to a directory.
 
@@ -882,7 +882,7 @@ class MISSTapp(customtkinter.CTk):
             self.console.endUpdate()
             self.console.addLine("\nMISST> Error getting metadata.")
 
-    def filePreprocess(self):
+    def filePreprocess(self) -> None:
         """
         Preprocesses a file.
         """
@@ -906,7 +906,7 @@ class MISSTapp(customtkinter.CTk):
             self.import_file_button.configure(state=tkinter.NORMAL)
             self.import_button.configure(state=tkinter.NORMAL)
             
-    def sourcePreprocess(self, url):
+    def sourcePreprocess(self, url:str) -> None:
         """
         Preprocesses a source.
 
@@ -1054,7 +1054,7 @@ class MISSTapp(customtkinter.CTk):
                 pass
         return
 
-    def draw_settings_frame(self):
+    def draw_settings_frame(self) -> None:
         """
         Draws the settings frame.
         """
@@ -1265,7 +1265,7 @@ class MISSTapp(customtkinter.CTk):
         )
         self.reset_button.place(relx=0.75, rely=0.95, anchor=tkinter.CENTER)
 
-    def eq_sliders_event(self, curVal, curSlider, sliders):
+    def eq_sliders_event(self, curVal:int, curSlider:int, sliders:list) -> None:
         """
         Event that is called when a slider is moved. If the move sliders together option is enabled, it will move all the sliders together.
 
@@ -1293,14 +1293,14 @@ class MISSTapp(customtkinter.CTk):
                 self.settings.setSetting(f"eq_{index+1}", str(slider.get()))
         return
         
-    def moveSlidersTogether(self):
+    def moveSlidersTogether(self) -> None:
         """
         Event that is called when the move sliders together option is changed. It will save the setting.
         """
         self.settings.setSetting("eq_move_sliders_together", "true" if str(self.move_sliders_together.get()) == "1" else "false")
         return
     
-    def eqOnOff(self):
+    def eqOnOff(self) -> None:
         """
         Event that is called when the eq on/off button is changed. It will save the setting and enable/disable the eq sliders.
         """
@@ -1318,7 +1318,7 @@ class MISSTapp(customtkinter.CTk):
                 child.configure(state='normal')
         return
 
-    def draw_eq_frame(self):
+    def draw_eq_frame(self) -> None:
         """
         Draws the eq frame.
         """
@@ -1425,7 +1425,7 @@ class MISSTapp(customtkinter.CTk):
             self.eqOnOffButton.deselect()
             self.eqOnOff()
         
-    def imports_check(self, search_entry, songs_box):
+    def imports_check(self, search_entry:customtkinter.CTkEntry, songs_box:customtkinter.CTkTextbox) -> None:
         """
         Checks for new songs in the imports folder and adds them to the songs box
 
@@ -1479,7 +1479,7 @@ class MISSTapp(customtkinter.CTk):
                 songs_box.configure(state=tkinter.DISABLED)
                 entry_val = search_entry.get()
 
-    def play(self, dir):  
+    def play(self, dir:str) -> None:  
         """
         Plays a song
 
@@ -1489,7 +1489,7 @@ class MISSTapp(customtkinter.CTk):
         self.player.change_files([f"{self.importsDest}/{dir}/bass.flac", f"{self.importsDest}/{dir}/drums.flac", f"{self.importsDest}/{dir}/other.flac", f"{self.importsDest}/{dir}/vocals.flac"], [self.slider1.get(), self.slider2.get(), self.slider3.get(), self.slider4.get()])
         self.update_UI(f"{self.importsDest}/{dir}/other.flac", 0)
 
-    def play_search(self, index_label, songs):
+    def play_search(self, index_label:str, songs:list) -> None:
         """
         Plays a song from the search box
 
@@ -1509,7 +1509,7 @@ class MISSTapp(customtkinter.CTk):
             pass
         self.playbutton.configure(state=tkinter.NORMAL)
 
-    def shuffle(self):
+    def shuffle(self) -> None:
         """
         Plays a random song
         """
@@ -1525,7 +1525,7 @@ class MISSTapp(customtkinter.CTk):
             pass
         self.shuffle_button.configure(state=tkinter.NORMAL)
 
-    def next(self, songName):
+    def next(self, songName:str) -> None:
         """
         Plays the next song
 
@@ -1544,7 +1544,7 @@ class MISSTapp(customtkinter.CTk):
             pass
         self.next_button.configure(state=tkinter.NORMAL)
 
-    def previous(self, songName):
+    def previous(self, songName:str) -> None:
         """
         Plays the previous song
 
@@ -1563,7 +1563,7 @@ class MISSTapp(customtkinter.CTk):
             pass
         self.previous_button.configure(state=tkinter.NORMAL)
 
-    def slider_event(self, value):
+    def slider_event(self, value:int) -> None:
         """
         Sets the position of the song
 
@@ -1579,7 +1579,7 @@ class MISSTapp(customtkinter.CTk):
         self.player.set_position(3, frame)
         return
     
-    def nightcore(self):
+    def nightcore(self) -> None:
         """
         Sets the nightcore state
         """
@@ -1588,7 +1588,7 @@ class MISSTapp(customtkinter.CTk):
         else:
             self.player.set_nightcore(False)
     
-    def playpause(self):
+    def playpause(self) -> None:
         """
         Pauses or resumes the song
         """
@@ -1605,7 +1605,7 @@ class MISSTapp(customtkinter.CTk):
             self.progressbar.configure(state="normal")
             self.nc_checkbox.configure(state="normal")
 
-    def loopEvent(self):
+    def loopEvent(self) -> None:
         """
         Sets the loop state
         """
@@ -1616,7 +1616,7 @@ class MISSTapp(customtkinter.CTk):
             self.loop = True
             self.loop_button.configure(state="normal", image=self.ImageCache["loop"])
 
-    def update_progress_bar(self, current_time, total_duration):
+    def update_progress_bar(self, current_time:int, total_duration:int) -> None:
         """
         Updates the progress bar
 
@@ -1631,7 +1631,7 @@ class MISSTapp(customtkinter.CTk):
         self.progress_label_left.configure(text=f"{str(datetime.timedelta(seconds=progress_in_seconds))[2:7]}")
         self.progress_label_right.configure(text=f"{str(datetime.timedelta(seconds=total_duration))[2:7]}")
         
-    def update_UI(self, audioPath, start_ms):
+    def update_UI(self, audioPath:str, start_ms:int) -> None:
         """
         Updates the UI
 
