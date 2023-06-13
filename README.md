@@ -69,8 +69,8 @@ These instructions are for those installing MISST v3.0.2 **manually** only.
 3. Open the command prompt from the MISST directory and run the following commands, separately - 
 
 ```
-$ pip install -r requirements.txt
-$ pip install torch==1.9.0+cu111 torchvision==0.10.0+cu111 torchaudio==0.9.0 -f https://download.pytorch.org/whl/torch_stable.html
+$ pip install -r requirements.txt # requirements-minimal.txt for CPU
+$ python3.9 MISSTapp.py
 ```
 - **Note:** The last command is only necessary if you intend to accelerate preprocessing with your GPU.
 
