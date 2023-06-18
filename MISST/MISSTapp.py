@@ -14,7 +14,6 @@ import threading
 import time
 import tkinter
 import traceback
-import webbrowser
 
 import customtkinter
 import GPUtil
@@ -23,6 +22,7 @@ import psutil
 from lyrics_extractor import SongLyrics
 from PIL import Image
 from pypresence import Presence
+import webbrowser
 
 from __version__ import __version__ as version
 from MISSThelpers import MISSTconsole, MISSThelpers
@@ -45,7 +45,14 @@ class MISSTapp(customtkinter.CTk):
         """
         super().__init__()
 
-        self.player = MISSTplayer(["Assets/silent/silence.flac","Assets/silent/silence.flac","Assets/silent/silence.flac","Assets/silent/silence.flac"], [0]*4)
+        self.player = MISSTplayer([
+             "Assets/silent/silence.flac",
+             "Assets/silent/silence.flac",
+             "Assets/silent/silence.flac",
+             "Assets/silent/silence.flac"
+             ], 
+             [0]*4
+        )
         self.logger = MISSTlogger().logger 
         self.settings = MISSTsettings()
         self.preprocess = MISSTpreprocess()
@@ -102,23 +109,23 @@ class MISSTapp(customtkinter.CTk):
         self.nc_var = tkinter.StringVar(value="off")
 
         self.ImageCache = {
-            "empty": customtkinter.CTkImage(Image.open(f"./Assets/UIAssets/empty.png"),                                                                                                       size=(1,  1)),
-            "playing": customtkinter.CTkImage(dark_image=Image.open("./Assets/Player/player-pause-light.png"),             light_image=Image.open("./Assets/Player/player-pause.png"),        size=(32,32)),
-            "paused": customtkinter.CTkImage(dark_image=Image.open("./Assets/Player/player-play-light.png"),               light_image=Image.open("./Assets/Player/player-play.png"),         size=(32,32)),
-            "shuffle": customtkinter.CTkImage(dark_image=Image.open("./Assets/Player/player-shuffle-light.png"),           light_image=Image.open("./Assets/Player/player-shuffle.png"),      size=(25,25)),
-            "loop": customtkinter.CTkImage(dark_image=Image.open("./Assets/Player/loop-light.png"),                        light_image=Image.open("./Assets/Player/loop.png"),                size=(25,25)),
-            "loop-off": customtkinter.CTkImage(dark_image=Image.open("./Assets/Player/loop-off-light.png"),                light_image=Image.open("./Assets/Player/loop-off.png"),            size=(25,25)),
-            "skip-forward": customtkinter.CTkImage(dark_image=Image.open("./Assets/Player/player-skip-forward-light.png"), light_image=Image.open("./Assets/Player/player-skip-forward.png"), size=(30,30)),
-            "skip-back": customtkinter.CTkImage(dark_image=Image.open("./Assets/Player/player-skip-back-light.png"),       light_image=Image.open("./Assets/Player/player-skip-back.png"),    size=(30,30)),
-            "settings": customtkinter.CTkImage(dark_image=Image.open("./Assets/UIAssets/settings-light.png"),              light_image=Image.open("./Assets/UIAssets/settings.png"),          size=(25,25)),
-            "equalizer": customtkinter.CTkImage(dark_image=Image.open("./Assets/UIAssets/equalizer-light.png"),            light_image=Image.open("./Assets/UIAssets/equalizer.png"),         size=(25,25)),
-            "github": customtkinter.CTkImage(dark_image=Image.open("./Assets/UIAssets/code-light.png"),                    light_image=Image.open("./Assets/UIAssets/code.png"),              size=(25,25)),
-            "import": customtkinter.CTkImage(dark_image=Image.open(f"./Assets/UIAssets/import-dark.png"),                  light_image=Image.open("./Assets/UIAssets/import-light.png"),      size=(30,30)),
-            "spotify": customtkinter.CTkImage(Image.open(f"./Assets/Sources/Spotify.png"),                                                                                                    size=(40,40)),
-            "youtube": customtkinter.CTkImage(Image.open(f"./Assets/Sources/YoutubeMusic.png"),                                                                                               size=(40,40)),
-            "applemusic": customtkinter.CTkImage(Image.open(f"./Assets/Sources/AppleMusic.png"),                                                                                                      size=(40,40)),
-            "soundcloud": customtkinter.CTkImage(Image.open(f"./Assets/Sources/Soundcloud.png"),                                                                                              size=(40,40)),
-            "return": customtkinter.CTkImage(dark_image=Image.open("./Assets/UIAssets/goback_dark.png"),                   light_image=Image.open("./Assets/UIAssets/goback.png"),            size=(25,25)),
+            "empty"        : customtkinter.CTkImage(Image.open(f"./Assets/UIAssets/empty.png"),                                                                                                size=(1,  1)),
+            "playing"      : customtkinter.CTkImage(dark_image=Image.open("./Assets/Player/player-pause-light.png"),        light_image=Image.open("./Assets/Player/player-pause.png"),        size=(32,32)),
+            "paused"       : customtkinter.CTkImage(dark_image=Image.open("./Assets/Player/player-play-light.png"),         light_image=Image.open("./Assets/Player/player-play.png"),         size=(32,32)),
+            "shuffle"      : customtkinter.CTkImage(dark_image=Image.open("./Assets/Player/player-shuffle-light.png"),      light_image=Image.open("./Assets/Player/player-shuffle.png"),      size=(25,25)),
+            "loop"         : customtkinter.CTkImage(dark_image=Image.open("./Assets/Player/loop-light.png"),                light_image=Image.open("./Assets/Player/loop.png"),                size=(25,25)),
+            "loop-off"     : customtkinter.CTkImage(dark_image=Image.open("./Assets/Player/loop-off-light.png"),            light_image=Image.open("./Assets/Player/loop-off.png"),            size=(25,25)),
+            "skip-forward" : customtkinter.CTkImage(dark_image=Image.open("./Assets/Player/player-skip-forward-light.png"), light_image=Image.open("./Assets/Player/player-skip-forward.png"), size=(30,30)),
+            "skip-back"    : customtkinter.CTkImage(dark_image=Image.open("./Assets/Player/player-skip-back-light.png"),    light_image=Image.open("./Assets/Player/player-skip-back.png"),    size=(30,30)),
+            "settings"     : customtkinter.CTkImage(dark_image=Image.open("./Assets/UIAssets/settings-light.png"),          light_image=Image.open("./Assets/UIAssets/settings.png"),          size=(25,25)),
+            "equalizer"    : customtkinter.CTkImage(dark_image=Image.open("./Assets/UIAssets/equalizer-light.png"),         light_image=Image.open("./Assets/UIAssets/equalizer.png"),         size=(25,25)),
+            "github"       : customtkinter.CTkImage(dark_image=Image.open("./Assets/UIAssets/code-light.png"),              light_image=Image.open("./Assets/UIAssets/code.png"),              size=(25,25)),
+            "import"       : customtkinter.CTkImage(dark_image=Image.open("./Assets/UIAssets/import-dark.png"),             light_image=Image.open("./Assets/UIAssets/import-light.png"),      size=(30,30)),
+            "spotify"      : customtkinter.CTkImage(Image.open("./Assets/Sources/Spotify.png"),                                                                                                size=(40,40)),
+            "youtube"      : customtkinter.CTkImage(Image.open("./Assets/Sources/YoutubeMusic.png"),                                                                                           size=(40,40)),
+            "applemusic"   : customtkinter.CTkImage(Image.open("./Assets/Sources/AppleMusic.png"),                                                                                             size=(40,40)),
+            "soundcloud"   : customtkinter.CTkImage(Image.open("./Assets/Sources/Soundcloud.png"),                                                                                             size=(40,40)),
+            "return"       : customtkinter.CTkImage(dark_image=Image.open("./Assets/UIAssets/goback_dark.png"),             light_image=Image.open("./Assets/UIAssets/goback.png"),            size=(25,25)),
         }
 
         self.loop = False
@@ -360,7 +367,7 @@ class MISSTapp(customtkinter.CTk):
             hover_color=self.west_frame.cget("bg_color"),
             width=5,
             height=5,
-            command=lambda: webbrowser.open("https://github.com/Frikallo/MISST", new=0, autoraise=True),
+            command=lambda: webbrowser.open("https://github.com/Frikallo/MISST", new=2)
         )
         self.github_button.place(relx=0.5, rely=0.9, anchor=tkinter.CENTER)
 
@@ -516,7 +523,6 @@ class MISSTapp(customtkinter.CTk):
         try:
             self.lyrics_window.destroy() # Destroy the window if it already exists
         except:
-            self.logger.error(traceback.format_exc())
             pass
 
         self.lyrics_window = customtkinter.CTkToplevel(app)
@@ -832,8 +838,8 @@ class MISSTapp(customtkinter.CTk):
         )
         self.return_button.place(relx=0.24, rely=0.95, anchor=tkinter.CENTER)
 
-        self.console = MISSTconsole(self.preprocess_terminal_text, "MISST Preprocessor\nCopyright (C) @Frikallo Corporation.\n\nMISST>")
-        self.console.update(" waiting")
+        self.console = MISSTconsole(self.preprocess_terminal_text, "MISST Preprocessor\nCopyright (C) @Frikallo Corporation.\n")
+        self.console.update("\nMISST> waiting")
 
     def retrieve_metadata(self, save_dir:str = None, temp_dir:str = None, file:str = None) -> None:
         """
@@ -1052,6 +1058,11 @@ class MISSTapp(customtkinter.CTk):
 
             else:
                 pass
+        else:
+            self.console.endUpdate()
+            self.console.addLine("\nMISST> Empty URL.")
+            self.console.update("\nMISST> waiting")
+            return
         return
 
     def draw_settings_frame(self) -> None:
@@ -1435,7 +1446,7 @@ class MISSTapp(customtkinter.CTk):
         """
         def add_highlight(text, start, end):
             text.tag_add("start", start, end)
-            text.tag_config("start", background = self.settings.getSetting("chosenLightColor") if customtkinter.get_appearance_mode == "Light" else self.settings.getSetting("chosenDarkColor"), foreground= "black")
+            text.tag_config("start", background = self.settings.getSetting("chosenLightColor") if customtkinter.get_appearance_mode() == "Light" else self.settings.getSetting("chosenDarkColor"), foreground= "black")
         entry_val = None
         num = 0
         songs = []
@@ -1485,9 +1496,23 @@ class MISSTapp(customtkinter.CTk):
 
         Args:
             dir (str): The directory of the song
-        """  
-        self.player.change_files([f"{self.importsDest}/{dir}/bass.flac", f"{self.importsDest}/{dir}/drums.flac", f"{self.importsDest}/{dir}/other.flac", f"{self.importsDest}/{dir}/vocals.flac"], [self.slider1.get(), self.slider2.get(), self.slider3.get(), self.slider4.get()])
-        self.update_UI(f"{self.importsDest}/{dir}/other.flac", 0)
+        """
+        self.player.change_files([
+            f"{self.importsDest}/{dir}/bass.flac", 
+            f"{self.importsDest}/{dir}/drums.flac", 
+            f"{self.importsDest}/{dir}/other.flac", 
+            f"{self.importsDest}/{dir}/vocals.flac"
+            ], 
+            [self.slider1.get(), 
+             self.slider2.get(), 
+             self.slider3.get(), 
+             self.slider4.get()
+            ]
+        )
+        self.update_UI(
+            f"{self.importsDest}/{dir}/other.flac", 
+            0
+        )
 
     def play_search(self, index_label:str, songs:list) -> None:
         """
@@ -1525,7 +1550,7 @@ class MISSTapp(customtkinter.CTk):
             pass
         self.shuffle_button.configure(state=tkinter.NORMAL)
 
-    def next(self, songName:str) -> None:
+    def play_next(self, songName:str) -> None:
         """
         Plays the next song
 
@@ -1544,7 +1569,7 @@ class MISSTapp(customtkinter.CTk):
             pass
         self.next_button.configure(state=tkinter.NORMAL)
 
-    def previous(self, songName:str) -> None:
+    def play_previous(self, songName:str) -> None:
         """
         Plays the previous song
 
@@ -1658,8 +1683,8 @@ class MISSTapp(customtkinter.CTk):
         song_dir = os.path.dirname(audioPath)
         config = MISSTconfig(song_dir)
 
-        self.next_button.configure(command=lambda: self.next(song_name))
-        self.previous_button.configure(command=lambda: self.previous(song_name))
+        self.next_button.configure(command=lambda: self.play_next(song_name))
+        self.previous_button.configure(command=lambda: self.play_previous(song_name))
         try:
             byte_string = config.getConfig(song_dir)["image_raw"]
             byte_data = base64.b64decode(byte_string)

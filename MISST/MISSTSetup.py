@@ -3,16 +3,14 @@ import threading
 
 import customtkinter
 import requests
+import typing
 
 
 class MISSTSetup(customtkinter.CTkFrame):
     """
     Class for handling the setup of MISST
-
-    Args:
-        parent (tkinter.Tk): The parent of the frame
     """
-    def __init__(self, parent:customtkinter.CTk, model_files:list) -> None:
+    def __init__(self, parent:typing.Any, model_files:list) -> None:
         """
         Initialize the setup
 
