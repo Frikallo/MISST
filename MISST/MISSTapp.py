@@ -1528,6 +1528,7 @@ class MISSTapp(customtkinter.CTk):
             song = songs[index - 1]
             self.playing = True
             self.nc_checkbox.deselect()
+            self.nightcore()
             self.play(song)
         except:
             self.logger.error(traceback.format_exc())
@@ -1544,6 +1545,7 @@ class MISSTapp(customtkinter.CTk):
             random.shuffle(songs)
             self.playing = True
             self.nc_checkbox.deselect()
+            self.nightcore()
             self.play(songs[0])
         except:
             # can ignore this error
@@ -1563,6 +1565,7 @@ class MISSTapp(customtkinter.CTk):
             index = songs.index(songName)
             self.playing = True
             self.nc_checkbox.deselect()
+            self.nightcore()
             self.play(songs[index + 1])
         except:
             # can ignore this error
@@ -1582,6 +1585,7 @@ class MISSTapp(customtkinter.CTk):
             index = songs.index(songName)
             self.playing = True
             self.nc_checkbox.deselect()
+            self.nightcore()
             self.play(songs[index - 1])
         except:
             # can ignore this error
@@ -1623,6 +1627,7 @@ class MISSTapp(customtkinter.CTk):
             self.playing = False
             self.progressbar.configure(state=tkinter.DISABLED)
             self.nc_checkbox.configure(state=tkinter.DISABLED)
+            self.nightcore()
         else:
             self.playpause_button.configure(state="normal", image=self.ImageCache["playing"])
             self.player.resume()
@@ -1670,6 +1675,7 @@ class MISSTapp(customtkinter.CTk):
             self.playpause_button.configure(state="normal")
             self.nc_checkbox.configure(state="normal")
             self.nc_checkbox.deselect()
+            self.nightcore()
 
             if self.playing == True:
                 self.playpause_button.configure(image=self.ImageCache["playing"])
@@ -1751,6 +1757,7 @@ class MISSTapp(customtkinter.CTk):
                     index = songs.index(song_name)
                     self.playing = True
                     self.nc_checkbox.deselect()
+                    self.nightcore()
                     self.play(songs[index + 1])
                 except:
                     self.logger.error(traceback.format_exc())
