@@ -3,9 +3,9 @@ import threading
 import numpy as np
 import pyaudio
 import soundfile as sf
+from typing import List
 
 from MISSTsettings import MISSTsettings
-
 
 class MISSTplayer:
     """
@@ -158,7 +158,6 @@ class MISSTplayer:
 
         # Convert response to linear scale and normalize
         response_linear = 10 ** (response / 20)
-        response_linear /= np.max(response_linear)
 
         # Apply equalization to audio data
         audio_fft = np.fft.rfft(audio_data)
@@ -175,7 +174,7 @@ class MISSTplayer:
             nightcore (bool): Nightcore effect
         """
         self.nightcore = nightcore
-        
+
     def set_volume(self, stream_index:int, volume:float) -> None:
         """
         Set the volume of the audio
@@ -195,7 +194,33 @@ class MISSTplayer:
             position (float): Position value
         """
         self.positions[stream_index] = position
-    
+
+    def save(self, files:List[str], volumes:List[int], filename:str) -> None:
+        """
+        Save the audio
+
+        Args:
+            files (List[str]): List of audio files
+            volumes (List[int]): List of volume values
+            filename (str): Name of the file
+        """
+        # Load the audio files and get the sample rate
+        audio_data = []
+        sample_rate = None
+        for file in files:
+            data, sr = sf.read(file)
+            audio_data.append(data)
+            if sample_rate is None:
+                sample_rate = sr
+
+        adjusted_data = []
+        for i in range(len(audio_data)):
+            adjusted_data.append(audio_data[i] * volumes[i])
+
+        overlapped_data = np.sum(adjusted_data, axis=0)
+
+        sf.write(filename, overlapped_data, sample_rate)
+
     def pause(self) -> None:
         """
         Pause the audio

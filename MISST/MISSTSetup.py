@@ -1,9 +1,9 @@
 import os
 import threading
+import typing
 
 import customtkinter
 import requests
-import typing
 
 
 class MISSTSetup(customtkinter.CTkFrame):

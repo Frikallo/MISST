@@ -14,6 +14,7 @@ import threading
 import time
 import tkinter
 import traceback
+import webbrowser
 
 import customtkinter
 import GPUtil
@@ -22,7 +23,6 @@ import psutil
 from lyrics_extractor import SongLyrics
 from PIL import Image
 from pypresence import Presence
-import webbrowser
 
 from __version__ import __version__ as version
 from MISSThelpers import MISSTconsole, MISSThelpers
@@ -188,8 +188,12 @@ class MISSTapp(customtkinter.CTk):
         self.interface_frame = customtkinter.CTkFrame(master=self, width=self.WIDTH * (195 / self.WIDTH), height=self.HEIGHT * (100 / self.HEIGHT), corner_radius=8)
         self.interface_frame.grid(row=0, column=2, sticky="nsew", padx=(5, 0), pady=(5, 0))
         
-        self.east_frame = customtkinter.CTkFrame(master=self, width=self.WIDTH * (195 / self.WIDTH), height=self.HEIGHT * (100 / self.HEIGHT), corner_radius=8)
+        self.east_frame = customtkinter.CTkTabview(master=self, width=self.WIDTH * (195 / self.WIDTH), height=self.HEIGHT * (100 / self.HEIGHT), corner_radius=8)
         self.east_frame.grid(row=1, column=2, sticky="nsew", padx=(5, 0), pady=(10, 5), rowspan=3)
+        self.east_frame.add("Imported")
+        self.east_frame.add("Export")
+        self.east_frame.tab("Imported").grid_columnconfigure(0, weight=1)
+        self.east_frame.tab("Export").grid_columnconfigure(0, weight=1)
 
         # Interface Frame
         self.shuffle_button = customtkinter.CTkButton(
@@ -262,29 +266,23 @@ class MISSTapp(customtkinter.CTk):
         self.playpause_button.place(relx=0.50, rely=0.5, anchor=tkinter.CENTER)
 
         ## EAST FRAME ----------------------------------------------------------------------------------------------------
-
-        self.east_frame_title = customtkinter.CTkLabel(
-            master=self.east_frame, text="Imported", font=(self.FONT, -16)
-        )
-        self.east_frame_title.place(relx=0.5, rely=0.08, anchor=tkinter.CENTER)
-
         self.search_entry = customtkinter.CTkEntry(
-            master=self.east_frame,
+            master=self.east_frame.tab("Imported"),
             width=150,
             height=25,
             placeholder_text="Search for audio",
         )
-        self.search_entry.place(relx=0.5, rely=0.16, anchor=tkinter.CENTER)
+        self.search_entry.place(relx=0.5, rely=0.05, anchor=tkinter.CENTER)
 
         self.listframe = customtkinter.CTkFrame(
-            master=self.east_frame, width=150, height=175, corner_radius=8
+            master=self.east_frame.tab("Imported"), width=150, height=175, corner_radius=8
         )
-        self.listframe.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
+        self.listframe.place(relx=0.5, rely=0.45, anchor=tkinter.CENTER)
 
         self.songs_box = customtkinter.CTkTextbox(
             master=self.listframe,
             width=140,
-            height=165,
+            height=175,
             bg_color='transparent',
             fg_color='transparent',
             corner_radius=8,
@@ -292,21 +290,21 @@ class MISSTapp(customtkinter.CTk):
         self.songs_box.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
 
         self.index_entry = customtkinter.CTkEntry(
-            master=self.east_frame,
+            master=self.east_frame.tab("Imported"),
             width=150,
             height=25,
             placeholder_text="Enter index of audio",
         )
-        self.index_entry.place(relx=0.5, rely=0.84, anchor=tkinter.CENTER)
+        self.index_entry.place(relx=0.5, rely=0.85, anchor=tkinter.CENTER)
 
         self.playbutton = customtkinter.CTkButton(
-            master=self.east_frame,
+            master=self.east_frame.tab("Imported"),
             text="Play",
             width=150,
             height=25,
             command=lambda: self.play_search(self.index_entry.get(), MISSThelpers.MISSTlistdir(self, self.importsDest)),
         )
-        self.playbutton.place(relx=0.5, rely=0.93, anchor=tkinter.CENTER)
+        self.playbutton.place(relx=0.5, rely=0.95, anchor=tkinter.CENTER)
 
         importsBoxUpdates = threading.Thread(target=self.imports_check, args=(self.search_entry, self.songs_box))
         importsBoxUpdates.daemon = True
@@ -367,7 +365,7 @@ class MISSTapp(customtkinter.CTk):
             hover_color=self.west_frame.cget("bg_color"),
             width=5,
             height=5,
-            command=lambda: webbrowser.open("https://github.com/Frikallo/MISST", new=2)
+            command=lambda: webbrowser.open("https://github.com/Frikallo/MISST", new=2),
         )
         self.github_button.place(relx=0.5, rely=0.9, anchor=tkinter.CENTER)
 

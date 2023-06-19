@@ -16,8 +16,9 @@ import music_tag
 import psutil
 import requests
 import torch
-from MISSTplayer import MISSTplayer
 from vcolorpicker import getColor, hex2rgb, rgb2hex, useLightTheme
+
+from MISSTplayer import MISSTplayer
 
 
 class MISSTconsole():
