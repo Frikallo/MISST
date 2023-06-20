@@ -1612,6 +1612,10 @@ class MISSTapp(customtkinter.CTk):
             def save():
                 export_label.configure(text="Exporting...")
                 file = tkinter.filedialog.asksaveasfilename(initialfile=f"{song}.mp3", filetypes=(('mp3 files', '*.mp3'),('All files', '*.*')))
+                if file == "":
+                    export_label.configure(text="Cancelled!")
+                    self.export_frame.destroy()
+                    return
                 self.player.save([
                     f"{self.importsDest}/{song}/bass.flac",
                     f"{self.importsDest}/{song}/drums.flac",
