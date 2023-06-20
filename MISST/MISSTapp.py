@@ -347,7 +347,7 @@ class MISSTapp(customtkinter.CTk):
             text="Export",
             width=150,
             height=25,
-            command=lambda: self.export(self.index_entry.get(), MISSThelpers.MISSTlistdir(self, self.importsDest)),
+            command=lambda: self.export(self.index_entry_export.get(), MISSThelpers.MISSTlistdir(self, self.importsDest)),
         )
         self.playbutton_export.place(relx=0.5, rely=0.95, anchor=tkinter.CENTER)
 
