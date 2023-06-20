@@ -311,47 +311,47 @@ class MISSTapp(customtkinter.CTk):
         importsBoxUpdates.daemon = True
         importsBoxUpdates.start()
         # Export Tab
-        self.search_entry = customtkinter.CTkEntry(
+        self.search_entry_export = customtkinter.CTkEntry(
             master=self.east_frame.tab("Export"),
             width=150,
             height=25,
             placeholder_text="Search for audio",
         )
-        self.search_entry.place(relx=0.5, rely=0.05, anchor=tkinter.CENTER)
+        self.search_entry_export.place(relx=0.5, rely=0.05, anchor=tkinter.CENTER)
 
-        self.listframe = customtkinter.CTkFrame(
+        self.listframe_export = customtkinter.CTkFrame(
             master=self.east_frame.tab("Export"), width=150, height=175, corner_radius=8
         )
-        self.listframe.place(relx=0.5, rely=0.45, anchor=tkinter.CENTER)
+        self.listframe_export.place(relx=0.5, rely=0.45, anchor=tkinter.CENTER)
 
-        self.songs_box = customtkinter.CTkTextbox(
-            master=self.listframe,
+        self.songs_box_export = customtkinter.CTkTextbox(
+            master=self.listframe_export,
             width=140,
             height=175,
             bg_color='transparent',
             fg_color='transparent',
             corner_radius=8,
         )
-        self.songs_box.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
+        self.songs_box_export.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
 
-        self.index_entry = customtkinter.CTkEntry(
+        self.index_entry_export = customtkinter.CTkEntry(
             master=self.east_frame.tab("Export"),
             width=150,
             height=25,
             placeholder_text="Enter index of audio",
         )
-        self.index_entry.place(relx=0.5, rely=0.85, anchor=tkinter.CENTER)
+        self.index_entry_export.place(relx=0.5, rely=0.85, anchor=tkinter.CENTER)
 
-        self.playbutton = customtkinter.CTkButton(
+        self.playbutton_export = customtkinter.CTkButton(
             master=self.east_frame.tab("Export"),
             text="Export",
             width=150,
             height=25,
             command=lambda: self.export(self.index_entry.get(), MISSThelpers.MISSTlistdir(self, self.importsDest)),
         )
-        self.playbutton.place(relx=0.5, rely=0.95, anchor=tkinter.CENTER)
+        self.playbutton_export.place(relx=0.5, rely=0.95, anchor=tkinter.CENTER)
 
-        importsBoxUpdates = threading.Thread(target=self.imports_check, args=(self.search_entry, self.songs_box))
+        importsBoxUpdates = threading.Thread(target=self.imports_check, args=(self.search_entry_export, self.songs_box_export))
         importsBoxUpdates.daemon = True
         importsBoxUpdates.start()
         ## WEST FRAME ----------------------------------------------------------------------------------------------------

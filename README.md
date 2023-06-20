@@ -63,16 +63,17 @@ As of version 3.0.3, MISST is only available on windows with guaranteed compatib
 ## Manual Installation
 These instructions are for those installing MISST v3.0.2 **manually** only.
 
-1. Download & install Python 3.9 or higher (but no lower than 3.9) [here](https://www.python.org/downloads/)
+1. Download & install Python 3.9 or lower (but no higher than 3.9.9) [here](https://www.python.org/downloads/)
     - **Note:** Ensure the *"Add Python to PATH"* box is checked
 2. Download the Source code [here](https://github.com/Frikallo/MISST/releases/latest)
 3. Open the command prompt from the MISST directory and run the following commands, separately - 
 
 ```
-$ pip install -r requirements.txt # requirements-minimal.txt for CPU
+$ python3.9 -m venv ./venv
+$ pip install -r requirements.txt
 $ python3.9 MISSTapp.py
 ```
-- **Note:** The last command is only necessary if you intend to accelerate preprocessing with your GPU.
+- **Note:** Install `requirements-minimal.txt` if you don't intend to accelerate preprocessing with your GPU.
 
 From here you should be able to open and run the MISSTapp.py file
 
