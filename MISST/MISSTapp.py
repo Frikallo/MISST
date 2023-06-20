@@ -189,7 +189,7 @@ class MISSTapp(customtkinter.CTk):
         self.interface_frame.grid(row=0, column=2, sticky="nsew", padx=(5, 0), pady=(5, 0))
         
         self.east_frame = customtkinter.CTkTabview(master=self, width=self.WIDTH * (195 / self.WIDTH), height=self.HEIGHT * (100 / self.HEIGHT), corner_radius=8)
-        self.east_frame.grid(row=1, column=2, sticky="nsew", padx=(5, 0), pady=(10, 5), rowspan=3)
+        self.east_frame.grid(row=1, column=2, sticky="nsew", padx=(5, 0), pady=(0, 5), rowspan=3)
         self.east_frame.add("Imported")
         self.east_frame.add("Export")
         self.east_frame.tab("Imported").grid_columnconfigure(0, weight=1)
@@ -266,6 +266,7 @@ class MISSTapp(customtkinter.CTk):
         self.playpause_button.place(relx=0.50, rely=0.5, anchor=tkinter.CENTER)
 
         ## EAST FRAME ----------------------------------------------------------------------------------------------------
+        # Imported Tab
         self.search_entry = customtkinter.CTkEntry(
             master=self.east_frame.tab("Imported"),
             width=150,
@@ -303,6 +304,50 @@ class MISSTapp(customtkinter.CTk):
             width=150,
             height=25,
             command=lambda: self.play_search(self.index_entry.get(), MISSThelpers.MISSTlistdir(self, self.importsDest)),
+        )
+        self.playbutton.place(relx=0.5, rely=0.95, anchor=tkinter.CENTER)
+
+        importsBoxUpdates = threading.Thread(target=self.imports_check, args=(self.search_entry, self.songs_box))
+        importsBoxUpdates.daemon = True
+        importsBoxUpdates.start()
+        # Export Tab
+        self.search_entry = customtkinter.CTkEntry(
+            master=self.east_frame.tab("Export"),
+            width=150,
+            height=25,
+            placeholder_text="Search for audio",
+        )
+        self.search_entry.place(relx=0.5, rely=0.05, anchor=tkinter.CENTER)
+
+        self.listframe = customtkinter.CTkFrame(
+            master=self.east_frame.tab("Export"), width=150, height=175, corner_radius=8
+        )
+        self.listframe.place(relx=0.5, rely=0.45, anchor=tkinter.CENTER)
+
+        self.songs_box = customtkinter.CTkTextbox(
+            master=self.listframe,
+            width=140,
+            height=175,
+            bg_color='transparent',
+            fg_color='transparent',
+            corner_radius=8,
+        )
+        self.songs_box.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
+
+        self.index_entry = customtkinter.CTkEntry(
+            master=self.east_frame.tab("Export"),
+            width=150,
+            height=25,
+            placeholder_text="Enter index of audio",
+        )
+        self.index_entry.place(relx=0.5, rely=0.85, anchor=tkinter.CENTER)
+
+        self.playbutton = customtkinter.CTkButton(
+            master=self.east_frame.tab("Export"),
+            text="Export",
+            width=150,
+            height=25,
+            command=lambda: self.export(self.index_entry.get(), MISSThelpers.MISSTlistdir(self, self.importsDest)),
         )
         self.playbutton.place(relx=0.5, rely=0.95, anchor=tkinter.CENTER)
 
@@ -1532,6 +1577,70 @@ class MISSTapp(customtkinter.CTk):
             self.logger.error(traceback.format_exc())
             pass
         self.playbutton.configure(state=tkinter.NORMAL)
+
+    def export(self, index_label:str, songs:list) -> None:
+        """
+        Exports a song
+
+        Args:
+            index_label (str): The index of the song
+            songs (list): The list of songs
+        """
+        try:
+            self.export_frame.destroy()
+        except:
+            pass
+        try:
+            index = int(index_label)
+            song = songs[index - 1]
+
+            self.export_frame = customtkinter.CTkFrame(
+                self,
+                width=360,
+                height=250,
+                border_width=3
+            )
+            self.export_frame.place(relx=0.485, rely=0.5, anchor=tkinter.CENTER)
+
+            goback_button = customtkinter.CTkButton(
+                self.export_frame,
+                text="Adjust some more",
+                command=lambda: self.export_frame.destroy()
+            )
+            goback_button.place(relx=0.3, rely=0.9, anchor=tkinter.CENTER)
+
+            def save():
+                export_label.configure(text="Exporting...")
+                file = tkinter.filedialog.asksaveasfilename(initialfile=f"{song}.mp3", filetypes=(('mp3 files', '*.mp3'),('All files', '*.*')))
+                self.player.save([
+                    f"{self.importsDest}/{song}/bass.flac",
+                    f"{self.importsDest}/{song}/drums.flac",
+                    f"{self.importsDest}/{song}/other.flac",
+                    f"{self.importsDest}/{song}/vocals.flac"
+                ], [
+                    self.slider1.get(),
+                    self.slider2.get(),
+                    self.slider3.get(),
+                    self.slider4.get()
+                ], file)
+                export_label.configure(text="Exported!")
+                self.export_frame.destroy()
+
+            export_button = customtkinter.CTkButton(
+                self.export_frame,
+                text="Export",
+                command=save
+            )
+            export_button.place(relx=0.7, rely=0.9, anchor=tkinter.CENTER)
+
+            export_label = customtkinter.CTkLabel(
+                self.export_frame,
+                text="Are you sure you want to export this \nsong with your current volume settings?",
+                font=(self.FONT, 16)
+            )
+            export_label.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
+        except:
+            pass
 
     def shuffle(self) -> None:
         """
