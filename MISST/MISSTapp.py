@@ -154,11 +154,10 @@ class MISSTapp(customtkinter.CTk):
             self.quit()
             self.player.stop()
             current_pid = psutil.Process().pid
-            parent_pid = psutil.Process(current_pid).ppid()
             
             # Terminate child processes
-            parent = psutil.Process(parent_pid)
-            children = parent.children(recursive=True)
+            process = psutil.Process(current_pid)
+            children = process.children(recursive=True)
             self.logger.info(f"Terminating {len(children)} child processes.")
             for child in children:
                 child.terminate()
@@ -311,49 +310,64 @@ class MISSTapp(customtkinter.CTk):
         importsBoxUpdates.daemon = True
         importsBoxUpdates.start()
         # Export Tab
-        self.search_entry_export = customtkinter.CTkEntry(
-            master=self.east_frame.tab("Export"),
-            width=150,
-            height=25,
-            placeholder_text="Search for audio",
-        )
-        self.search_entry_export.place(relx=0.5, rely=0.05, anchor=tkinter.CENTER)
+        def activate(button, slider):
+            if button.cget("border_color") == "#3E454A":
+                button.configure(border_color=self.settings.getSetting("chosenLightColor") if customtkinter.get_appearance_mode() == "Light" else self.settings.getSetting("chosenDarkColor"))
+                slider.set(0.5)
+            else:
+                button.configure(border_color="#3E454A")
+                slider.set(0)
 
-        self.listframe_export = customtkinter.CTkFrame(
-            master=self.east_frame.tab("Export"), width=150, height=175, corner_radius=8
-        )
-        self.listframe_export.place(relx=0.5, rely=0.45, anchor=tkinter.CENTER)
+        def slider_event(slider, button):
+            if slider == 0:
+                button.configure(border_color="#3E454A")
+            else:
+                button.configure(border_color=self.settings.getSetting("chosenLightColor") if customtkinter.get_appearance_mode() == "Light" else self.settings.getSetting("chosenDarkColor"))
 
-        self.songs_box_export = customtkinter.CTkTextbox(
-            master=self.listframe_export,
-            width=140,
-            height=175,
-            bg_color='transparent',
-            fg_color='transparent',
-            corner_radius=8,
-        )
-        self.songs_box_export.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
-
-        self.index_entry_export = customtkinter.CTkEntry(
-            master=self.east_frame.tab("Export"),
-            width=150,
-            height=25,
-            placeholder_text="Enter index of audio",
-        )
-        self.index_entry_export.place(relx=0.5, rely=0.85, anchor=tkinter.CENTER)
-
-        self.playbutton_export = customtkinter.CTkButton(
+        widgets = ["Bass", "Other", "Drums", "Vocals"]
+        sliders = []
+        i = 0
+        for widget in widgets:
+            activate_button = customtkinter.CTkButton(
+                master=self.east_frame.tab("Export"),
+                text=widget,
+                width=70,
+                height=70,
+                border_width=2,
+                border_color=self.settings.getSetting("chosenLightColor") if customtkinter.get_appearance_mode() == "Light" else self.settings.getSetting("chosenDarkColor"),
+                bg_color='transparent',
+                fg_color='transparent',
+                hover_color=self.east_frame.cget("bg_color"),
+            )
+            factor = 0.25 if i < 2 else 0.75
+            activate_button.place(
+                relx=factor, rely=0.25 if i % 2 == 0 else 0.6, anchor=tkinter.CENTER
+            )
+            volume_slider = customtkinter.CTkSlider(
+                master=self.east_frame.tab("Export"),
+                width=70,
+                height=10,
+                number_of_steps=10
+            )
+            sliders.append(volume_slider)
+            volume_slider.place(
+                relx=factor, rely=0.42 if i % 2 == 0 else 0.77, anchor=tkinter.CENTER
+            )
+            activate_button.configure(
+                command=lambda button=activate_button, slider=volume_slider: activate(button, slider)
+            )
+            volume_slider.configure(
+                command=lambda slider=volume_slider, button=activate_button: slider_event(slider, button)
+            )
+            i += 1
+        self.export_button = customtkinter.CTkButton(
             master=self.east_frame.tab("Export"),
             text="Export",
             width=150,
             height=25,
-            command=lambda: self.export(self.index_entry_export.get(), MISSThelpers.MISSTlistdir(self, self.importsDest)),
+            command=lambda: threading.Thread(target=self.export, args=(self.songlabel.cget("text"), sliders), daemon=True).start()
         )
-        self.playbutton_export.place(relx=0.5, rely=0.95, anchor=tkinter.CENTER)
-
-        importsBoxUpdates = threading.Thread(target=self.imports_check, args=(self.search_entry_export, self.songs_box_export))
-        importsBoxUpdates.daemon = True
-        importsBoxUpdates.start()
+        self.export_button.place(relx=0.5, rely=0.95, anchor=tkinter.CENTER)
         ## WEST FRAME ----------------------------------------------------------------------------------------------------
 
         self.logolabel = customtkinter.CTkLabel(
@@ -396,7 +410,7 @@ class MISSTapp(customtkinter.CTk):
             width=5,
             height=5,
             corner_radius=16,
-            command=lambda: self.draw_eq_frame(),
+            command=lambda: self.draw_effects_frame(),
         )
         self.equalizer.place(relx=0.7, rely=0.9, anchor=tkinter.CENTER)
 
@@ -1372,9 +1386,9 @@ class MISSTapp(customtkinter.CTk):
                 child.configure(state='normal')
         return
 
-    def draw_eq_frame(self) -> None:
+    def draw_effects_frame(self) -> None:
         """
-        Draws the eq frame.
+        Draws the effects frame.
         """
         self.eq_window = customtkinter.CTkFrame(
             master=self, width=self.WIDTH * (755 / self.WIDTH), height=self.HEIGHT * (430 / self.HEIGHT)
@@ -1498,6 +1512,15 @@ class MISSTapp(customtkinter.CTk):
             songs.append(f"{num}. {_}")
         while True:
             time.sleep(0.25)
+            if self.songlabel.cget("text") == "Play Something!":
+                self.export_button.configure(text="Nothing Playing")
+                self.export_button.configure(state=tkinter.DISABLED)
+            else:
+                if (self.export_button.cget("text").startswith("Export")):
+                    pass
+                else:
+                    self.export_button.configure(state=tkinter.NORMAL)
+                    self.export_button.configure(text="Export")
             if len(MISSThelpers.MISSTlistdir(self, self.importsDest)) != num:
                 num = 0
                 songs = []
@@ -1578,73 +1601,32 @@ class MISSTapp(customtkinter.CTk):
             pass
         self.playbutton.configure(state=tkinter.NORMAL)
 
-    def export(self, index_label:str, songs:list) -> None:
+    def export(self, songname:str, sliders:list) -> None:
         """
         Exports a song
 
         Args:
-            index_label (str): The index of the song
-            songs (list): The list of songs
+            songname (str): The name of the song
         """
-        try:
-            self.export_frame.destroy()
-        except:
-            pass
-        try:
-            index = int(index_label)
-            song = songs[index - 1]
-
-            self.export_frame = customtkinter.CTkFrame(
-                self,
-                width=360,
-                height=250,
-                border_width=3
-            )
-            self.export_frame.place(relx=0.485, rely=0.5, anchor=tkinter.CENTER)
-
-            goback_button = customtkinter.CTkButton(
-                self.export_frame,
-                text="Adjust some more",
-                command=lambda: self.export_frame.destroy()
-            )
-            goback_button.place(relx=0.3, rely=0.9, anchor=tkinter.CENTER)
-
-            def save():
-                export_label.configure(text="Exporting...")
-                file = tkinter.filedialog.asksaveasfilename(initialfile=f"{song}.mp3", filetypes=(('mp3 files', '*.mp3'),('All files', '*.*')))
-                if file == "":
-                    export_label.configure(text="Cancelled!")
-                    self.export_frame.destroy()
-                    return
-                self.player.save([
-                    f"{self.importsDest}/{song}/bass.flac",
-                    f"{self.importsDest}/{song}/drums.flac",
-                    f"{self.importsDest}/{song}/other.flac",
-                    f"{self.importsDest}/{song}/vocals.flac"
-                ], [
-                    self.slider1.get(),
-                    self.slider2.get(),
-                    self.slider3.get(),
-                    self.slider4.get()
-                ], file)
-                export_label.configure(text="Exported!")
-                self.export_frame.destroy()
-
-            export_button = customtkinter.CTkButton(
-                self.export_frame,
-                text="Export",
-                command=save
-            )
-            export_button.place(relx=0.7, rely=0.9, anchor=tkinter.CENTER)
-
-            export_label = customtkinter.CTkLabel(
-                self.export_frame,
-                text="Are you sure you want to export this \nsong with your current volume settings?",
-                font=(self.FONT, 16)
-            )
-            export_label.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
-        except:
-            pass
+        file = tkinter.filedialog.asksaveasfilename(initialfile=f"{songname}.mp3", filetypes=(('mp3 files', '*.mp3'),('All files', '*.*')))
+        if file == "":
+            self.export_button.configure(text="Export Cancelled.")
+            threading.Timer(1.5, lambda: self.export_button.configure(text="Export")).start()
+            return
+        self.export_button.configure(text="Exporting...")
+        self.player.save([
+            f"{self.importsDest}/{songname}/bass.flac",
+            f"{self.importsDest}/{songname}/drums.flac",
+            f"{self.importsDest}/{songname}/other.flac",
+            f"{self.importsDest}/{songname}/vocals.flac"
+        ], [
+            sliders[0].get(),
+            sliders[2].get(),
+            sliders[1].get(),
+            sliders[3].get()
+        ], file)
+        self.export_button.configure(text="Exported!")
+        threading.Timer(1.5, lambda: self.export_button.configure(text="Export")).start()
 
     def shuffle(self) -> None:
         """

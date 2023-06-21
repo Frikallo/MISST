@@ -18,7 +18,7 @@
       "fg_color": ["defaultLightColor", "defaultDarkColor"],
       "hover_color": ["defaultLightHoverColor", "defaultDarkHoverColor"],
       "border_color": ["#3E454A", "#949A9F"],
-      "text_color": ["#DCE4EE", "#DCE4EE"],
+      "text_color": ["gray10", "#DCE4EE"],
       "text_color_disabled": ["gray74", "gray60"]
     },
     "CTkLabel": {
