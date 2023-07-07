@@ -82,11 +82,8 @@ class MISSTapp(customtkinter.CTk):
         self.FFMpegAvailable = True if shutil.which("ffmpeg") != None else False
         self.version = version
 
-        for line in MISSThelpers.GenerateSystemInfo(self).split("\n"):
-            if line != "":
-                self.logger.info(line)
-
         self.playing = False
+        self.current_song = ""
 
         # configure window
         self.title("MISST")
@@ -126,6 +123,7 @@ class MISSTapp(customtkinter.CTk):
             "applemusic"   : customtkinter.CTkImage(Image.open("./Assets/Sources/AppleMusic.png"),                                                                                             size=(40,40)),
             "soundcloud"   : customtkinter.CTkImage(Image.open("./Assets/Sources/Soundcloud.png"),                                                                                             size=(40,40)),
             "return"       : customtkinter.CTkImage(dark_image=Image.open("./Assets/UIAssets/goback_dark.png"),             light_image=Image.open("./Assets/UIAssets/goback.png"),            size=(25,25)),
+            "no-cover-art" : customtkinter.CTkImage(dark_image=Image.open("./Assets/UIAssets/default-light.png"),           light_image=Image.open("./Assets/UIAssets/default.png"),           size=(40,40))
         }
 
         self.loop = False
@@ -146,6 +144,9 @@ class MISSTapp(customtkinter.CTk):
             self.logger.warning("Setup is needed.")
             self.model_setup_widget = MISSTSetup(self, required_model_files)
             self.model_setup_widget.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
+            for line in MISSThelpers.GenerateSystemInfo(self).split("\n"):
+                if line != "":
+                    self.logger.info(line)
         else:
             self.logger.info("Setup is not needed.")
 
@@ -264,7 +265,7 @@ class MISSTapp(customtkinter.CTk):
         self.loop_button.place(relx=0.84, rely=0.5, anchor=tkinter.CENTER)
         self.playpause_button.place(relx=0.50, rely=0.5, anchor=tkinter.CENTER)
 
-        ## EAST FRAME ----------------------------------------------------------------------------------------------------
+        ## EAST FRAME -------------  ---------------------------------------------------------------------------------------
         # Imported Tab
         self.search_entry = customtkinter.CTkEntry(
             master=self.east_frame.tab("Imported"),
@@ -310,7 +311,34 @@ class MISSTapp(customtkinter.CTk):
         importsBoxUpdates.daemon = True
         importsBoxUpdates.start()
         # Export Tab
+        self.export_components = {
+            "Bass": (None, None),
+            "Other": (None, None),
+            "Drums": (None, None),
+            "Vocals": (None, None)
+        }
         def activate(button, slider):
+            button_text = button.cget("text")
+            if button_text == "Bass":
+                sound = 0
+                self.slider1.set(0.5) if button.cget("border_color") == "#3E454A" else self.slider1.set(0)
+                self.checkbox1.select() if button.cget("border_color") == "#3E454A" else self.checkbox1.deselect()
+            
+            elif button_text == "Drums":
+                sound = 1
+                self.slider2.set(0.5) if button.cget("border_color") == "#3E454A" else self.slider2.set(0)
+                self.checkbox2.select() if button.cget("border_color") == "#3E454A" else self.checkbox2.deselect()
+
+            elif button_text == "Other":
+                sound = 2
+                self.slider3.set(0.5) if button.cget("border_color") == "#3E454A" else self.slider3.set(0)
+                self.checkbox3.select() if button.cget("border_color") == "#3E454A" else self.checkbox3.deselect()
+
+            elif button_text == "Vocals":
+                sound = 3
+                self.slider4.set(0.5) if button.cget("border_color") == "#3E454A" else self.slider4.set(0)
+                self.checkbox4.select() if button.cget("border_color") == "#3E454A" else self.checkbox4.deselect()
+
             if button.cget("border_color") == "#3E454A":
                 button.configure(border_color=self.settings.getSetting("chosenLightColor") if customtkinter.get_appearance_mode() == "Light" else self.settings.getSetting("chosenDarkColor"))
                 slider.set(0.5)
@@ -318,7 +346,31 @@ class MISSTapp(customtkinter.CTk):
                 button.configure(border_color="#3E454A")
                 slider.set(0)
 
+            self.player.set_volume(sound, slider.get())
+
         def slider_event(slider, button):
+            button_text = button.cget("text")
+            if button_text == "Bass":
+                sound = 0
+                self.slider1.set(self.export_components["Bass"][0].get())
+                self.checkbox1.select() if self.export_components["Bass"][0].get() != 0 else self.checkbox1.deselect()
+            
+            elif button_text == "Drums":
+                sound = 1
+                self.slider2.set(self.export_components["Drums"][0].get())
+                self.checkbox2.select() if self.export_components["Drums"][0].get() != 0 else self.checkbox2.deselect()
+
+            elif button_text == "Other":
+                sound = 2
+                self.slider3.set(self.export_components["Other"][0].get())
+                self.checkbox3.select() if self.export_components["Other"][0].get() != 0 else self.checkbox3.deselect()
+
+            elif button_text == "Vocals":
+                sound = 3
+                self.slider4.set(self.export_components["Vocals"][0].get())
+                self.checkbox4.select() if self.export_components["Vocals"][0].get() != 0 else self.checkbox4.deselect()
+
+            self.player.set_volume(sound, slider)
             if slider == 0:
                 button.configure(border_color="#3E454A")
             else:
@@ -360,12 +412,13 @@ class MISSTapp(customtkinter.CTk):
                 command=lambda slider=volume_slider, button=activate_button: slider_event(slider, button)
             )
             i += 1
+            self.export_components[activate_button.cget("text")] = volume_slider, activate_button
         self.export_button = customtkinter.CTkButton(
             master=self.east_frame.tab("Export"),
             text="Export",
             width=150,
             height=25,
-            command=lambda: threading.Thread(target=self.export, args=(self.songlabel.cget("text"), sliders), daemon=True).start()
+            command=lambda: threading.Thread(target=self.export, args=(self.current_song, sliders), daemon=True).start()
         )
         self.export_button.place(relx=0.5, rely=0.95, anchor=tkinter.CENTER)
         ## WEST FRAME ----------------------------------------------------------------------------------------------------
@@ -462,8 +515,8 @@ class MISSTapp(customtkinter.CTk):
 
         self.checkbox1 = customtkinter.CTkCheckBox(
             master=self.center_frame,
-            text="bass",
-            command=lambda: MISSThelpers.checkbox_event(self.check_var1, 0, self.player, self.slider1),
+            text="Bass",
+            command=lambda: MISSThelpers.checkbox_event(self.check_var1, self.export_components["Bass"], 0, self.player, self.slider1),
             variable=self.check_var1,
             onvalue="on",
             offvalue="off",
@@ -472,8 +525,8 @@ class MISSTapp(customtkinter.CTk):
 
         self.checkbox2 = customtkinter.CTkCheckBox(
             master=self.center_frame,
-            text="drums",
-            command=lambda: MISSThelpers.checkbox_event(self.check_var2, 1, self.player, self.slider2),
+            text="Drums",
+            command=lambda: MISSThelpers.checkbox_event(self.check_var2, self.export_components["Drums"], 1, self.player, self.slider2),
             variable=self.check_var2,
             onvalue="on",
             offvalue="off",
@@ -482,8 +535,8 @@ class MISSTapp(customtkinter.CTk):
 
         self.checkbox3 = customtkinter.CTkCheckBox(
             master=self.center_frame,
-            text="other",
-            command=lambda: MISSThelpers.checkbox_event(self.check_var3, 2, self.player, self.slider3),
+            text="Other",
+            command=lambda: MISSThelpers.checkbox_event(self.check_var3, self.export_components["Other"], 2, self.player, self.slider3),
             variable=self.check_var3,
             onvalue="on",
             offvalue="off",
@@ -492,8 +545,8 @@ class MISSTapp(customtkinter.CTk):
 
         self.checkbox4 = customtkinter.CTkCheckBox(
             master=self.center_frame,
-            text="vocals",
-            command=lambda: MISSThelpers.checkbox_event(self.check_var4, 3, self.player, self.slider4),
+            text="Vocals",
+            command=lambda: MISSThelpers.checkbox_event(self.check_var4, self.export_components["Vocals"], 3, self.player, self.slider4),
             variable=self.check_var4,
             onvalue="on",
             offvalue="off",
@@ -504,7 +557,7 @@ class MISSTapp(customtkinter.CTk):
             master=self.center_frame,
             from_=0,
             to=1,
-            command=lambda x: MISSThelpers.slider_event(x, 0, self.player, self.checkbox1),
+            command=lambda x: MISSThelpers.slider_event(x, self.export_components["Bass"], 0, self.player, self.check_var1),
             number_of_steps=10,
         )
         self.slider1.place(relx=0.6, rely=0.2, anchor=tkinter.CENTER)
@@ -513,7 +566,7 @@ class MISSTapp(customtkinter.CTk):
             master=self.center_frame,
             from_=0,
             to=1,
-            command=lambda x: MISSThelpers.slider_event(x, 1, self.player, self.checkbox2),
+            command=lambda x: MISSThelpers.slider_event(x, self.export_components["Drums"], 1, self.player, self.check_var2),
             number_of_steps=10,
         )
         self.slider2.place(relx=0.6, rely=0.35, anchor=tkinter.CENTER)
@@ -522,7 +575,7 @@ class MISSTapp(customtkinter.CTk):
             master=self.center_frame,
             from_=0,
             to=1,
-            command=lambda x: MISSThelpers.slider_event(x, 2, self.player, self.checkbox3),
+            command=lambda x: MISSThelpers.slider_event(x, self.export_components["Other"], 2, self.player, self.check_var3),
             number_of_steps=10,
         )
         self.slider3.place(relx=0.6, rely=0.5, anchor=tkinter.CENTER)
@@ -531,21 +584,21 @@ class MISSTapp(customtkinter.CTk):
             master=self.center_frame,
             from_=0,
             to=1,
-            command=lambda x: MISSThelpers.slider_event(x, 3, self.player, self.checkbox4),
+            command=lambda x: MISSThelpers.slider_event(x, self.export_components["Vocals"], 3, self.player, self.check_var4),
             number_of_steps=10,
         )
         self.slider4.place(relx=0.6, rely=0.65, anchor=tkinter.CENTER)
 
-        self.nc_checkbox = customtkinter.CTkSwitch(
+        self.effects_checkbox = customtkinter.CTkSwitch(
             master=self.center_frame,
-            text="nightcore",
-            command=self.nightcore,
+            text="Effects",
+            command=self.effects,
             variable=self.nc_var,
             onvalue="on",
             offvalue="off",
         )
-        self.nc_checkbox.place(relx=0.5, rely=0.9, anchor=tkinter.CENTER)
-        self.nc_checkbox.configure(state=tkinter.DISABLED)
+        self.effects_checkbox.place(relx=0.5, rely=0.9, anchor=tkinter.CENTER)
+        self.effects_checkbox.configure(state=tkinter.DISABLED)
 
         ## SOUTH FRAME ----------------------------------------------------------------------------------------------------
 
@@ -594,6 +647,7 @@ class MISSTapp(customtkinter.CTk):
         if search_term == "Play Something!":
             self.lyrics_window.destroy()
             return
+        search_term = self.current_song
 
         self.lyrics_box = customtkinter.CTkTextbox(
             master=self.lyrics_window,
@@ -1131,19 +1185,6 @@ class MISSTapp(customtkinter.CTk):
         )
         self.settings_window.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
 
-        self.return_button = customtkinter.CTkButton(
-            master=self.settings_window,
-            command=lambda: self.settings_window.destroy(),
-            image=self.ImageCache["return"],
-            fg_color='transparent',
-            hover_color=self.settings_window.cget("bg_color"),
-            text="",
-            font=(self.FONT, -14),
-            width=5,
-            text_color=self.logolabel.cget("text_color"),
-        )
-        self.return_button.place(relx=0.25, rely=0.95, anchor=tkinter.CENTER)
-
         self.settings_frame = customtkinter.CTkFrame(
             master=self.settings_window, width=350, height=380
         )
@@ -1328,10 +1369,25 @@ class MISSTapp(customtkinter.CTk):
             command=lambda: MISSThelpers.resetSettings(self),
             fg_color=self.settings_window.cget("fg_color"),
             hover_color=self.theme_frame.cget("fg_color"),
-            width=15,
+            width=25,
+            height=25,
             text_color=self.info_label.cget("text_color")
         )
         self.reset_button.place(relx=0.75, rely=0.95, anchor=tkinter.CENTER)
+
+        self.return_button = customtkinter.CTkButton(
+            master=self.settings_window,
+            command=lambda: self.settings_window.destroy(),
+            image=self.ImageCache["return"],
+            fg_color='transparent',
+            hover_color=self.theme_frame.cget("fg_color"),
+            text="",
+            font=(self.FONT, -14),
+            width=25,
+            height=25,
+            text_color=self.logolabel.cget("text_color"),
+        )
+        self.return_button.place(relx=0.25, rely=0.95, anchor=tkinter.CENTER)
 
     def eq_sliders_event(self, curVal:int, curSlider:int, sliders:list) -> None:
         """
@@ -1593,8 +1649,8 @@ class MISSTapp(customtkinter.CTk):
             index = int(index_label)
             song = songs[index - 1]
             self.playing = True
-            self.nc_checkbox.deselect()
-            self.nightcore()
+            self.effects_checkbox.deselect()
+            self.effects()
             self.play(song)
         except:
             self.logger.error(traceback.format_exc())
@@ -1637,8 +1693,8 @@ class MISSTapp(customtkinter.CTk):
             songs = MISSThelpers.MISSTlistdir(self, self.importsDest) 
             random.shuffle(songs)
             self.playing = True
-            self.nc_checkbox.deselect()
-            self.nightcore()
+            self.effects_checkbox.deselect()
+            self.effects()
             self.play(songs[0])
         except:
             # can ignore this error
@@ -1657,8 +1713,8 @@ class MISSTapp(customtkinter.CTk):
             songs = MISSThelpers.MISSTlistdir(self, self.importsDest) 
             index = songs.index(songName)
             self.playing = True
-            self.nc_checkbox.deselect()
-            self.nightcore()
+            self.effects_checkbox.deselect()
+            self.effects()
             self.play(songs[index + 1])
         except:
             # can ignore this error
@@ -1677,8 +1733,8 @@ class MISSTapp(customtkinter.CTk):
             songs = MISSThelpers.MISSTlistdir(self, self.importsDest) 
             index = songs.index(songName)
             self.playing = True
-            self.nc_checkbox.deselect()
-            self.nightcore()
+            self.effects_checkbox.deselect()
+            self.effects()
             self.play(songs[index - 1])
         except:
             # can ignore this error
@@ -1701,14 +1757,14 @@ class MISSTapp(customtkinter.CTk):
         self.player.set_position(3, frame)
         return
     
-    def nightcore(self) -> None:
+    def effects(self) -> None:
         """
-        Sets the nightcore state
+        Sets the effects state
         """
-        if self.nc_checkbox.get() == 'on':
-            self.player.set_nightcore(True)
+        if self.effects_checkbox.get() == 'on':
+            self.player.set_effects(True)
         else:
-            self.player.set_nightcore(False)
+            self.player.set_effects(False)
     
     def playpause(self) -> None:
         """
@@ -1719,14 +1775,14 @@ class MISSTapp(customtkinter.CTk):
             self.player.pause()
             self.playing = False
             self.progressbar.configure(state=tkinter.DISABLED)
-            self.nc_checkbox.configure(state=tkinter.DISABLED)
-            self.nightcore()
+            self.effects_checkbox.configure(state=tkinter.DISABLED)
+            self.effects()
         else:
             self.playpause_button.configure(state="normal", image=self.ImageCache["playing"])
             self.player.resume()
             self.playing = True
             self.progressbar.configure(state="normal")
-            self.nc_checkbox.configure(state="normal")
+            self.effects_checkbox.configure(state="normal")
 
     def loopEvent(self) -> None:
         """
@@ -1766,9 +1822,9 @@ class MISSTapp(customtkinter.CTk):
             self.next_button.configure(state="normal")
             self.previous_button.configure(state="normal")
             self.playpause_button.configure(state="normal")
-            self.nc_checkbox.configure(state="normal")
-            self.nc_checkbox.deselect()
-            self.nightcore()
+            self.effects_checkbox.configure(state="normal")
+            self.effects_checkbox.deselect()
+            self.effects()
 
             if self.playing == True:
                 self.playpause_button.configure(image=self.ImageCache["playing"])
@@ -1793,9 +1849,14 @@ class MISSTapp(customtkinter.CTk):
         except:
             self.logger.error(traceback.format_exc())
             self.logger.error("No cover art found.")
-            cover_art = customtkinter.CTkImage(Image.open("./Assets/UIAssets/default.png"), size=(40, 40))
+            cover_art = self.ImageCache["no-cover-art"]
 
-        self.songlabel.configure(text=song_name)
+        namelen = len(song_name)
+        n = 30
+        shortname = song_name if namelen <= n else song_name[:(n - namelen)] + "..."
+        self.current_song = song_name
+
+        self.songlabel.configure(text=shortname)
         self.songlabel.configure(image=cover_art)
 
         duration = int(self.player.duration)
@@ -1822,7 +1883,7 @@ class MISSTapp(customtkinter.CTk):
             self.playpause_button.configure(image=self.ImageCache["paused"], state=tkinter.DISABLED)
             self.playing = False
             self.progressbar.configure(state=tkinter.DISABLED)
-            self.nc_checkbox.configure(state=tkinter.DISABLED)
+            self.effects_checkbox.configure(state=tkinter.DISABLED)
             self.progressbar.set(0)
             self.progress_label_left.configure(text="00:00")
             self.progress_label_right.configure(text="00:00")
@@ -1849,8 +1910,8 @@ class MISSTapp(customtkinter.CTk):
                     songs = MISSThelpers.MISSTlistdir(self, self.importsDest) 
                     index = songs.index(song_name)
                     self.playing = True
-                    self.nc_checkbox.deselect()
-                    self.nightcore()
+                    self.effects_checkbox.deselect()
+                    self.effects()
                     self.play(songs[index + 1])
                 except:
                     self.logger.error(traceback.format_exc())

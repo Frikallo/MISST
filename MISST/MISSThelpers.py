@@ -19,6 +19,7 @@ import torch
 from vcolorpicker import getColor, hex2rgb, rgb2hex, useLightTheme
 
 from MISSTplayer import MISSTplayer
+from MISSTsettings import MISSTsettings
 
 
 class MISSTconsole():
@@ -182,7 +183,7 @@ class MISSThelpers():
         """
         customtkinter.set_appearance_mode(theme)
 
-    def checkbox_event(checkbox:customtkinter.CTkCheckBox, sound:str, player:MISSTplayer, slider:customtkinter.CTkSlider) -> None:
+    def checkbox_event(checkbox:customtkinter.CTkCheckBox, export_slider:customtkinter.CTkSlider, sound:str, player:MISSTplayer, slider:customtkinter.CTkSlider) -> None:
         """
         Change the volume of a sound
 
@@ -198,7 +199,9 @@ class MISSThelpers():
             slider.set(0)
             player.set_volume(sound, slider.get())
 
-    def slider_event(value:int, sound:str, player:MISSTplayer, checkbox:customtkinter.CTkCheckBox) -> None:
+        MISSThelpers.slider_event(slider.get(), export_slider, sound, player, checkbox)
+
+    def slider_event(value:int, export_slider:customtkinter.CTkSlider, sound:str, player:MISSTplayer, checkbox:customtkinter.CTkCheckBox) -> None:
         """
         Change the volume of a sound
 
@@ -208,11 +211,15 @@ class MISSThelpers():
             player (MISSTplayer): The sound player
             checkbox (tkinter.Checkbutton): The checkbox
         """
+        settings = MISSTsettings()
+        export_slider[0].set(value)
         if value >= 0.01:
-            checkbox.select()
+            checkbox.set("on")
+            export_slider[1].configure(border_color=settings.getSetting("chosenLightColor") if customtkinter.get_appearance_mode() == "Light" else settings.getSetting("chosenDarkColor"))
             player.set_volume(sound, value)
         else:
-            checkbox.deselect()
+            checkbox.set("off")
+            export_slider[1].configure(border_color="#3E454A")
             player.set_volume(sound, value)
     
     def MISSTlistdir(self, directory:str) -> list:
@@ -369,7 +376,7 @@ class MISSThelpers():
         Clear the downloads folder
         """
         self.confirmation_frame = customtkinter.CTkFrame(
-            master=self.settings_window, width=350, height=350, corner_radius=10
+            master=self.settings_window, width=350, height=350, corner_radius=0
         )
         self.confirmation_frame.place(relx=0.25, rely=0.5, anchor=tkinter.CENTER)
 
