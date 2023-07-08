@@ -25,7 +25,7 @@ class MISSTpreprocess():
     def __init__(self) -> None:
         pass
 
-    def LoadModel(self, name:str = "mdx_extra", repo:str = None, device:str = "cuda" if torch.cuda.is_available() else "cpu",) -> BagOfModels:
+    def LoadModel(self, name:str, repo:str = None, device:str = "cuda" if torch.cuda.is_available() else "cpu",) -> BagOfModels:
         """
         Load the model
 
@@ -67,9 +67,11 @@ class MISSTpreprocess():
         """
         audio = wav
         ref = audio.mean(0)
-        audio = (audio - ref.mean()) / ref.std()
+        audio -= ref.mean()
+        audio /= ref.std()
         sources = apply_model(model, audio[None], shifts=shifts, split=False, overlap=0.25, progress=False)[0]
-        sources = sources * ref.std() + ref.mean()
+        sources *= ref.std()
+        sources += ref.mean()
         return dict(zip(model.sources, sources))
 
     def convert_audio_channels(self, wav:np.ndarray, channels:int = 2) -> np.ndarray:
@@ -184,7 +186,7 @@ class MISSTpreprocess():
         infile:str, 
         write:bool = True, 
         outpath:pathlib.Path = pathlib.Path(""), 
-        split:float = 10.0, 
+        split:float = 5.0, 
         overlap:float = 0.25, 
         sample_rate:int = 44100, 
         device:str = "cuda" if torch.cuda.is_available() else "cpu", 
@@ -199,7 +201,7 @@ class MISSTpreprocess():
             infile (str): Input filename
             write (bool): Write the output
             outpath (pathlib.Path): Output path
-            split (float): Split
+            split (float): Split (seconds)
             overlap (float): Overlap
             sample_rate (int): Sample rate
             device (str): Device
@@ -238,19 +240,24 @@ class MISSTpreprocess():
             concurrent.futures.wait(futures)
 
         if write:
-            logger.info("Writing to file")
-            console.addLine("\nMISST> Writing to file")
+            console.endUpdate()
+            console.addLine("\nMISST> Preprocessed.")
+            console.update("\nMISST> Writing to file")
             outpath.mkdir(exist_ok=True)
             for i in range(len(stems)):
-                stem = (new_audio[i] / total)[:, :orig_len]
+                if np.all(total == 0):
+                    stem = np.zeros_like(new_audio[i])
+                else:
+                    stem = (new_audio[i] / total)[:, :orig_len]
                 self.write_wav(torch.from_numpy(stem.transpose()), str(outpath / f"{stems[i]}.wav"), sample_rate)
                 self.compress_wav_to_flac(str(outpath / f"{stems[i]}.wav"), str(outpath / f"{stems[i]}.flac"))
                 self.apply_fade_in_out(str(outpath / f"{stems[i]}.flac"), str(outpath / f"{stems[i]}.flac"), 3.5)
+            console.endUpdate()
         else:
             pass
         del model # Free up memory
 
-    def preprocess(self, file:str, outDir:str, device:str = "cuda") -> None:
+    def preprocess(self, file:str, outDir:str, chosen_model:str, device:str = "cuda") -> None:
         """
         Preprocess the audio
 
@@ -265,17 +272,14 @@ class MISSTpreprocess():
             savename = os.path.basename(file).replace('.mp3', '').replace('.wav', '').replace('.flac', '')
             console.update("\nMISST> Loading model")
             processor = MISSTpreprocess()
-            model = processor.LoadModel(name="mdx_extra", repo=pathlib.Path("Pretrained"))
+            model = processor.LoadModel(name=chosen_model, repo=pathlib.Path("Pretrained"))
             console.endUpdate()
             console.addLine("\nMISST> Model loaded.")
             console.update("\nMISST> Preprocessing")
             processor.process(model, infile=pathlib.Path(file), outpath=pathlib.Path(f"{outDir}/{savename}"), device=device, console=console)
             del model # Free up memory
-            console.endUpdate()
-            console.addLine("\nMISST> Preprocessed.")
         except Exception as e:
             self.logger.error(e)
-            console.endUpdate()
             console.addLine("\nMISST> Error.")
             pass
         console.addLine("\nMISST> Done.")

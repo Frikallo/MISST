@@ -335,6 +335,9 @@ class MISSThelpers():
         self.preprocess_method_box.select() if cuda else self.preprocess_method_box.deselect()
         self.button_light.configure(fg_color=self.settings.getSetting("defaultLightColor"), hover_color=self.settings.getSetting("defaultLightColor"))
         self.button_dark.configure(fg_color=self.settings.getSetting("defaultDarkColor"), hover_color=self.settings.getSetting("defaultDarkColor"))
+        self.model_select.set("mdx_extra")
+        self.settings.setSetting("chosen_model", "mdx_extra")
+        self.change_model(self.model_select.get())
 
     def autoplay_event(self) -> None:
         """

@@ -4,30 +4,69 @@ import typing
 
 import customtkinter
 import requests
+from pathlib import Path
 
 
 class MISSTSetup(customtkinter.CTkFrame):
     """
     Class for handling the setup of MISST
     """
-    def __init__(self, parent:typing.Any, model_files:list) -> None:
+    def __init__(self, parent:typing.Any, model:str) -> None:
         """
         Initialize the setup
 
         Args:
             parent (tkinter.Tk): The parent of the frame
-            model_files (list): List of model files
+            model (str): The chosen model
         """
         super().__init__(parent)
         self.parent = parent
-        self.model_files = model_files
+
+        self.model_urls = self.get_model_urls(model)
+        for url in self.model_urls:
+            if not os.path.isfile("Pretrained/"+url.split("/")[-1]):
+                break
+        else:
+            self.parent.logger.info("All models are already downloaded")
+            self.destroy()
+            return
+        
+        # delete old model files
+        for file in os.listdir("Pretrained/"):
+            if file.endswith(".th"):
+                os.remove("Pretrained/" + file)
+                
         self.progress_var = customtkinter.DoubleVar()
         self.width = 755
         self.height = 430
         self.FONT = "Roboto Medium"
-        self.expected_sizes = [167_399, 167_391, 167_391, 167_399] # Expected sizes (in kB) of the models
         self.configure(width=self.width, height=self.height)
         self.create_widgets()
+
+    def get_model_urls(self, model:str) -> typing.List[str]:
+        models = []
+        with open("Pretrained/" + model + ".yaml", "r") as f:
+            for line in f.readlines():
+                if "models: " in line:
+                    models = line.split("'")[1::2]
+                    break
+        remote_file = Path("Pretrained/files.txt")
+        root: str = ''
+        remote_models = {}
+        for line in remote_file.read_text().split('\n'):
+            line = line.strip()
+            if line.startswith('#'):
+                continue
+            elif line.startswith('root:'):
+                root = line.split(':', 1)[1].strip()
+            else:
+                sig = line.split('-', 1)[0]
+                assert sig not in remote_models
+                remote_models[sig] = "https://dl.fbaipublicfiles.com/demucs/" + root + line
+        urls = []
+        for model in models:
+            urls.append(remote_models[model])
+        return urls
 
     def create_widgets(self) -> None:
         """
@@ -56,41 +95,39 @@ class MISSTSetup(customtkinter.CTkFrame):
         """
         Setup the models
         """
-        total_files = len(self.model_files)
-        for i, file in enumerate(self.model_files):
+        total_files = len(self.model_urls)
+        for i, url in enumerate(self.model_urls):
             self.label.configure(text="Setting up models {}/{}".format(i + 1, total_files))
-            if not os.path.isfile(file):
-                self.download_file(file)
+            if not os.path.isfile(url.split("/")[-1]):
+                self.download_file(url)
             self.progress_var.set((i + 1) / total_files * 100)
         self.label.configure(text="Setup is complete. Welcome to MISST!")
         threading.Timer(2, self.destroy).start()
 
-    def download_file(self, file:str) -> None:
+    def download_file(self, url:str) -> None:
         """
         Download a file
 
         Args:
             file (str): The file to download
         """
-        url = "https://dl.fbaipublicfiles.com/demucs/mdx_final/" + file.replace("Pretrained/","")
         response = requests.get(url, stream=True)
         total_length = response.headers.get('content-length')
 
-        with open(file, 'wb') as f:
-            if total_length is None:  # no content length header
-                f.write(response.content)
-            else:
-                dl = 0
-                total_length = int(total_length)
-                chunk = total_length // 50
-                for data in response.iter_content(chunk_size=chunk):
-                    dl += len(data)
-                    f.write(data)
-                    self.progress_var.set((dl / total_length))
-                    self.update_idletasks()  # Update the GUI to refresh the progress bar
-        self.parent.logger.info("{0} Downloaded size: {1}kB | Expected size: ~{2}kB".format(file, os.path.getsize(file), self.expected_sizes[self.model_files.index(file)] * 1000))
-        if os.path.getsize(file) < self.expected_sizes[self.model_files.index(file)] * 1000:
-            self.parent.logger.error("{0} Downloaded size: {1}kB | Expected size: ~{2}kB".format(file, os.path.getsize(file), self.expected_sizes[self.model_files.index(file)] * 1000))
-            os.remove(file)
-            self.label.configure(text="Downloaded file is corrupted. Please try again.")
-            raise Exception("Downloaded file is corrupted. Please try again.")
+        try:
+            with open("Pretrained/" + url.split("/")[-1], 'wb') as f:
+                if total_length is None:  # no content length header
+                    f.write(response.content)
+                else:
+                    dl = 0
+                    total_length = int(total_length)
+                    chunk = total_length // 50
+                    for data in response.iter_content(chunk_size=chunk):
+                        dl += len(data)
+                        f.write(data)
+                        self.progress_var.set((dl / total_length))
+                        self.update_idletasks()  # Update the GUI to refresh the progress bar
+        except:
+            os.remove("Pretrained/" + url.split("/")[-1])
+            self.label.configure(text="Downloaded file is corrupted or an Error occured. Please try again.")
+            raise Exception("Downloaded file is corrupted or an Error occured. Please try again.")

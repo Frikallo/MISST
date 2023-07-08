@@ -23,6 +23,7 @@ import psutil
 from lyrics_extractor import SongLyrics
 from PIL import Image
 from pypresence import Presence
+from pathlib import Path
 
 from __version__ import __version__ as version
 from MISSThelpers import MISSTconsole, MISSThelpers
@@ -82,6 +83,10 @@ class MISSTapp(customtkinter.CTk):
         self.FFMpegAvailable = True if shutil.which("ffmpeg") != None else False
         self.version = version
 
+        for line in MISSThelpers.GenerateSystemInfo(self).split("\n"):
+            if line != "":
+                self.logger.info(line)
+
         self.playing = False
         self.current_song = ""
 
@@ -133,22 +138,14 @@ class MISSTapp(customtkinter.CTk):
         self.createWidgets()
 
         # Check if setup is needed
-        required_model_files = [
-            "Pretrained/e51eebcc-c1b80bdd.th",
-            "Pretrained/a1d90b5c-ae9d2452.th",
-            "Pretrained/5d2d6c55-db83574e.th",
-            "Pretrained/cfa93e08-61801ae1.th"
-        ]
-        model_files_exist = [os.path.isfile(file) for file in required_model_files]
-        if not all(model_files_exist):
-            self.logger.warning("Setup is needed.")
-            self.model_setup_widget = MISSTSetup(self, required_model_files)
+        required_files = MISSTSetup.get_model_urls(self, self.settings.getSetting("chosen_model"))
+        required_files = [file.split("/")[-1] for file in required_files]
+        if not all([os.path.isfile(f"Pretrained/{file}") for file in required_files]):
+            self.logger.info("Setup required.")
+            self.model_setup_widget = MISSTSetup(self, self.settings.getSetting("chosen_model"))
             self.model_setup_widget.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
-            for line in MISSThelpers.GenerateSystemInfo(self).split("\n"):
-                if line != "":
-                    self.logger.info(line)
         else:
-            self.logger.info("Setup is not needed.")
+            self.logger.info("Setup not required.")
 
         def on_closing():
             self.destroy()
@@ -1014,7 +1011,7 @@ class MISSTapp(customtkinter.CTk):
             if not os.path.exists(save_dir):
                 os.mkdir(save_dir)
             self.retrieve_metadata(save_dir=save_dir, file=file)
-            thread = threading.Thread(target=MISSTpreprocess.preprocess, args=(self, file, self.importsDest, "cuda" if self.settings.getSetting("accelerate_on_gpu") == "true" else "cpu"), daemon=True)
+            thread = threading.Thread(target=MISSTpreprocess.preprocess, args=(self, file, self.importsDest, self.settings.getSetting("chosen_model"), "cuda" if self.settings.getSetting("accelerate_on_gpu") == "true" else "cpu"), daemon=True)
             thread.start()
             thread.join()
             self.import_file_button.configure(state=tkinter.NORMAL)
@@ -1057,7 +1054,7 @@ class MISSTapp(customtkinter.CTk):
                 self.console.endUpdate()
                 self.console.addLine("\nMISST> Downloaded.")
                 self.retrieve_metadata(temp_dir=temp_dir)
-                thread = threading.Thread(target=MISSTpreprocess.preprocess, args=(self, f"{temp_dir}/{os.listdir(temp_dir)[0]}", self.importsDest, "cuda" if self.settings.getSetting("accelerate_on_gpu") == "true" else "cpu"), daemon=True)
+                thread = threading.Thread(target=MISSTpreprocess.preprocess, args=(self, f"{temp_dir}/{os.listdir(temp_dir)[0]}", self.importsDest, self.settings.getSetting("chosen_model"), "cuda" if self.settings.getSetting("accelerate_on_gpu") == "true" else "cpu"), daemon=True)
                 thread.start()
                 thread.join()
                 os.remove(os.path.join(temp_dir, os.listdir(temp_dir)[0]))
@@ -1091,7 +1088,7 @@ class MISSTapp(customtkinter.CTk):
                 self.console.endUpdate()
                 self.console.addLine("\nMISST> Downloaded.")
                 self.retrieve_metadata(temp_dir=temp_dir)
-                thread = threading.Thread(target=MISSTpreprocess.preprocess, args=(self, f"{temp_dir}/{os.listdir(temp_dir)[0]}", self.importsDest, "cuda" if self.settings.getSetting("accelerate_on_gpu") == "true" else "cpu"), daemon=True)
+                thread = threading.Thread(target=MISSTpreprocess.preprocess, args=(self, f"{temp_dir}/{os.listdir(temp_dir)[0]}", self.importsDest, self.settings.getSetting("chosen_model"), "cuda" if self.settings.getSetting("accelerate_on_gpu") == "true" else "cpu"), daemon=True)
                 thread.start()
                 thread.join()
                 os.remove(os.path.join(temp_dir, os.listdir(temp_dir)[0]))
@@ -1124,7 +1121,7 @@ class MISSTapp(customtkinter.CTk):
                 self.console.endUpdate()
                 self.console.addLine("\nMISST> Downloaded.")
                 self.retrieve_metadata(temp_dir=temp_dir)
-                thread = threading.Thread(target=MISSTpreprocess.preprocess, args=(self, f"{temp_dir}/{os.listdir(temp_dir)[0]}", self.importsDest, "cuda" if self.settings.getSetting("accelerate_on_gpu") == "true" else "cpu"), daemon=True)
+                thread = threading.Thread(target=MISSTpreprocess.preprocess, args=(self, f"{temp_dir}/{os.listdir(temp_dir)[0]}", self.importsDest, self.settings.getSetting("chosen_model"), "cuda" if self.settings.getSetting("accelerate_on_gpu") == "true" else "cpu"), daemon=True)
                 thread.start()
                 thread.join()
                 os.remove(os.path.join(temp_dir, os.listdir(temp_dir)[0]))
@@ -1158,7 +1155,7 @@ class MISSTapp(customtkinter.CTk):
                 self.console.endUpdate()
                 self.console.addLine("\nMISST> Downloaded.")
                 self.retrieve_metadata(temp_dir=temp_dir)
-                thread = threading.Thread(target=MISSTpreprocess.preprocess, args=(self, f"{temp_dir}/{os.listdir(temp_dir)[0]}", self.importsDest, "cuda" if self.settings.getSetting("accelerate_on_gpu") == "true" else "cpu"), daemon=True)
+                thread = threading.Thread(target=MISSTpreprocess.preprocess, args=(self, f"{temp_dir}/{os.listdir(temp_dir)[0]}", self.importsDest, self.settings.getSetting("chosen_model"), "cuda" if self.settings.getSetting("accelerate_on_gpu") == "true" else "cpu"), daemon=True)
                 thread.start()
                 thread.join()
                 os.remove(os.path.join(temp_dir, os.listdir(temp_dir)[0]))
@@ -1175,6 +1172,14 @@ class MISSTapp(customtkinter.CTk):
             self.console.update("\nMISST> waiting")
             return
         return
+
+    def change_model(self, model):
+        self.settings.setSetting("chosen_model", model)
+        self.setup = MISSTSetup(self, self.settings.getSetting("chosen_model"))
+        try:
+            self.setup.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
+        except:
+            pass
 
     def draw_settings_frame(self) -> None:
         """
@@ -1195,16 +1200,19 @@ class MISSTapp(customtkinter.CTk):
         )
         self.setting_header.place(relx=0.5, rely=0.1, anchor=tkinter.CENTER)
 
-        self.general_frame = customtkinter.CTkFrame(master=self.settings_frame, width=300, height=125)
-        self.general_frame.place(relx=0.5, rely=0.35, anchor=tkinter.CENTER)
+        self.general_frame = customtkinter.CTkTabview(master=self.settings_frame, width=300, height=160)
+        self.general_frame.place(relx=0.5, rely=0.34, anchor=tkinter.CENTER)
+
+        self.general_frame.add("General")
+        self.general_frame.add("Advanced")
 
         self.general_header = customtkinter.CTkLabel(
-            master=self.general_frame, text="General", font=(self.FONT, -16)
+            master=self.general_frame.tab("General"), text="General", font=(self.FONT, -16)
         )
         self.general_header.place(relx=0.2, rely=0.15, anchor=tkinter.CENTER)
 
         self.autoplay_box = customtkinter.CTkSwitch(
-            master=self.general_frame,
+            master=self.general_frame.tab("General"),
             text="Autoplay",
             font=(self.FONT, -12),
             command=lambda: MISSThelpers.autoplay_event(self),
@@ -1215,7 +1223,7 @@ class MISSTapp(customtkinter.CTk):
             self.autoplay_box.select()
 
         self.rpc_box = customtkinter.CTkSwitch(
-            master=self.general_frame,
+            master=self.general_frame.tab("General"),
             text="Discord RPC",
             font=(self.FONT, -12),
             command=lambda: MISSThelpers.rpc_event(self),
@@ -1226,7 +1234,7 @@ class MISSTapp(customtkinter.CTk):
             self.rpc_box.select()
 
         self.preprocess_method_box = customtkinter.CTkSwitch(
-            master=self.general_frame,
+            master=self.general_frame.tab("General"),
             text="Accelerate on GPU?",
             font=(self.FONT, -12),
             command=lambda: threading.Thread(target=MISSThelpers.accelerate_event, args=(self,), daemon=True).start(),
@@ -1238,8 +1246,8 @@ class MISSTapp(customtkinter.CTk):
 
         ### General Settings ###
 
-        self.storage_frame = customtkinter.CTkFrame(master=self.settings_frame, width=300, height=125)
-        self.storage_frame.place(relx=0.5, rely=0.75, anchor=tkinter.CENTER)
+        self.storage_frame = customtkinter.CTkFrame(master=self.settings_frame, width=300, height=140)
+        self.storage_frame.place(relx=0.5, rely=0.76, anchor=tkinter.CENTER)
 
         self.storage_header = customtkinter.CTkLabel(
             master=self.storage_frame, text="Storage", font=(self.FONT, -16)
@@ -1280,7 +1288,7 @@ class MISSTapp(customtkinter.CTk):
             font=(self.FONT, -12),
             width=15,
             height=2,
-            command=lambda: MISSThelpers.clearDownloads(self),
+            command=lambda: MISSThelpers.clearDownloads(self)
         )
         self.clear_downloads_button.place(relx=0.75, rely=0.475, anchor=tkinter.CENTER)
 
@@ -1314,6 +1322,48 @@ class MISSTapp(customtkinter.CTk):
         )
         self.change_location_button.place(relx=0.75, rely=0.775, anchor=tkinter.CENTER)
 
+        ### Advanced Settings ###
+        self.advanced_header = customtkinter.CTkLabel(
+            master=self.general_frame.tab("Advanced"), text="Advanced", font=(self.FONT, -16)
+        )
+        self.advanced_header.place(relx=0.2, rely=0.15, anchor=tkinter.CENTER)
+
+        self.chosen_model_header = customtkinter.CTkLabel(
+            master=self.general_frame.tab("Advanced"), text="Model:", font=(self.FONT, -12, "bold")
+        )
+        self.chosen_model_header.place(relx=0.2, rely=0.45, anchor=tkinter.CENTER)
+
+        self.model_select = customtkinter.CTkOptionMenu(
+            master=self.general_frame.tab("Advanced"), 
+            font=(self.FONT, -12), 
+            width=175, 
+            values=["hdemucs_mmi",
+                    "htdemucs",
+                    "htdemucs_ft",
+                    "mdx",
+                    "mdx_extra",
+                    "mdx_extra_q",
+                    "mdx_q",
+                    "repro_mdx_a",
+                    "repro_mdx_a_hybrid_only",
+                    "repro_mdx_a_time_only"]
+        )
+        self.model_select.place(relx=0.65, rely=0.45, anchor=tkinter.CENTER)
+        self.model_select.set(self.settings.getSetting("chosen_model"))
+
+        self.save_model_button = customtkinter.CTkButton(
+            master=self.general_frame.tab("Advanced"),
+            text="Download and Save Model",
+            font=(self.FONT, -12),
+            command=lambda: self.change_model(self.model_select.get()),
+            corner_radius=10,
+            height=15,
+            width=30,
+        )
+        self.save_model_button.place(relx=0.5, rely=0.8, anchor=tkinter.CENTER)
+
+        ### Theme Settings ###
+
         self.theme_frame = customtkinter.CTkFrame(master=self.settings_window, width=350, height=380)
         self.theme_frame.place(relx=0.75, rely=0.47, anchor=tkinter.CENTER)
 
@@ -1322,8 +1372,8 @@ class MISSTapp(customtkinter.CTk):
         )
         self.theme_header.place(relx=0.5, rely=0.1, anchor=tkinter.CENTER)
 
-        self.theme_frame_mini = customtkinter.CTkFrame(master=self.theme_frame, width=300, height=275)
-        self.theme_frame_mini.place(relx=0.5, rely=0.55, anchor=tkinter.CENTER)
+        self.theme_frame_mini = customtkinter.CTkFrame(master=self.theme_frame, width=300, height=292)
+        self.theme_frame_mini.place(relx=0.5, rely=0.56, anchor=tkinter.CENTER)
 
         self.button_light = customtkinter.CTkButton(
             master=self.theme_frame_mini,
