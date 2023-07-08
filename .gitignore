@@ -4,9 +4,6 @@ MISST/__pycache__/*
 MISST/MISST.log
 MISST/config.json
 MISST/separated/*
-MISST/Pretrained/e51eebcc-c1b80bdd.th
-MISST/Pretrained/a1d90b5c-ae9d2452.th
-MISST/Pretrained/5d2d6c55-db83574e.th
-MISST/Pretrained/cfa93e08-61801ae1.th
+MISST/Pretrained/*.th
 output/*
 Build/7za.exe
