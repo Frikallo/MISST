@@ -1,10 +1,10 @@
 import os
 import threading
 import typing
+from pathlib import Path
 
 import customtkinter
 import requests
-from pathlib import Path
 
 
 class MISSTSetup(customtkinter.CTkFrame):

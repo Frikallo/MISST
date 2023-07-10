@@ -1,12 +1,15 @@
+import base64
+import io
 import threading
+from typing import List
 
+import music_tag  # for exporting song metadata
 import numpy as np
 import pyaudio
 import soundfile as sf
-from typing import List
-from scipy.signal import lfilter, butter
-
 from MISSTsettings import MISSTsettings
+from scipy.signal import butter, lfilter
+
 
 class MISSTplayer:
     """
@@ -287,7 +290,7 @@ class MISSTplayer:
         """
         self.positions[stream_index] = position
 
-    def save(self, files:List[str], volumes:List[int], filename:str) -> None:
+    def save(self, files:List[str], volumes:List[int], filename:str, cover_art:bytes=None) -> None:
         """
         Save the audio
 
@@ -312,6 +315,13 @@ class MISSTplayer:
         overlapped_data = np.sum(adjusted_data, axis=0)
 
         sf.write(filename, overlapped_data, sample_rate)
+        if cover_art is not None and cover_art != "null":
+            byte_data = base64.b64decode(cover_art)
+            byte_stream = io.BytesIO(byte_data)
+            byte_stream.seek(0)
+            f = music_tag.load_file(filename)
+            f['artwork'] = byte_stream.read() 
+            f.save()
 
     def pause(self) -> None:
         """

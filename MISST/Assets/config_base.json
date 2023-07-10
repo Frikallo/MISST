@@ -14,7 +14,7 @@
     "rpc": "true", 
     "autoplay": "true", 
     "accelerate_on_gpu": "false", 
-    "chosen_model": "mdx_extra",
+    "chosen_model": "htdemucs",
     "importsDest": "./separated", 
     "eq": "false", 
     "eq_move_sliders_together": "true", 

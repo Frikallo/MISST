@@ -20,18 +20,17 @@ import customtkinter
 import GPUtil
 import music_tag
 import psutil
-from lyrics_extractor import SongLyrics
-from PIL import Image
-from pypresence import Presence
-from pathlib import Path
-
 from __version__ import __version__ as version
+from lyrics_extractor import SongLyrics
 from MISSThelpers import MISSTconsole, MISSThelpers
 from MISSTlogger import MISSTlogger
 from MISSTplayer import MISSTplayer
 from MISSTpreprocess import MISSTpreprocess
 from MISSTsettings import MISSTconfig, MISSTsettings
 from MISSTSetup import MISSTSetup
+from MISSTupdate import MISSTupdater
+from PIL import Image
+from pypresence import Presence
 
 customtkinter.set_appearance_mode("System")  # Modes: "System" (standard), "Dark", "Light"
 customtkinter.set_default_color_theme("./Assets/Themes/MISST.json")  # Themes: "blue" (standard), "green", "dark-blue"
@@ -137,7 +136,13 @@ class MISSTapp(customtkinter.CTk):
         self.FONT = "Roboto Medium"
         self.createWidgets()
 
-        # Check if setup is needed
+        # Check if setup is needed (next version will have a better way of doing this)
+        # updater = MISSTupdater(self)
+        # try:
+        #     updater.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
+        # except:
+        #     pass
+
         required_files = MISSTSetup.get_model_urls(self, self.settings.getSetting("chosen_model"))
         required_files = [file.split("/")[-1] for file in required_files]
         if not all([os.path.isfile(f"Pretrained/{file}") for file in required_files]):
@@ -1186,12 +1191,12 @@ class MISSTapp(customtkinter.CTk):
         Draws the settings frame.
         """
         self.settings_window = customtkinter.CTkFrame(
-            master=self, width=self.WIDTH * (755 / self.WIDTH), height=self.HEIGHT * (430 / self.HEIGHT)
+            master=self, width=self.WIDTH * (755 / self.WIDTH), height=self.HEIGHT * (430 / self.HEIGHT), corner_radius=0
         )
         self.settings_window.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
 
         self.settings_frame = customtkinter.CTkFrame(
-            master=self.settings_window, width=350, height=380
+            master=self.settings_window, width=350, height=380, corner_radius=10
         )
         self.settings_frame.place(relx=0.25, rely=0.47, anchor=tkinter.CENTER)
 
@@ -1662,7 +1667,7 @@ class MISSTapp(customtkinter.CTk):
                 songs_box.configure(state=tkinter.DISABLED)
                 entry_val = search_entry.get()
 
-    def play(self, dir:str) -> None:  
+    def play(self, dir:str) -> None:
         """
         Plays a song
 
@@ -1730,7 +1735,8 @@ class MISSTapp(customtkinter.CTk):
             sliders[2].get(),
             sliders[1].get(),
             sliders[3].get()
-        ], file)
+        ], file, MISSTconfig.getConfig(self, f"{self.importsDest}/{songname}")["image_raw"]
+        )
         self.export_button.configure(text="Exported!")
         threading.Timer(1.5, lambda: self.export_button.configure(text="Export")).start()
 
@@ -1868,6 +1874,10 @@ class MISSTapp(customtkinter.CTk):
             audioPath (str): The path to the song
             start_ms (int): The start time of the song
         """
+        try:
+            self.lyrics_window.destroy() # Destroy the lyrics window if it exists
+        except:
+            pass
         try:
             self.next_button.configure(state="normal")
             self.previous_button.configure(state="normal")
