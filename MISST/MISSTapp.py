@@ -28,7 +28,7 @@ from MISSTplayer import MISSTplayer
 from MISSTpreprocess import MISSTpreprocess
 from MISSTsettings import MISSTconfig, MISSTsettings
 from MISSTSetup import MISSTSetup
-from MISSTupdate import MISSTupdater
+# from MISSTupdate import MISSTupdater (commented out for now)
 from PIL import Image
 from pypresence import Presence
 
@@ -250,7 +250,7 @@ class MISSTapp(customtkinter.CTk):
 
         self.playpause_button = customtkinter.CTkButton(
             master=self.interface_frame,
-            image=self.ImageCache["playing"],
+            image=self.ImageCache["paused"],
             command=lambda: self.playpause(),
             text="",
             width=5,
@@ -601,6 +601,19 @@ class MISSTapp(customtkinter.CTk):
         )
         self.effects_checkbox.place(relx=0.5, rely=0.9, anchor=tkinter.CENTER)
         self.effects_checkbox.configure(state=tkinter.DISABLED)
+
+        self.effects_button = customtkinter.CTkButton(
+            master=self.center_frame,
+            text="Effects",
+            font=(self.FONT, -12, "underline"),
+            command=self.draw_effects_frame,
+            fg_color=self.center_frame.cget("fg_color"),
+            hover_color=self.center_frame.cget("bg_color"),
+            width=25,
+            height=25,
+        )
+        self.effects_button.place(relx=0.53, rely=0.9, anchor=tkinter.CENTER)
+        self.effects_button.configure(state=tkinter.DISABLED)
 
         ## SOUTH FRAME ----------------------------------------------------------------------------------------------------
 
@@ -1501,13 +1514,13 @@ class MISSTapp(customtkinter.CTk):
         """
         Draws the effects frame.
         """
-        self.eq_window = customtkinter.CTkFrame(
+        self.effects_window = customtkinter.CTkFrame(
             master=self, width=self.WIDTH * (755 / self.WIDTH), height=self.HEIGHT * (430 / self.HEIGHT)
         )
-        self.eq_window.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
+        self.effects_window.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
 
-        self.eq_frame = customtkinter.CTkFrame(master=self.eq_window, width=450, height=350)
-        self.eq_frame.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
+        self.eq_frame = customtkinter.CTkFrame(master=self.effects_window, width=450, height=350)
+        self.eq_frame.place(relx=0.35, rely=0.5, anchor=tkinter.CENTER)
 
         self.eq_header = customtkinter.CTkLabel(
             master=self.eq_frame, text="Equalizer", font=(self.FONT, -16)
@@ -1516,10 +1529,10 @@ class MISSTapp(customtkinter.CTk):
 
         self.return_button = customtkinter.CTkButton(
             master=self.eq_frame,
-            command=lambda: self.eq_window.destroy(),
+            command=lambda: self.effects_window.destroy(),
             image=self.ImageCache["return"],
             fg_color='transparent',
-            hover_color=self.eq_window.cget("bg_color"),
+            hover_color=self.effects_window.cget("bg_color"),
             text="",
             font=(self.FONT, -14),
             width=5,
@@ -1603,7 +1616,112 @@ class MISSTapp(customtkinter.CTk):
         else:
             self.eqOnOffButton.deselect()
             self.eqOnOff()
-        
+
+        # Effects
+        self.effects_frame = customtkinter.CTkFrame(master=self.effects_window, width=200, height=350)
+        self.effects_frame.place(relx=0.82, rely=0.5, anchor=tkinter.CENTER)
+
+        self.effects_header = customtkinter.CTkLabel(
+            master=self.effects_frame, text="Effects", font=(self.FONT, -16)
+        )
+        self.effects_header.place(relx=0.5, rely=0.12, anchor=tkinter.CENTER)
+
+        def setEffect(effect, value):
+            self.settings.setSetting(effect, f"{value}")
+            if effect == "speed":
+                self.speed_slider.set(float(value))
+            elif effect == "pitch":
+                self.pitch_slider.set(float(value))
+            elif effect == "bass":
+                self.bass_slider.set(float(value))
+            elif effect == "reverb":
+                self.reverb_slider.set(float(value))
+
+        # Effect - Speed
+        self.speed_header = customtkinter.CTkLabel(
+            master=self.effects_frame, text="Speed", font=(self.FONT, -14)
+        )
+        self.speed_header.place(relx=0.17, rely=0.23, anchor=tkinter.CENTER)
+
+        self.speed_slider = customtkinter.CTkSlider(
+            master=self.effects_frame,
+            from_=0.25,
+            to=1.75,
+            number_of_steps=6,
+            width=165,
+            height=10,
+            command=lambda x: setEffect("speed", x)
+        )
+        self.speed_slider.set(float(self.settings.getSetting("speed")))
+        self.speed_slider.place(relx=0.5, rely=0.3, anchor=tkinter.CENTER)
+
+        speeds = [0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 1.75]
+        # create little indicators
+        val = 0
+        for value in speeds:
+            speed_label = customtkinter.CTkLabel(
+                master=self.effects_frame, text=value, font=(self.FONT, -10), state=tkinter.DISABLED
+            )
+            val += 0.125
+            speed_label.place(relx=val, rely=0.37, anchor=tkinter.CENTER)
+
+        # Effect - Pitch
+        self.pitch_header = customtkinter.CTkLabel(
+            master=self.effects_frame, text="Pitch", font=(self.FONT, -14)
+        )
+        self.pitch_header.place(relx=0.17, rely=0.48, anchor=tkinter.CENTER)
+
+        self.pitch_slider = customtkinter.CTkSlider(
+            master=self.effects_frame,
+            from_=-1,
+            to=1,
+            number_of_steps=8,
+            width=165,
+            height=10,
+            command=lambda x: setEffect("pitch", x)
+        )
+        self.pitch_slider.set(float(self.settings.getSetting("pitch")))
+        self.pitch_slider.place(relx=0.5, rely=0.55, anchor=tkinter.CENTER)
+
+        pitch_factors = [-1.0, -0.5, 0.0, 0.5, 1.0]
+        # create little indicators
+        val = -0.06
+        for value in pitch_factors:
+            speed_label = customtkinter.CTkLabel(
+                master=self.effects_frame, text=value, font=(self.FONT, -10), state=tkinter.DISABLED
+            )
+            val += 0.19
+            speed_label.place(relx=val, rely=0.62, anchor=tkinter.CENTER)
+
+        # Effect - Reverb
+        self.reverb_header = customtkinter.CTkLabel(
+            master=self.effects_frame, text="Reverb", font=(self.FONT, -14)
+        )
+        self.reverb_header.place(relx=0.17, rely=0.73, anchor=tkinter.CENTER)
+
+        self.reverb_slider = customtkinter.CTkSlider(
+            master=self.effects_frame,
+            from_=0,
+            to=1.5,
+            number_of_steps=6,
+            width=165,
+            height=10,
+            command=lambda x: setEffect("reverb", x)
+        )
+        self.reverb_slider.set(float(self.settings.getSetting("reverb")))
+        self.reverb_slider.place(relx=0.5, rely=0.8, anchor=tkinter.CENTER)
+
+        reverb_factors = [0.0, 0.25, 0.5, 0.75, 1.0, 1.25, 1.5]
+        # create little indicators
+        val = 0
+        for value in reverb_factors:
+            value = value if value != 0 else "Off"
+            reverb_label = customtkinter.CTkLabel(
+                master=self.effects_frame, text=value, font=(self.FONT, -10), state=tkinter.DISABLED
+            )
+            val += 0.125
+            reverb_label.place(relx=val, rely=0.87, anchor=tkinter.CENTER)
+    
     def imports_check(self, search_entry:customtkinter.CTkEntry, songs_box:customtkinter.CTkTextbox) -> None:
         """
         Checks for new songs in the imports folder and adds them to the songs box
@@ -1832,6 +1950,7 @@ class MISSTapp(customtkinter.CTk):
             self.playing = False
             self.progressbar.configure(state=tkinter.DISABLED)
             self.effects_checkbox.configure(state=tkinter.DISABLED)
+            self.effects_button.configure(state=tkinter.DISABLED)
             self.effects()
         else:
             self.playpause_button.configure(state="normal", image=self.ImageCache["playing"])
@@ -1839,6 +1958,7 @@ class MISSTapp(customtkinter.CTk):
             self.playing = True
             self.progressbar.configure(state="normal")
             self.effects_checkbox.configure(state="normal")
+            self.effects_button.configure(state="normal")
 
     def loopEvent(self) -> None:
         """
@@ -1883,6 +2003,7 @@ class MISSTapp(customtkinter.CTk):
             self.previous_button.configure(state="normal")
             self.playpause_button.configure(state="normal")
             self.effects_checkbox.configure(state="normal")
+            self.effects_button.configure(state="normal")
             self.effects_checkbox.deselect()
             self.effects()
 
@@ -1944,6 +2065,7 @@ class MISSTapp(customtkinter.CTk):
             self.playing = False
             self.progressbar.configure(state=tkinter.DISABLED)
             self.effects_checkbox.configure(state=tkinter.DISABLED)
+            self.effects_button.configure(state=tkinter.DISABLED)
             self.progressbar.set(0)
             self.progress_label_left.configure(text="00:00")
             self.progress_label_right.configure(text="00:00")

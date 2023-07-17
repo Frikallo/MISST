@@ -8,7 +8,7 @@ import numpy as np
 import pyaudio
 import soundfile as sf
 from MISSTsettings import MISSTsettings
-from scipy.signal import butter, lfilter
+from scipy.signal import fftconvolve, butter, filtfilt
 
 
 class MISSTplayer:
@@ -45,7 +45,11 @@ class MISSTplayer:
                                  rate=self.frame_rate,
                                  output=True)
             self.streams.append(stream)
-        
+
+        reverb_length = int(self.frame_rate * 0.3)
+        self.impulse_response = self.generate_impulse_response(reverb_length, 0.5)
+        self.reverb_tails = [np.zeros(self.chunk_size, dtype=np.float32) for _ in self.streams]
+
     def play(self) -> None:
         """
         Play the audio
@@ -58,7 +62,7 @@ class MISSTplayer:
                     stream.write(data)
                 else:
                     break
-        
+    
     def get_data(self, stream_index:int) -> bytes:
         """
         Get the audio data
@@ -73,15 +77,15 @@ class MISSTplayer:
             if self.effects == True:
                 try:
                     data = self.apply_effects(data, float(self.settings.getSetting("speed")),
-                                                    float(self.settings.getSetting("pitch")),
                                                     float(self.settings.getSetting("reverb")),
-                                                    float(self.settings.getSetting("bass")))
+                                                    float(self.settings.getSetting("pitch")),
+                                                    stream_index)
                 except:
                     # json error
                     pass
             try:
                 if self.eq() == True:
-                    data = self.apply_eq(data)  # apply eq last so it can be applied to nightcore data as well
+                        data = self.apply_eq(data)  # apply eq last so it can be applied to nightcore data as well
             except:
                 # json error
                 pass
@@ -111,16 +115,16 @@ class MISSTplayer:
             data[i:i+2] = sample.to_bytes(2, byteorder='little', signed=True)
         return bytes(data)
     
-    def apply_effects(self, data:bytes, speed_factor:float, pitch_factor:float, reverb_factor:float, bass_factor:float) -> bytes:
+    def apply_effects(self, data: bytes, speed_factor: float, reverb_factor: float, pitch_shift: float, stream_index:int) -> bytes:
         """
         Modify the audio
 
         Args:
             data (bytes): Audio data
             speed_factor (float): Speed value between 0.5 and 2.0 (0.5 = half speed, 2.0 = double speed)
-            pitch_factor (float): Pitch value between 0.5 and 2.0 (0.5 = 1 octave down, 2.0 = 1 octave up)
             reverb_factor (float): Reverb value between 0.0 and 1.0 (0.0 = no reverb, 1.0 = full reverb)
-            bass_factor (float): Bass value between 0.0 and 1.0 (0.0 = no bass, 1.0 = full bass)
+            delay_time (float): Delay time in seconds
+            stream_index (int): Index of the stream
         """
         # Convert bytes to numpy array
         samples = np.frombuffer(data, dtype=np.int16)
@@ -132,26 +136,27 @@ class MISSTplayer:
         samples = self.modify_speed(samples, speed_factor)
 
         # Modify pitch
-        samples = self.modify_pitch(samples, pitch_factor)
+        samples = self.modify_pitch(samples, pitch_shift)
 
-        # Apply reverb
-        samples = self.apply_reverb(samples, reverb_factor)
-
-        # Adjust bass
-        samples = self.adjust_bass(samples, bass_factor)
+        # Add reverb
+        samples = self.apply_reverb(samples, reverb_factor, stream_index)
 
         # Convert back to bytes
         samples = samples.astype(np.int16)
         samples = np.repeat(samples, 2)
-        
+
         return samples.tobytes()
     
-    def modify_speed(self, samples, speed_factor):
-        if speed_factor <= 0.5:
-            speed_factor = 0.5
-        elif speed_factor >= 2.0:
-            speed_factor = 2.0
+    def modify_speed(self, samples:np.ndarray, speed_factor:float) -> bytes:
+        """
+        Modify the speed of the audio
 
+        Args:
+            samples (np.ndarray): Audio data
+            speed_factor (float): Speed value between 0.5 and 2.0 (0.5 = half speed, 2.0 = double speed)
+        """
+        if speed_factor == 1.0:
+            return samples
         num_samples = len(samples)
         new_num_samples = int(num_samples / speed_factor)
 
@@ -164,57 +169,99 @@ class MISSTplayer:
 
         return resampled
 
-    def modify_pitch(self, samples, pitch_factor):
-        if pitch_factor <= 0.5:
-            pitch_factor = 0.5
-        elif pitch_factor >= 2.0:
-            pitch_factor = 2.0
+    def apply_antialiasing_filter(self, samples: np.ndarray, cutoff_freq: float, frame_rate: int) -> np.ndarray:
+        """
+        Apply an anti-aliasing filter to the audio
 
-        # Compute the new pitch-shifted samples
-        new_samples = np.interp(
-            np.arange(0, len(samples), pitch_factor),
-            np.arange(len(samples)),
-            samples
-        )
+        Args:
+            samples (np.ndarray): Audio data
+            cutoff_freq (float): Cutoff frequency in Hz
+            frame_rate (int): Frame rate in Hz
+        """
+        # Create a low-pass Butterworth filter
+        nyquist = 0.5 * frame_rate
+        normal_cutoff = cutoff_freq / nyquist
+        b, a = butter(8, normal_cutoff, btype='low', analog=False)
+        
+        # Apply the filter to the samples
+        filtered_samples = filtfilt(b, a, samples, axis=0)
+        return filtered_samples
 
-        return new_samples
+    def modify_pitch(self, samples:np.ndarray, pitch_shift:float) -> bytes:
+        """
+        Modify the pitch of the audio
 
-    def apply_reverb(self, samples, reverb_factor):
-        if reverb_factor < 0.0:
-            reverb_factor = 0.0
-        elif reverb_factor > 1.0:
-            reverb_factor = 1.0
+        Args:
+            samples (np.ndarray): Audio data
+            pitch_shift (float): Pitch value between -12.0 and 12.0 (-12.0 = one octave down, 12.0 = one octave up)
+        """
+        if pitch_shift == 0:
+            return samples
 
-        # Apply reverb using a simple convolution with a decay envelope
-        decay = np.zeros_like(samples)
-        decay[0] = 1.0
-        decay[-1] = reverb_factor
-        reverb = lfilter([1], [1, -reverb_factor], samples)
-        reverb = lfilter(decay, [1], reverb)
+        pitch_shift *= 12  # Convert pitch shift from octaves to semitones
+        samples = samples.astype(np.float32) / np.iinfo(np.int16).max  # Convert samples to float32 between -1.0 and 1.0
 
-        return reverb
+        # Continue with the pitch shift as before
+        shift_ratio = 2 ** (pitch_shift / 12)  # Shift by half-steps (semitones)
+        time_axis = np.arange(samples.shape[0]) / self.frame_rate
+        shifted_audio = np.interp(time_axis * shift_ratio, time_axis, samples)
 
-    def adjust_bass(self, samples, bass_factor):
-        if bass_factor < 0.0:
-            bass_factor = 0.0
-        elif bass_factor > 1.0:
-            bass_factor = 1.0
+        # Apply an anti-aliasing filter to attenuate high frequencies
+        cutoff_freq = 0.9 * self.frame_rate / 2.0  # You can adjust the cutoff frequency as needed
+        shifted_audio = self.apply_antialiasing_filter(shifted_audio, cutoff_freq, self.frame_rate)
 
-        # Apply a low-pass filter to boost the bass frequencies
-        cutoff = 300  # Frequency cutoff for the low-pass filter
-        b, a = self.butter_lowpass(cutoff, fs=44100)  # Adjust the sampling rate if needed
-        filtered = lfilter(b, a, samples)
+        shifted_audio = np.clip(shifted_audio, -1.0, 1.0)  # Clip samples to prevent overflow
+        
+        # Convert samples back to 16-bit integer range
+        return shifted_audio * np.iinfo(np.int16).max
+    
+    def generate_impulse_response(self, length:int, decay_factor:float) -> np.ndarray:
+        """
+        Generate impulse response
 
-        # Boost the bass frequencies
-        boosted = samples + bass_factor * (samples - filtered)
+        Args:
+            length (int): Length of the impulse response in samples (44100 samples = 1 second)
+            decay_factor (float): Decay factor between 0.0 and 1.0 (0.0 = no decay, 1.0 = full decay)
+        """
+        impulse_response = np.zeros(length, dtype=np.float32)
+        impulse_response[0] = 1.0
 
-        return boosted
+        # Generate decaying exponential tail
+        for i in range(1, length):
+            impulse_response[i] = impulse_response[i - 1] * decay_factor
 
-    def butter_lowpass(self, cutoff, fs, order=5):
-        nyquist = 0.5 * fs
-        normal_cutoff = cutoff / nyquist
-        b, a = butter(order, normal_cutoff, btype='low', analog=False)
-        return b, a
+        # Add some random noise for early reflections
+        impulse_response += np.random.normal(0, 0.05, length)
+        return impulse_response
+
+    def apply_reverb(self, samples: np.ndarray, reverb_factor: float, stream_index: int) -> bytes:
+        """
+        Add reverb to the audio
+
+        Args:
+            samples (np.ndarray): Audio data
+            reverb_factor (float): Reverb value between 0.0 and 1.0 (0.0 = no reverb, 1.0 = full reverb)
+            stream_index (int): Index of the stream
+        """
+        if reverb_factor == 0:
+            return samples
+
+        samples = samples.astype(np.float32) / np.iinfo(np.int16).max  # Convert samples to float32 between -1.0 and 1.0
+
+        # Apply reverb impulse response to the current chunk
+        reverb_audio = fftconvolve(samples, self.impulse_response, mode='full')
+
+        # Concatenate previous reverb tail with the current reverb tail
+        reverb_audio[:len(self.reverb_tails[stream_index])] += self.reverb_tails[stream_index]
+
+        # Store the current reverb tail for the next chunk
+        self.reverb_tails[stream_index] = reverb_audio[len(samples):]
+
+        mixed_audio = samples * (1 - reverb_factor) + reverb_audio[:len(samples)] * reverb_factor  # Mix original and reverb audio
+        mixed_audio = np.clip(mixed_audio, -1.0, 1.0)  # Clip samples to prevent overflow
+
+        # Convert samples back to 16-bit integer range
+        return mixed_audio * np.iinfo(np.int16).max
 
     def apply_eq(self, data:bytes) -> bytes:
         """
@@ -258,6 +305,9 @@ class MISSTplayer:
         audio_fft = np.fft.rfft(audio_data)
         audio_fft *= response_linear[:len(audio_fft)]
         equalized_audio = np.fft.irfft(audio_fft).astype(np.int16)
+
+        # Clip the audio to avoid distortion
+        equalized_audio = np.clip(equalized_audio, -32768, 32767)
 
         return equalized_audio.tobytes()
     

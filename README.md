@@ -29,6 +29,7 @@ This project is OpenSource, feel free to use, study and/or send pull request.
 
 ## Objectives:
 - [x] Import songs and playlists from your music library
+- [x] Easy to use UI
 - [x] Play your songs and playlists
 - [x] Extract and manipulate the 4 core stems from your audio files as they play
 - [x] Discord rich presence to show off your music to your friends
@@ -39,39 +40,27 @@ This project is OpenSource, feel free to use, study and/or send pull request.
 - [x] Additional Efects like nightcore
 - [x] Easy to use equalizer
 - [x] Preprocessing service available on both CPU and GPU
+- [x] Ability to change the pre-trained model used for separation
 - [x] Small save size, comparable to the size of the inputted audio
 - [ ] Docker image (WIP)
-- [ ] Make it as fast as possible (Preprocessing, Model loading, etc.) (Not a priority)
 - [ ] Stable on Windows, Linux and MacOS (WIP)
-- [ ] Reasonable download size 
 - [ ] Proper installer/updater (Not a priority)
 
-
-## Benchmark
-
-The audio processing performance was evaluated using an NVIDIA GeForce RTX 2070 SUPER with 8GB VRAM and an AMD Ryzen 3700X 8-Core Processor. This test aimed to compare the processing time of audio on a CPU versus a GPU.
-
-Here are the results of the test:
-
-| Source                                                           | Source Length | CPU       | GPU       |
-|------------------------------------------------------------------|---------------|-----------|-----------|
-| [Frank Ocean - Ivy](https://www.youtube.com/watch?v=AE005nZeF-A) | 4m 09.00s     | 3m 42.79s | 0m 42.06s |
-
 ## Installation
-As of version 3.0.3, MISST is only available on windows with guaranteed compatibility. Until a later release, if you are not on a windows device please refer to [Manual Installation](https://github.com/Frikallo/MISST/#manual-installation). Otherwise, refer to the latest [Release](https://github.com/Frikallo/MISST/releases/latest)
+As of version 3.1.0, MISST is only available on windows with guaranteed compatibility. Until a later release, if you are not on a windows device please refer to [Manual Installation](https://github.com/Frikallo/MISST/#manual-installation). Otherwise, refer to the latest [Release](https://github.com/Frikallo/MISST/releases/latest)
 
 ## Manual Installation
-These instructions are for those installing MISST v3.0.2 **manually** only.
+These instructions are for those installing MISST v3.1.0 **manually** only.
 
-1. Download & install Python 3.9 or lower (but no higher than 3.9.9) [here](https://www.python.org/downloads/)
+1. Download & install Python 3.9 or higher (but no lower than 3.9.0) [here](https://www.python.org/downloads/)
     - **Note:** Ensure the *"Add Python to PATH"* box is checked
 2. Download the Source code [here](https://github.com/Frikallo/MISST/releases/latest)
 3. Open the command prompt from the MISST directory and run the following commands, separately - 
 
 ```
-$ python3.9 -m venv ./venv
+$ python3 -m venv ./venv
 $ pip install -r requirements.txt
-$ python3.9 MISSTapp.py
+$ python3 MISSTapp.py
 ```
 - **Note:** Install `requirements-minimal.txt` if you don't intend to accelerate preprocessing with your GPU.
 
@@ -80,6 +69,16 @@ From here you should be able to open and run the MISSTapp.py file
 - CUDA 
 
     - CUDA must be installed and configured for the application to process any track with GPU acceleration. You will need to look up instruction on how to configure it on your operating system. Click [here](https://developer.nvidia.com/cuda-downloads) for nvidia's installation guide.
+
+## Benchmark
+
+The audio processing performance was evaluated using an **NVIDIA GeForce RTX 2070 SUPER** with **8GB VRAM** and an **AMD Ryzen 3700X 8-Core Processor** on the htdemucs pretrained model. This test aimed to compare the processing time of audio on a CPU versus a GPU.
+
+Here are the results of the test:
+
+| Source                                                           | Source Length | CPU       | GPU       | Model     |
+|------------------------------------------------------------------|---------------|-----------|-----------| --------- |
+| [Frank Ocean - Ivy](https://www.youtube.com/watch?v=AE005nZeF-A) | 4m 09.00s     | 2m 22.16s | 0m 28.04s | htdemucs  |
 
 ## License
 

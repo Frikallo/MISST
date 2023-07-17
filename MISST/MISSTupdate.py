@@ -10,8 +10,10 @@ import requests
 import torch
 from __version__ import __version__ as version
 
+# Unviable for now, will be implemented in the future (maybe) 
+# Right now I cant figure out how to update the main script without closing it first
 
-class MISSTupdater(customtkinter.CTkFrame):
+class MISSTupdater(customtkinter.CTkFrame): 
     """
     Class for handling the update of MISST
     """
