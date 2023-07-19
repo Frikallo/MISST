@@ -84,6 +84,10 @@
   {
    "optionDest": "datas",
    "value": "F:/Repos/MISST/MISST/Pretrained;Pretrained/"
+  },
+  {
+    "optionDest": "datas",
+    "value": "F:/Repos/MISST/venv/Lib/site-packages/demucs;demucs/"
   }
  ],
  "nonPyinstallerOptions": {

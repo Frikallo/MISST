@@ -8,7 +8,7 @@ import numpy as np
 import pyaudio
 import soundfile as sf
 from MISSTsettings import MISSTsettings
-from scipy.signal import fftconvolve, butter, filtfilt
+from scipy.signal import butter, fftconvolve, filtfilt
 
 
 class MISSTplayer:

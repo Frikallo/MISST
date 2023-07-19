@@ -7,6 +7,7 @@ import datetime
 import io
 import random
 import shutil
+import signal
 import subprocess
 import sys
 import tempfile
@@ -167,6 +168,7 @@ class MISSTapp(customtkinter.CTk):
             
             # Terminate the current process
             self.logger.info("MISST closed.")
+            os.kill(current_pid, signal.SIGTERM)
             sys.exit()
 
         self.protocol("WM_DELETE_WINDOW", on_closing)
@@ -1051,7 +1053,7 @@ class MISSTapp(customtkinter.CTk):
             if self.import_Spotify_var.get() == "on":
                 self.import_file_button.configure(state=tkinter.DISABLED)
                 self.import_button.configure(state=tkinter.DISABLED)
-                if "spotify.com" not in url:
+                if "https://open.spotify.com/track" not in url:
                     self.console.endUpdate()
                     self.console.addLine("\nMISST> Invalid URL.")
                     self.import_file_button.configure(state=tkinter.NORMAL)
@@ -1060,10 +1062,16 @@ class MISSTapp(customtkinter.CTk):
                 self.console.endUpdate()
                 self.console.update("\nMISST> Downloading")
                 temp_dir = tempfile.mkdtemp()
-                cmd = f"{os.path.abspath('./Assets/Bin/spotdl.exe')} {url} --output {temp_dir} --ffmpeg ./ffmpeg.exe"
+                cmd = [os.path.abspath("./Assets/Bin/spotdl.exe"),
+                       url,
+                       "--output",
+                       temp_dir,
+                       "--ffmpeg",
+                       "./ffmpeg.exe"
+                       ]
                 process = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True, creationflags=0x08000000)
                 if process.returncode != 0:
-                    print(process.stderr)
+                    self.logger.error(process.stderr)
                     self.console.endUpdate()
                     self.console.addLine("\nMISST> Error downloading file.")
                     self.import_file_button.configure(state=tkinter.NORMAL)
@@ -1085,7 +1093,7 @@ class MISSTapp(customtkinter.CTk):
             elif self.import_Youtube_var.get() == "on":
                 self.import_file_button.configure(state=tkinter.DISABLED)
                 self.import_button.configure(state=tkinter.DISABLED)
-                if "https://music.youtube.com/watch?v=" and "https://www.youtube.com/watch?v=" not in url:
+                if "https://music.youtube.com/watch?v=" not in url and "https://www.youtube.com/watch?v=" not in url:
                     self.console.endUpdate()
                     self.console.addLine("\nMISST> Invalid URL.")
                     self.import_file_button.configure(state=tkinter.NORMAL)
@@ -1094,10 +1102,21 @@ class MISSTapp(customtkinter.CTk):
                 self.console.endUpdate()
                 self.console.update("\nMISST> Downloading")
                 temp_dir = tempfile.mkdtemp()
-                cmd = f"{os.path.abspath('./Assets/Bin/music-dl.exe')} -v -x --embed-thumbnail --audio-format flac -o {temp_dir}/%(title)s.%(ext)s {url} --ffmpeg-location ./ffmpeg.exe"
+                cmd = [os.path.abspath("./Assets/Bin/music-dl.exe"), 
+                       "-v", 
+                       "-x",
+                       "--embed-thumbnail",
+                       "--audio-format",
+                       "flac",
+                       "-o",
+                       f"{temp_dir}/%(title)s.%(ext)s",
+                       url,
+                       "--ffmpeg-location",
+                       "./ffmpeg.exe"
+                ] 
                 process = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True, creationflags=0x08000000)
                 if process.returncode != 0:
-                    print(process.stderr)
+                    self.logger.error(process.stderr)
                     self.console.endUpdate()
                     self.console.addLine("\nMISST> Error downloading file.")
                     self.import_file_button.configure(state=tkinter.NORMAL)
@@ -1131,6 +1150,7 @@ class MISSTapp(customtkinter.CTk):
                 try:
                     MISSThelpers.apple_music(url, temp_dir) # Download
                 except:
+                    self.logger.error(traceback.format_exc())
                     self.console.endUpdate()
                     self.console.addLine("\nMISST> Error downloading file.")
                     self.import_file_button.configure(state=tkinter.NORMAL)
@@ -1152,7 +1172,7 @@ class MISSTapp(customtkinter.CTk):
             elif self.import_Soundcloud_var.get() == "on":
                 self.import_file_button.configure(state=tkinter.DISABLED)
                 self.import_button.configure(state=tkinter.DISABLED)
-                if "soundcloud.com" not in url:
+                if "https://soundcloud.com" not in url:
                     self.console.endUpdate()
                     self.console.addLine("\nMISST> Invalid URL.")
                     self.import_file_button.configure(state=tkinter.NORMAL)
@@ -1161,10 +1181,22 @@ class MISSTapp(customtkinter.CTk):
                 self.console.endUpdate()
                 self.console.update("\nMISST> Downloading")
                 temp_dir = tempfile.mkdtemp()
-                cmd = f"{os.path.abspath('./Assets/Bin/music-dl.exe')} -v -x --embed-thumbnail --audio-format flac -o {temp_dir}/%(title)s.%(ext)s {url} --ffmpeg-location ./ffmpeg.exe"
+                cmd = [
+                    os.path.abspath("./Assets/Bin/music-dl.exe"),
+                    "-v",
+                    "-x",
+                    "--embed-thumbnail",
+                    "--audio-format",
+                    "flac",
+                    "-o",
+                    f"{temp_dir}/%(title)s.%(ext)s",
+                    url,
+                    "--ffmpeg-location",
+                    "./ffmpeg.exe"
+                ]
                 process = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True, creationflags=0x08000000)
                 if process.returncode != 0:
-                    print(process.stderr)
+                    self.logger.error(process.stderr)
                     self.console.endUpdate()
                     self.console.addLine("\nMISST> Error downloading file.")
                     self.import_file_button.configure(state=tkinter.NORMAL)

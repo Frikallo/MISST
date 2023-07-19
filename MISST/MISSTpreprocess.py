@@ -2,6 +2,8 @@ import concurrent.futures
 import logging
 import os
 import pathlib
+import time
+import traceback
 import wave
 
 import julius
@@ -12,7 +14,6 @@ import torch
 from demucs.apply import BagOfModels, apply_model
 from demucs.pretrained import get_model
 from MISSThelpers import MISSTconsole
-from MISSThelpers import MISSThelpers
 
 # Modified functions from https://github.com/facebookresearch/demucs, 
 #                         https://pytorch.org/audio/main/tutorials/hybrid_demucs_tutorial.html 
@@ -208,6 +209,8 @@ class MISSTpreprocess():
             logger (logging.Logger): Logger
             console (MISSTConsole): Console
         """
+        # Start the timer
+        start_time = time.time()
         split = int(split * sample_rate)
         overlap = int(overlap * split)
         logger.info("Loading file")
@@ -252,6 +255,8 @@ class MISSTpreprocess():
                 self.write_wav(torch.from_numpy(stem.transpose()), str(outpath / f"{stems[i]}.wav"), sample_rate)
                 self.compress_wav_to_flac(str(outpath / f"{stems[i]}.wav"), str(outpath / f"{stems[i]}.flac"))
                 self.apply_fade_in_out(str(outpath / f"{stems[i]}.flac"), str(outpath / f"{stems[i]}.flac"), 3.5)
+            logger.info("Wrote to %s" % str(outpath))
+            logger.info("Done in %.2f seconds" % (time.time() - start_time))
             console.endUpdate()
         else:
             pass
@@ -280,6 +285,7 @@ class MISSTpreprocess():
             del model # Free up memory
         except Exception as e:
             self.logger.error(e)
+            self.logger.error(traceback.format_exc())
             console.addLine("\nMISST> Error.")
             pass
         console.addLine("\nMISST> Done.")
