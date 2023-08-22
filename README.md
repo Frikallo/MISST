@@ -47,7 +47,12 @@ This project is OpenSource, feel free to use, study and/or send pull request.
 - [ ] Proper installer/updater (Not a priority)
 
 ## Installation
-As of version 3.1.0, MISST is only available on windows with guaranteed compatibility. Until a later release, if you are not on a windows device please refer to [Manual Installation](https://github.com/Frikallo/MISST/#manual-installation). Otherwise, refer to the latest [Release](https://github.com/Frikallo/MISST/releases/latest)
+As of version 3.1.0, MISST is only available on windows with guaranteed compatibility. 
+
+Until a later release : 
+- if you are **not on a windows device** please refer to [Manual Installation](https://github.com/Frikallo/MISST/#manual-installation).
+- if you are **using conda on MacOs** device please refer to [Manual Installation - MacOS](https://github.com/CAprogs/MISST/blob/main/Installation%20Guide%20-%20MacOS.md)
+-   Otherwise, refer to the latest [Release](https://github.com/Frikallo/MISST/releases/latest)
 
 ## Manual Installation
 These instructions are for those installing MISST v3.1.0 **manually** only.
