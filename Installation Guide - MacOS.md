@@ -2,15 +2,11 @@
 
 ## **Manual installation on Mac0S using miniconda3**
 
-### _**Nota Bene**_
-
 This worked for @[CAprogs](https://github.com/CAprogs) on a **MacbookPro 2021 M1 pro**. 
 #
 ## _**Follow these steps**_
-#
 if you don't have **MINICONDA** , you should install it using this [**link**](https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-arm64.pkg).
 
-Download **Discord** [**here**](https://discord.com/download). ( required to use the app )
 #
 For **Pyaudio** package you should install [**Homebrew**](https://github.com/Homebrew/brew/releases/latest) first.
 
