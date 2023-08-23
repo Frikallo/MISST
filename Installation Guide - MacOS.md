@@ -1,6 +1,7 @@
 # How to get started with MISST - MacOS
+
 ## **Manual installation on Mac0S using miniconda3**
-#
+
 ### _**Nota Bene**_
 
 This worked for @[CAprogs](https://github.com/CAprogs) on a **MacbookPro 2021 M1 pro**. 
@@ -47,11 +48,24 @@ conda install --file path/to/requirements.txt
 ```
 #
 At this point I encountered some `issues` when installing **packages** with `pip` / `conda`. ( All packages weren't installed )
-<p>Just run the following command ( inside the MISSTvenv ) ⬇️</p>
+#
+Before proceeding, please ensure that you have `Git` **installed** on your macOS system.
+- In your terminal, enter the following command ⬇️
+```
+git --version
+```
+1. If you see the **Git version** displayed, it means `Git` is **already installed** on your system, and you can proceed to the next step.
 
+2. If `Git` is **not installed**, you can install it using `Homebrew` ⬇️ ( See the Doumentation [**here**](https://git-scm.com/download/mac) )
 ```
-pip install customtkinter GPUtil music_tag psutil PILLOW pypresence lyrics_extractor demucs pyaudio soundfile scipy vcolorpicker
+brew install git
 ```
+#
+Now just run the following command ( inside the MISSTvenv ) ⬇️
+```
+pip install customtkinter git+https://github.com/Frikallo/gputil.git@master music_tag psutil PILLOW pypresence lyrics_extractor demucs pyaudio soundfile scipy vcolorpicker
+```
+
 Then **run** ( inside the MISSTvenv ) ⬇️
 ```
 conda install pyqt
