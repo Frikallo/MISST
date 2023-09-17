@@ -87,7 +87,7 @@ Here are the results of the test:
 
 ## Demo
 
-https://github.com/Frikallo/MISST/assets/88942100/8c7ed3c6-ed6d-4f12-bf90-9cb8b66fd675
+https://github.com/Frikallo/MISST/assets/88942100/15fb7ce3-9f83-4228-9ab0-f453593be632
 
 [Open in YouTube](https://www.youtube.com/watch?v=XYJm5WW9Zvs)
 
