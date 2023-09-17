@@ -29,7 +29,6 @@ from MISSTplayer import MISSTplayer
 from MISSTpreprocess import MISSTpreprocess
 from MISSTsettings import MISSTconfig, MISSTsettings
 from MISSTSetup import MISSTSetup
-# from MISSTupdate import MISSTupdater (commented out for now)
 from PIL import Image
 from pypresence import Presence
 
@@ -967,7 +966,7 @@ class MISSTapp(customtkinter.CTk):
         )
         self.return_button.place(relx=0.24, rely=0.95, anchor=tkinter.CENTER)
 
-        self.console = MISSTconsole(self.preprocess_terminal_text, "MISST Preprocessor\nCopyright (C) @Frikallo Corporation.\n")
+        self.console = MISSTconsole(self.preprocess_terminal_text, "MISST Preprocessor\nCopyright (C) @MISST App.\n")
         self.console.update("\nMISST> waiting")
 
     def retrieve_metadata(self, save_dir:str = None, temp_dir:str = None, file:str = None) -> None:
@@ -1021,7 +1020,7 @@ class MISSTapp(customtkinter.CTk):
         """
         Preprocesses a file.
         """
-        self.console.editLine(f"MISST Preprocessor\nCopyright (C) @Frikallo Corporation.\n", 0)
+        self.console.editLine(f"MISST Preprocessor\nCopyright (C) @MISST App.\n", 0)
         self.import_file_button.configure(state=tkinter.DISABLED)
         self.import_button.configure(state=tkinter.DISABLED)
         file = tkinter.filedialog.askopenfilename(initialdir = "/",title = "Select file",filetypes = (("mp3 files","*.mp3"),("wav files", "*.wav"),("flac files", "*.flac"),("all files","*.*")), multiple=False)
@@ -1048,7 +1047,7 @@ class MISSTapp(customtkinter.CTk):
         Args:
             url (str): The URL of the source to preprocess.
         """
-        self.console.editLine(f"MISST Preprocessor\nCopyright (C) @Frikallo Corporation.\n", 0)
+        self.console.editLine(f"MISST Preprocessor\nCopyright (C) @MISST App.\n", 0)
         if url != "":
             # Spotify Import
             if self.import_Spotify_var.get() == "on":

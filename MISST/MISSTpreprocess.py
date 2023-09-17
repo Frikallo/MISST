@@ -228,7 +228,7 @@ class MISSTpreprocess():
 
         def separation(i):
             logger.info("Separation %d/%d" % (i + 1, n))
-            console.editLine(f"MISST Preprocessor\nCopyright (C) @Frikallo Corporation.\n\nMISST> Split {i + 1}/{n} ({((i + 1)/n) * 100:.1f}%)", 0)
+            console.editLine(f"MISST Preprocessor\nCopyright (C) @MISST App.\n\nMISST> Split {i + 1}/{n} ({((i + 1)/n) * 100:.1f}%)", 0)
             l = i * (split - overlap)
             r = l + split
             result = self.Apply(model, torch.from_numpy(audio[:, l:r]).to(device))
@@ -272,7 +272,7 @@ class MISSTpreprocess():
             device (str): Device
         """
         self.logger.info(f"Preprocessing {file}...")
-        console = MISSTconsole(self.preprocess_terminal_text, "MISST Preprocessor\nCopyright (C) @Frikallo Corporation.\n")
+        console = MISSTconsole(self.preprocess_terminal_text, "MISST Preprocessor\nCopyright (C) @MISST App.\n")
         try:
             savename = os.path.basename(file).replace('.mp3', '').replace('.wav', '').replace('.flac', '')
             console.update("\nMISST> Loading model")

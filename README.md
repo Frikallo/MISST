@@ -85,6 +85,11 @@ Here are the results of the test:
 |------------------------------------------------------------------|---------------|-----------|-----------| --------- |
 | [Frank Ocean - Ivy](https://www.youtube.com/watch?v=AE005nZeF-A) | 4m 09.00s     | 2m 22.16s | 0m 28.04s | htdemucs  |
 
+## Demo
+
+https://github.com/Frikallo/MISST/assets/88942100/8c7ed3c6-ed6d-4f12-bf90-9cb8b66fd675
+[Open in YouTube](https://www.youtube.com/watch?v=XYJm5WW9Zvs)
+
 ## License
 
 The **MISST** code is [GPL-licensed](LICENSE). 
