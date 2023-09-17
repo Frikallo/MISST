@@ -59,36 +59,24 @@ brew install git
 #
 Now just run the following command ( inside the MISSTvenv ) ⬇️
 ```
+pip install -r requirements.txt                                 ( GPU )
+pip install -r requirements-minimal.txt                         ( CPU )
+```
+If that doesn't work, try installing the packages one by one ⬇️
+```
 pip install customtkinter git+https://github.com/Frikallo/gputil.git@master music_tag psutil PILLOW pypresence lyrics_extractor demucs pyaudio soundfile scipy vcolorpicker
+```
+Then install torch with or without `CUDA` ⬇️
+```
+pip install torch==2.0.1+cu117 torchaudio==2.0.2+cu117 torchvision==0.15.2+cu117 -f https://download.pytorch.org/whl/torch_stable.html
+```
+```
+pip install torch==2.0.1 torchvision==0.15.2 torchaudio==2.0.2
 ```
 
 Then **run** ( inside the MISSTvenv ) ⬇️
 ```
 conda install pyqt
-```
-#
-
-Now add these changes to **MISSTapp.py** code ⬇️
-
-- _`Line 94`_ remove "`default=`" ⬇️
-```Python
-self.iconbitmap (default=r"./Assets/icon.ico")
-```
-- _`Line 594`_  - _`600`_  corresponding to ⬇️
-```Python
-self.effects_checkbox = customtkinter.CTkSwitch(
-            master=self.center_frame,
-            text="Effects",
-            command=self.effects,
-            variable=self.nc_var,
-            onvalue="on",
-            offvalue="off",
-        )
-```
-- Add this line ⬇️
-
-```Python
-fg_color=["#FFFFFF", "#000000"]
 ```
 #
 - Enter the `MISSTapp.py` Folder ( replace with the real path )

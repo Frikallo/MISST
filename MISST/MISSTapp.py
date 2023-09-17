@@ -92,7 +92,7 @@ class MISSTapp(customtkinter.CTk):
 
         # configure window
         self.title("MISST")
-        self.iconbitmap(default=r"./Assets/icon.ico")
+        self.iconbitmap(r"./Assets/icon.ico")
         self.WIDTH = 755
         self.HEIGHT = 430
         #self.WIDTH = int(self.winfo_screenwidth() * 0.3932291666666667)
@@ -600,6 +600,7 @@ class MISSTapp(customtkinter.CTk):
             variable=self.nc_var,
             onvalue="on",
             offvalue="off",
+            fg_color=None
         )
         self.effects_checkbox.place(relx=0.5, rely=0.9, anchor=tkinter.CENTER)
         self.effects_checkbox.configure(state=tkinter.DISABLED)
@@ -1063,7 +1064,7 @@ class MISSTapp(customtkinter.CTk):
                 self.console.update("\nMISST> Downloading")
                 temp_dir = tempfile.mkdtemp()
                 cmd = [os.path.abspath("./Assets/Bin/spotdl.exe"),
-                       url,
+                       f"{url}",
                        "--output",
                        temp_dir,
                        "--ffmpeg",
@@ -1110,7 +1111,7 @@ class MISSTapp(customtkinter.CTk):
                        "flac",
                        "-o",
                        f"{temp_dir}/%(title)s.%(ext)s",
-                       url,
+                       f"{url}",
                        "--ffmpeg-location",
                        "./ffmpeg.exe"
                 ] 
@@ -1190,7 +1191,7 @@ class MISSTapp(customtkinter.CTk):
                     "flac",
                     "-o",
                     f"{temp_dir}/%(title)s.%(ext)s",
-                    url,
+                    f"{url}",
                     "--ffmpeg-location",
                     "./ffmpeg.exe"
                 ]
@@ -1455,8 +1456,8 @@ class MISSTapp(customtkinter.CTk):
 
         self.info_label = customtkinter.CTkLabel(
             master=self.settings_window,
-            text="Note: You must restart the app for changes to take effect.",
-            font=(self.FONT, -12),
+            text="Note: You may need to restart the app for changes to take effect.",
+            font=(self.FONT, -11),
             state=tkinter.DISABLED,
             height=10,
         )
